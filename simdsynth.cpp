@@ -58,6 +58,11 @@ struct Chord {
     float duration;  // Duration in seconds
 };
 
+// MIDI note to frequency conversion
+float midiToFreq(int midiNote) {
+    return 440.0f * powf(2.0f, (midiNote - 69) / 12.0f);
+}
+
 // Update amplitude and filter envelopes
 void updateEnvelopes(Voice* voices, int numVoices, float attackTime, float decayTime, float sampleRate, int sampleIndex, float currentTime) {
     float t = sampleIndex / sampleRate; // Time in seconds
@@ -264,7 +269,6 @@ int main() {
     filter.sampleRate = sampleRate;
 
     // Define Debussy-inspired chords (frequencies in Hz, MIDI note to Hz)
-    auto midiToFreq = [](int midiNote) { return 440.0f * powf(2.0f, (midiNote - 69) / 12.0f); };
     std::vector<Chord> chords = {
         // Chord 1: D♭ major 9 (D♭3, F3, A♭3, C4, E♭4)
         { { midiToFreq(49), midiToFreq(53), midiToFreq(56), midiToFreq(60), midiToFreq(63) }, 0.0f, 2.0f },
