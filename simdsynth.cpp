@@ -269,19 +269,22 @@ int main() {
     filter.sampleRate = sampleRate;
 
     // Define Debussy-inspired chords (frequencies in Hz, MIDI note to Hz)
-    std::vector<Chord> chords = {
-        // Chord 1: D♭ major 9 (D♭3, F3, A♭3, C4, E♭4)
-        { { midiToFreq(49), midiToFreq(53), midiToFreq(56), midiToFreq(60), midiToFreq(63) }, 0.0f, 2.0f },
-        // Chord 2: G♭ major 7 (G♭3, B♭3, D♭4, F4)
-        { { midiToFreq(54), midiToFreq(58), midiToFreq(61), midiToFreq(65) }, 2.0f, 2.0f },
-        // Chord 3: B♭ minor 7 (B♭3, D♭4, F4, A♭4)
-        { { midiToFreq(58), midiToFreq(61), midiToFreq(65), midiToFreq(68) }, 4.0f, 2.0f },
-        // Chord 4: F minor 9 (F3, A♭3, C4, E♭4, G4)
-        { { midiToFreq(53), midiToFreq(56), midiToFreq(60), midiToFreq(63), midiToFreq(67) }, 6.0f, 2.0f }
-    };
+    std::vector<Chord> chords;
+    chords.emplace_back(Chord{{midiToFreq(49), midiToFreq(53), midiToFreq(56), midiToFreq(60), midiToFreq(63)}, 0.0f, 2.0f});  // D♭ major 9
+    chords.emplace_back(Chord{{midiToFreq(54), midiToFreq(58), midiToFreq(61), midiToFreq(65)}, 2.0f, 2.0f});           // G♭ major 7
+    chords.emplace_back(Chord{{midiToFreq(58), midiToFreq(61), midiToFreq(65), midiToFreq(68)}, 4.0f, 2.0f});           // B♭ minor 7
+    chords.emplace_back(Chord{{midiToFreq(53), midiToFreq(56), midiToFreq(60), midiToFreq(63), midiToFreq(67)}, 6.0f, 2.0f}); // F minor 9
+    chords.emplace_back(Chord{{midiToFreq(56), midiToFreq(60), midiToFreq(63), midiToFreq(67)}, 8.0f, 2.0f});           // A♭ major 7
+    chords.emplace_back(Chord{{midiToFreq(51), midiToFreq(55), midiToFreq(58), midiToFreq(62), midiToFreq(65)}, 10.0f, 2.0f}); // E♭ major 9
+    chords.emplace_back(Chord{{midiToFreq(60), midiToFreq(63), midiToFreq(67), midiToFreq(70)}, 12.0f, 2.0f});          // C minor 7
+    chords.emplace_back(Chord{{midiToFreq(54), midiToFreq(58), midiToFreq(61), midiToFreq(65), midiToFreq(68)}, 14.0f, 2.0f}); // G♭ major 9
+    chords.emplace_back(Chord{{midiToFreq(61), midiToFreq(65), midiToFreq(68), midiToFreq(72)}, 16.0f, 2.0f});          // D♭ major 7
+    chords.emplace_back(Chord{{midiToFreq(58), midiToFreq(61), midiToFreq(65), midiToFreq(68), midiToFreq(72)}, 18.0f, 2.0f}); // B♭ minor 9
+    chords.emplace_back(Chord{{midiToFreq(53), midiToFreq(56), midiToFreq(60), midiToFreq(63)}, 20.0f, 2.0f});          // F minor 7
+    chords.emplace_back(Chord{{midiToFreq(56), midiToFreq(60), midiToFreq(63), midiToFreq(67), midiToFreq(70)}, 22.0f, 2.0f}); // A♭ major 9
 
-    // Generate 8 seconds of audio
-    int numSamples = static_cast<int>(8.0f * sampleRate);
+    // Generate 24 seconds of audio
+    int numSamples = static_cast<int>(24.0f * sampleRate);
     generateSineSamples(voices, numSamples, filter, chords);
 
     return 0;
