@@ -23,7 +23,7 @@ FetchContent_MakeAvailable(juce)
 juce_add_plugin(SimdSynth
     VERSION "1.0.0"
     COMPANY_NAME "seclorum"
-    PLUGIN_MANUFACTURER_CODE "sclr"
+    PLUGIN_MANUFACTURER_CODE "SCLR"
     PLUGIN_CODE "SmSy"
     FORMATS AU VST3 Standalone
     PRODUCT_NAME "SimdSynth"
@@ -32,6 +32,11 @@ juce_add_plugin(SimdSynth
     NEEDS_MIDI_OUTPUT FALSE
     IS_MIDI_EFFECT FALSE
 )
+
+# Add the generated header path (e.g., JuceHeader.h)
+juce_generate_juce_header(SimdSynth)
+target_include_directories(SimdSynth PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(SimdSynth INTERFACE ${juce_generated_headers_directory})
 
 # Source files
 target_sources(SimdSynth
