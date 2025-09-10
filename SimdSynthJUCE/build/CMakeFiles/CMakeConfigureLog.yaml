@@ -1,0 +1,2101 @@
+
+---
+events:
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineSystem.cmake:12 (find_program)"
+      - "CMakeLists.txt:3 (project)"
+    mode: "program"
+    variable: "CMAKE_UNAME"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "uname"
+    candidate_directories:
+      - "/opt/homebrew/opt/gnupg@2.2/bin/"
+      - "/Users/jayvaughan/.pyenv/shims/"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/"
+      - "/opt/homebrew/opt/lua@5.3/bin/"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/"
+      - "/opt/homebrew/opt/openjdk/bin/"
+      - "/opt/homebrew/sbin/"
+      - "/Users/jayvaughan/bin/"
+      - "/usr/local/bin/"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/"
+      - "/opt/homebrew/bin/"
+      - "/System/Cryptexes/App/usr/bin/"
+      - "/usr/bin/"
+      - "/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/X11/bin/"
+      - "/Library/Apple/usr/bin/"
+      - "/usr/local/share/dotnet/"
+      - "/Users/jayvaughan/.dotnet/tools/"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/"
+    searched_directories:
+      - "/opt/homebrew/opt/gnupg@2.2/bin/uname"
+      - "/Users/jayvaughan/.pyenv/shims/uname"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/uname"
+      - "/opt/homebrew/opt/lua@5.3/bin/uname"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/uname"
+      - "/opt/homebrew/opt/openjdk/bin/uname"
+      - "/opt/homebrew/sbin/uname"
+      - "/Users/jayvaughan/bin/uname"
+      - "/usr/local/bin/uname"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/uname"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/uname"
+      - "/opt/homebrew/bin/uname"
+      - "/System/Cryptexes/App/usr/bin/uname"
+    found: "/usr/bin/uname"
+    search_context:
+      ENV{PATH}:
+        - "/opt/homebrew/opt/gnupg@2.2/bin"
+        - "/Users/jayvaughan/.pyenv/shims"
+        - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin"
+        - "/opt/homebrew/opt/lua@5.3/bin"
+        - "/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin"
+        - "/opt/homebrew/opt/openjdk/bin"
+        - "/opt/homebrew/sbin"
+        - "/Users/jayvaughan/bin"
+        - "/usr/local/bin"
+        - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu//bin"
+        - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin"
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/X11/bin"
+        - "/Library/Apple/usr/bin"
+        - "/usr/local/share/dotnet"
+        - "~/.dotnet/tools"
+        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+        - "/Applications/iTerm.app/Contents/Resources/utilities"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+        - "/Users/jayvaughan/Library/Android/sdk/emulator"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineSystem.cmake:212 (message)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      The system is: Darwin - 23.6.0 - arm64
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeUnixFindMake.cmake:5 (find_program)"
+      - "CMakeLists.txt:3 (project)"
+    mode: "program"
+    variable: "CMAKE_MAKE_PROGRAM"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "gmake"
+      - "make"
+      - "smake"
+    candidate_directories:
+      - "/opt/homebrew/opt/gnupg@2.2/bin/"
+      - "/Users/jayvaughan/.pyenv/shims/"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/"
+      - "/opt/homebrew/opt/lua@5.3/bin/"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/"
+      - "/opt/homebrew/opt/openjdk/bin/"
+      - "/opt/homebrew/sbin/"
+      - "/Users/jayvaughan/bin/"
+      - "/usr/local/bin/"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/"
+      - "/opt/homebrew/bin/"
+      - "/System/Cryptexes/App/usr/bin/"
+      - "/usr/bin/"
+      - "/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/X11/bin/"
+      - "/Library/Apple/usr/bin/"
+      - "/usr/local/share/dotnet/"
+      - "/Users/jayvaughan/.dotnet/tools/"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/"
+    searched_directories:
+      - "/opt/homebrew/opt/gnupg@2.2/bin/gmake"
+      - "/Users/jayvaughan/.pyenv/shims/gmake"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/gmake"
+      - "/opt/homebrew/opt/lua@5.3/bin/gmake"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/gmake"
+      - "/opt/homebrew/opt/openjdk/bin/gmake"
+      - "/opt/homebrew/sbin/gmake"
+      - "/Users/jayvaughan/bin/gmake"
+      - "/usr/local/bin/gmake"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/gmake"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/gmake"
+      - "/opt/homebrew/bin/gmake"
+      - "/System/Cryptexes/App/usr/bin/gmake"
+      - "/usr/bin/gmake"
+      - "/bin/gmake"
+      - "/usr/sbin/gmake"
+      - "/sbin/gmake"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/gmake"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/gmake"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/gmake"
+      - "/opt/X11/bin/gmake"
+      - "/Library/Apple/usr/bin/gmake"
+      - "/usr/local/share/dotnet/gmake"
+      - "/Users/jayvaughan/.dotnet/tools/gmake"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/gmake"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/gmake"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/gmake"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/gmake"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/gmake"
+      - "/opt/homebrew/opt/gnupg@2.2/bin/make"
+      - "/Users/jayvaughan/.pyenv/shims/make"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/make"
+      - "/opt/homebrew/opt/lua@5.3/bin/make"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/make"
+      - "/opt/homebrew/opt/openjdk/bin/make"
+      - "/opt/homebrew/sbin/make"
+      - "/Users/jayvaughan/bin/make"
+      - "/usr/local/bin/make"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/make"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/make"
+      - "/opt/homebrew/bin/make"
+      - "/System/Cryptexes/App/usr/bin/make"
+    found: "/usr/bin/make"
+    search_context:
+      ENV{PATH}:
+        - "/opt/homebrew/opt/gnupg@2.2/bin"
+        - "/Users/jayvaughan/.pyenv/shims"
+        - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin"
+        - "/opt/homebrew/opt/lua@5.3/bin"
+        - "/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin"
+        - "/opt/homebrew/opt/openjdk/bin"
+        - "/opt/homebrew/sbin"
+        - "/Users/jayvaughan/bin"
+        - "/usr/local/bin"
+        - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu//bin"
+        - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin"
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/X11/bin"
+        - "/Library/Apple/usr/bin"
+        - "/usr/local/share/dotnet"
+        - "~/.dotnet/tools"
+        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+        - "/Applications/iTerm.app/Contents/Resources/utilities"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+        - "/Users/jayvaughan/Library/Android/sdk/emulator"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompiler.cmake:73 (find_program)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:69 (_cmake_find_compiler)"
+      - "CMakeLists.txt:3 (project)"
+    mode: "program"
+    variable: "CMAKE_CXX_COMPILER"
+    description: "CXX compiler"
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "c++"
+      - "g++"
+      - "cl"
+      - "bcc"
+      - "icpx"
+      - "icx"
+      - "clang++"
+    candidate_directories:
+      - "/opt/homebrew/opt/gnupg@2.2/bin/"
+      - "/Users/jayvaughan/.pyenv/shims/"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/"
+      - "/opt/homebrew/opt/lua@5.3/bin/"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/"
+      - "/opt/homebrew/opt/openjdk/bin/"
+      - "/opt/homebrew/sbin/"
+      - "/Users/jayvaughan/bin/"
+      - "/usr/local/bin/"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/"
+      - "/opt/homebrew/bin/"
+      - "/System/Cryptexes/App/usr/bin/"
+      - "/usr/bin/"
+      - "/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/X11/bin/"
+      - "/Library/Apple/usr/bin/"
+      - "/usr/local/share/dotnet/"
+      - "/Users/jayvaughan/.dotnet/tools/"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/"
+    searched_directories:
+      - "/opt/homebrew/opt/gnupg@2.2/bin/c++"
+      - "/Users/jayvaughan/.pyenv/shims/c++"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/c++"
+      - "/opt/homebrew/opt/lua@5.3/bin/c++"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/c++"
+      - "/opt/homebrew/opt/openjdk/bin/c++"
+      - "/opt/homebrew/sbin/c++"
+      - "/Users/jayvaughan/bin/c++"
+      - "/usr/local/bin/c++"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/c++"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/c++"
+      - "/opt/homebrew/bin/c++"
+      - "/System/Cryptexes/App/usr/bin/c++"
+    found: "/usr/bin/c++"
+    search_context:
+      ENV{PATH}:
+        - "/opt/homebrew/opt/gnupg@2.2/bin"
+        - "/Users/jayvaughan/.pyenv/shims"
+        - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin"
+        - "/opt/homebrew/opt/lua@5.3/bin"
+        - "/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin"
+        - "/opt/homebrew/opt/openjdk/bin"
+        - "/opt/homebrew/sbin"
+        - "/Users/jayvaughan/bin"
+        - "/usr/local/bin"
+        - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu//bin"
+        - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin"
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/X11/bin"
+        - "/Library/Apple/usr/bin"
+        - "/usr/local/share/dotnet"
+        - "~/.dotnet/tools"
+        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+        - "/Applications/iTerm.app/Contents/Resources/utilities"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+        - "/Users/jayvaughan/Library/Android/sdk/emulator"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:462 (find_file)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:500 (CMAKE_DETERMINE_COMPILER_ID_WRITE)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:8 (CMAKE_DETERMINE_COMPILER_ID_BUILD)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:125 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:3 (project)"
+    mode: "file"
+    variable: "src_in"
+    description: "Path to a file."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "CMakeCXXCompilerId.cpp.in"
+    candidate_directories:
+      - "/opt/homebrew/share/cmake/Modules/"
+    found: "/opt/homebrew/share/cmake/Modules/CMakeCXXCompilerId.cpp.in"
+    search_context:
+      ENV{PATH}:
+        - "/opt/homebrew/opt/gnupg@2.2/bin"
+        - "/Users/jayvaughan/.pyenv/shims"
+        - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin"
+        - "/opt/homebrew/opt/lua@5.3/bin"
+        - "/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin"
+        - "/opt/homebrew/opt/openjdk/bin"
+        - "/opt/homebrew/sbin"
+        - "/Users/jayvaughan/bin"
+        - "/usr/local/bin"
+        - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu//bin"
+        - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin"
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/X11/bin"
+        - "/Library/Apple/usr/bin"
+        - "/usr/local/share/dotnet"
+        - "~/.dotnet/tools"
+        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+        - "/Applications/iTerm.app/Contents/Resources/utilities"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+        - "/Users/jayvaughan/Library/Android/sdk/emulator"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:17 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:64 (__determine_compiler_id_test)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:125 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
+      Compiler: /usr/bin/c++ 
+      Build flags: -arch;arm64;-arch;x86_64
+      Id flags:  
+      
+      The output was:
+      0
+      
+      
+      Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
+      
+      The CXX compiler identification is AppleClang, found in:
+        /Users/jayvaughan/Documents/Development/Lab/simdsynth/SimdSynth/build/CMakeFiles/4.1.1/CompilerIdCXX/a.out
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerId.cmake:290 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:125 (CMAKE_DETERMINE_COMPILER_ID)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Detecting CXX compiler apple sysroot: "/usr/bin/c++" "-arch" "arm64" "-arch" "x86_64" "-E" "apple-sdk.cpp"
+        clang++: error: cannot use 'c++-cpp-output' output with multiple -arch options
+        
+      No apple sysroot found.
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:3 (project)"
+    mode: "program"
+    variable: "CMAKE_AR"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "ar"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/homebrew/opt/gnupg@2.2/bin/"
+      - "/Users/jayvaughan/.pyenv/shims/"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/"
+      - "/opt/homebrew/opt/lua@5.3/bin/"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/"
+      - "/opt/homebrew/opt/openjdk/bin/"
+      - "/opt/homebrew/sbin/"
+      - "/Users/jayvaughan/bin/"
+      - "/usr/local/bin/"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/"
+      - "/opt/homebrew/bin/"
+      - "/System/Cryptexes/App/usr/bin/"
+      - "/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/X11/bin/"
+      - "/Library/Apple/usr/bin/"
+      - "/usr/local/share/dotnet/"
+      - "/Users/jayvaughan/.dotnet/tools/"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/"
+    found: "/usr/bin/ar"
+    search_context:
+      ENV{PATH}:
+        - "/opt/homebrew/opt/gnupg@2.2/bin"
+        - "/Users/jayvaughan/.pyenv/shims"
+        - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin"
+        - "/opt/homebrew/opt/lua@5.3/bin"
+        - "/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin"
+        - "/opt/homebrew/opt/openjdk/bin"
+        - "/opt/homebrew/sbin"
+        - "/Users/jayvaughan/bin"
+        - "/usr/local/bin"
+        - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu//bin"
+        - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin"
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/X11/bin"
+        - "/Library/Apple/usr/bin"
+        - "/usr/local/share/dotnet"
+        - "~/.dotnet/tools"
+        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+        - "/Applications/iTerm.app/Contents/Resources/utilities"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+        - "/Users/jayvaughan/Library/Android/sdk/emulator"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:3 (project)"
+    mode: "program"
+    variable: "CMAKE_RANLIB"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "ranlib"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/homebrew/opt/gnupg@2.2/bin/"
+      - "/Users/jayvaughan/.pyenv/shims/"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/"
+      - "/opt/homebrew/opt/lua@5.3/bin/"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/"
+      - "/opt/homebrew/opt/openjdk/bin/"
+      - "/opt/homebrew/sbin/"
+      - "/Users/jayvaughan/bin/"
+      - "/usr/local/bin/"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/"
+      - "/opt/homebrew/bin/"
+      - "/System/Cryptexes/App/usr/bin/"
+      - "/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/X11/bin/"
+      - "/Library/Apple/usr/bin/"
+      - "/usr/local/share/dotnet/"
+      - "/Users/jayvaughan/.dotnet/tools/"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/"
+    found: "/usr/bin/ranlib"
+    search_context:
+      ENV{PATH}:
+        - "/opt/homebrew/opt/gnupg@2.2/bin"
+        - "/Users/jayvaughan/.pyenv/shims"
+        - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin"
+        - "/opt/homebrew/opt/lua@5.3/bin"
+        - "/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin"
+        - "/opt/homebrew/opt/openjdk/bin"
+        - "/opt/homebrew/sbin"
+        - "/Users/jayvaughan/bin"
+        - "/usr/local/bin"
+        - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu//bin"
+        - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin"
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/X11/bin"
+        - "/Library/Apple/usr/bin"
+        - "/usr/local/share/dotnet"
+        - "~/.dotnet/tools"
+        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+        - "/Applications/iTerm.app/Contents/Resources/utilities"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+        - "/Users/jayvaughan/Library/Android/sdk/emulator"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:3 (project)"
+    mode: "program"
+    variable: "CMAKE_STRIP"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "strip"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/homebrew/opt/gnupg@2.2/bin/"
+      - "/Users/jayvaughan/.pyenv/shims/"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/"
+      - "/opt/homebrew/opt/lua@5.3/bin/"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/"
+      - "/opt/homebrew/opt/openjdk/bin/"
+      - "/opt/homebrew/sbin/"
+      - "/Users/jayvaughan/bin/"
+      - "/usr/local/bin/"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/"
+      - "/opt/homebrew/bin/"
+      - "/System/Cryptexes/App/usr/bin/"
+      - "/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/X11/bin/"
+      - "/Library/Apple/usr/bin/"
+      - "/usr/local/share/dotnet/"
+      - "/Users/jayvaughan/.dotnet/tools/"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/"
+    found: "/usr/bin/strip"
+    search_context:
+      ENV{PATH}:
+        - "/opt/homebrew/opt/gnupg@2.2/bin"
+        - "/Users/jayvaughan/.pyenv/shims"
+        - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin"
+        - "/opt/homebrew/opt/lua@5.3/bin"
+        - "/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin"
+        - "/opt/homebrew/opt/openjdk/bin"
+        - "/opt/homebrew/sbin"
+        - "/Users/jayvaughan/bin"
+        - "/usr/local/bin"
+        - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu//bin"
+        - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin"
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/X11/bin"
+        - "/Library/Apple/usr/bin"
+        - "/usr/local/share/dotnet"
+        - "~/.dotnet/tools"
+        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+        - "/Applications/iTerm.app/Contents/Resources/utilities"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+        - "/Users/jayvaughan/Library/Android/sdk/emulator"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:3 (project)"
+    mode: "program"
+    variable: "CMAKE_LINKER"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "ld"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/homebrew/opt/gnupg@2.2/bin/"
+      - "/Users/jayvaughan/.pyenv/shims/"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/"
+      - "/opt/homebrew/opt/lua@5.3/bin/"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/"
+      - "/opt/homebrew/opt/openjdk/bin/"
+      - "/opt/homebrew/sbin/"
+      - "/Users/jayvaughan/bin/"
+      - "/usr/local/bin/"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/"
+      - "/opt/homebrew/bin/"
+      - "/System/Cryptexes/App/usr/bin/"
+      - "/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/X11/bin/"
+      - "/Library/Apple/usr/bin/"
+      - "/usr/local/share/dotnet/"
+      - "/Users/jayvaughan/.dotnet/tools/"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/"
+    found: "/usr/bin/ld"
+    search_context:
+      ENV{PATH}:
+        - "/opt/homebrew/opt/gnupg@2.2/bin"
+        - "/Users/jayvaughan/.pyenv/shims"
+        - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin"
+        - "/opt/homebrew/opt/lua@5.3/bin"
+        - "/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin"
+        - "/opt/homebrew/opt/openjdk/bin"
+        - "/opt/homebrew/sbin"
+        - "/Users/jayvaughan/bin"
+        - "/usr/local/bin"
+        - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu//bin"
+        - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin"
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/X11/bin"
+        - "/Library/Apple/usr/bin"
+        - "/usr/local/share/dotnet"
+        - "~/.dotnet/tools"
+        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+        - "/Applications/iTerm.app/Contents/Resources/utilities"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+        - "/Users/jayvaughan/Library/Android/sdk/emulator"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:3 (project)"
+    mode: "program"
+    variable: "CMAKE_NM"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "nm"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/homebrew/opt/gnupg@2.2/bin/"
+      - "/Users/jayvaughan/.pyenv/shims/"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/"
+      - "/opt/homebrew/opt/lua@5.3/bin/"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/"
+      - "/opt/homebrew/opt/openjdk/bin/"
+      - "/opt/homebrew/sbin/"
+      - "/Users/jayvaughan/bin/"
+      - "/usr/local/bin/"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/"
+      - "/opt/homebrew/bin/"
+      - "/System/Cryptexes/App/usr/bin/"
+      - "/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/X11/bin/"
+      - "/Library/Apple/usr/bin/"
+      - "/usr/local/share/dotnet/"
+      - "/Users/jayvaughan/.dotnet/tools/"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/"
+    found: "/usr/bin/nm"
+    search_context:
+      ENV{PATH}:
+        - "/opt/homebrew/opt/gnupg@2.2/bin"
+        - "/Users/jayvaughan/.pyenv/shims"
+        - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin"
+        - "/opt/homebrew/opt/lua@5.3/bin"
+        - "/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin"
+        - "/opt/homebrew/opt/openjdk/bin"
+        - "/opt/homebrew/sbin"
+        - "/Users/jayvaughan/bin"
+        - "/usr/local/bin"
+        - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu//bin"
+        - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin"
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/X11/bin"
+        - "/Library/Apple/usr/bin"
+        - "/usr/local/share/dotnet"
+        - "~/.dotnet/tools"
+        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+        - "/Applications/iTerm.app/Contents/Resources/utilities"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+        - "/Users/jayvaughan/Library/Android/sdk/emulator"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:3 (project)"
+    mode: "program"
+    variable: "CMAKE_OBJDUMP"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "objdump"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/homebrew/opt/gnupg@2.2/bin/"
+      - "/Users/jayvaughan/.pyenv/shims/"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/"
+      - "/opt/homebrew/opt/lua@5.3/bin/"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/"
+      - "/opt/homebrew/opt/openjdk/bin/"
+      - "/opt/homebrew/sbin/"
+      - "/Users/jayvaughan/bin/"
+      - "/usr/local/bin/"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/"
+      - "/opt/homebrew/bin/"
+      - "/System/Cryptexes/App/usr/bin/"
+      - "/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/X11/bin/"
+      - "/Library/Apple/usr/bin/"
+      - "/usr/local/share/dotnet/"
+      - "/Users/jayvaughan/.dotnet/tools/"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/"
+    found: "/usr/bin/objdump"
+    search_context:
+      ENV{PATH}:
+        - "/opt/homebrew/opt/gnupg@2.2/bin"
+        - "/Users/jayvaughan/.pyenv/shims"
+        - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin"
+        - "/opt/homebrew/opt/lua@5.3/bin"
+        - "/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin"
+        - "/opt/homebrew/opt/openjdk/bin"
+        - "/opt/homebrew/sbin"
+        - "/Users/jayvaughan/bin"
+        - "/usr/local/bin"
+        - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu//bin"
+        - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin"
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/X11/bin"
+        - "/Library/Apple/usr/bin"
+        - "/usr/local/share/dotnet"
+        - "~/.dotnet/tools"
+        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+        - "/Applications/iTerm.app/Contents/Resources/utilities"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+        - "/Users/jayvaughan/Library/Android/sdk/emulator"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:3 (project)"
+    mode: "program"
+    variable: "CMAKE_OBJCOPY"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "objcopy"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/homebrew/opt/gnupg@2.2/bin/"
+      - "/Users/jayvaughan/.pyenv/shims/"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/"
+      - "/opt/homebrew/opt/lua@5.3/bin/"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/"
+      - "/opt/homebrew/opt/openjdk/bin/"
+      - "/opt/homebrew/sbin/"
+      - "/Users/jayvaughan/bin/"
+      - "/usr/local/bin/"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/"
+      - "/opt/homebrew/bin/"
+      - "/System/Cryptexes/App/usr/bin/"
+      - "/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/X11/bin/"
+      - "/Library/Apple/usr/bin/"
+      - "/usr/local/share/dotnet/"
+      - "/Users/jayvaughan/.dotnet/tools/"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/"
+    searched_directories:
+      - "/usr/bin/objcopy"
+      - "/opt/homebrew/opt/gnupg@2.2/bin/objcopy"
+      - "/Users/jayvaughan/.pyenv/shims/objcopy"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/objcopy"
+      - "/opt/homebrew/opt/lua@5.3/bin/objcopy"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/objcopy"
+      - "/opt/homebrew/opt/openjdk/bin/objcopy"
+      - "/opt/homebrew/sbin/objcopy"
+      - "/Users/jayvaughan/bin/objcopy"
+      - "/usr/local/bin/objcopy"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/objcopy"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/objcopy"
+      - "/opt/homebrew/bin/objcopy"
+      - "/System/Cryptexes/App/usr/bin/objcopy"
+      - "/bin/objcopy"
+      - "/usr/sbin/objcopy"
+      - "/sbin/objcopy"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/objcopy"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/objcopy"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/objcopy"
+      - "/opt/X11/bin/objcopy"
+      - "/Library/Apple/usr/bin/objcopy"
+      - "/usr/local/share/dotnet/objcopy"
+      - "/Users/jayvaughan/.dotnet/tools/objcopy"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/objcopy"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/objcopy"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/objcopy"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/objcopy"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/objcopy"
+    found: false
+    search_context:
+      ENV{PATH}:
+        - "/opt/homebrew/opt/gnupg@2.2/bin"
+        - "/Users/jayvaughan/.pyenv/shims"
+        - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin"
+        - "/opt/homebrew/opt/lua@5.3/bin"
+        - "/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin"
+        - "/opt/homebrew/opt/openjdk/bin"
+        - "/opt/homebrew/sbin"
+        - "/Users/jayvaughan/bin"
+        - "/usr/local/bin"
+        - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu//bin"
+        - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin"
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/X11/bin"
+        - "/Library/Apple/usr/bin"
+        - "/usr/local/share/dotnet"
+        - "~/.dotnet/tools"
+        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+        - "/Applications/iTerm.app/Contents/Resources/utilities"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+        - "/Users/jayvaughan/Library/Android/sdk/emulator"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:3 (project)"
+    mode: "program"
+    variable: "CMAKE_READELF"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "readelf"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/homebrew/opt/gnupg@2.2/bin/"
+      - "/Users/jayvaughan/.pyenv/shims/"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/"
+      - "/opt/homebrew/opt/lua@5.3/bin/"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/"
+      - "/opt/homebrew/opt/openjdk/bin/"
+      - "/opt/homebrew/sbin/"
+      - "/Users/jayvaughan/bin/"
+      - "/usr/local/bin/"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/"
+      - "/opt/homebrew/bin/"
+      - "/System/Cryptexes/App/usr/bin/"
+      - "/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/X11/bin/"
+      - "/Library/Apple/usr/bin/"
+      - "/usr/local/share/dotnet/"
+      - "/Users/jayvaughan/.dotnet/tools/"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/"
+    searched_directories:
+      - "/usr/bin/readelf"
+      - "/opt/homebrew/opt/gnupg@2.2/bin/readelf"
+      - "/Users/jayvaughan/.pyenv/shims/readelf"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/readelf"
+      - "/opt/homebrew/opt/lua@5.3/bin/readelf"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/readelf"
+      - "/opt/homebrew/opt/openjdk/bin/readelf"
+      - "/opt/homebrew/sbin/readelf"
+      - "/Users/jayvaughan/bin/readelf"
+      - "/usr/local/bin/readelf"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/readelf"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/readelf"
+      - "/opt/homebrew/bin/readelf"
+      - "/System/Cryptexes/App/usr/bin/readelf"
+      - "/bin/readelf"
+      - "/usr/sbin/readelf"
+      - "/sbin/readelf"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/readelf"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/readelf"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/readelf"
+      - "/opt/X11/bin/readelf"
+      - "/Library/Apple/usr/bin/readelf"
+      - "/usr/local/share/dotnet/readelf"
+      - "/Users/jayvaughan/.dotnet/tools/readelf"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/readelf"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/readelf"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/readelf"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/readelf"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/readelf"
+    found: false
+    search_context:
+      ENV{PATH}:
+        - "/opt/homebrew/opt/gnupg@2.2/bin"
+        - "/Users/jayvaughan/.pyenv/shims"
+        - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin"
+        - "/opt/homebrew/opt/lua@5.3/bin"
+        - "/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin"
+        - "/opt/homebrew/opt/openjdk/bin"
+        - "/opt/homebrew/sbin"
+        - "/Users/jayvaughan/bin"
+        - "/usr/local/bin"
+        - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu//bin"
+        - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin"
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/X11/bin"
+        - "/Library/Apple/usr/bin"
+        - "/usr/local/share/dotnet"
+        - "~/.dotnet/tools"
+        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+        - "/Applications/iTerm.app/Contents/Resources/utilities"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+        - "/Users/jayvaughan/Library/Android/sdk/emulator"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:3 (project)"
+    mode: "program"
+    variable: "CMAKE_DLLTOOL"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "dlltool"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/homebrew/opt/gnupg@2.2/bin/"
+      - "/Users/jayvaughan/.pyenv/shims/"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/"
+      - "/opt/homebrew/opt/lua@5.3/bin/"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/"
+      - "/opt/homebrew/opt/openjdk/bin/"
+      - "/opt/homebrew/sbin/"
+      - "/Users/jayvaughan/bin/"
+      - "/usr/local/bin/"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/"
+      - "/opt/homebrew/bin/"
+      - "/System/Cryptexes/App/usr/bin/"
+      - "/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/X11/bin/"
+      - "/Library/Apple/usr/bin/"
+      - "/usr/local/share/dotnet/"
+      - "/Users/jayvaughan/.dotnet/tools/"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/"
+    searched_directories:
+      - "/usr/bin/dlltool"
+      - "/opt/homebrew/opt/gnupg@2.2/bin/dlltool"
+      - "/Users/jayvaughan/.pyenv/shims/dlltool"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/dlltool"
+      - "/opt/homebrew/opt/lua@5.3/bin/dlltool"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/dlltool"
+      - "/opt/homebrew/opt/openjdk/bin/dlltool"
+      - "/opt/homebrew/sbin/dlltool"
+      - "/Users/jayvaughan/bin/dlltool"
+      - "/usr/local/bin/dlltool"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/dlltool"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/dlltool"
+      - "/opt/homebrew/bin/dlltool"
+      - "/System/Cryptexes/App/usr/bin/dlltool"
+      - "/bin/dlltool"
+      - "/usr/sbin/dlltool"
+      - "/sbin/dlltool"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/dlltool"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/dlltool"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/dlltool"
+      - "/opt/X11/bin/dlltool"
+      - "/Library/Apple/usr/bin/dlltool"
+      - "/usr/local/share/dotnet/dlltool"
+      - "/Users/jayvaughan/.dotnet/tools/dlltool"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/dlltool"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/dlltool"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/dlltool"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/dlltool"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/dlltool"
+    found: false
+    search_context:
+      ENV{PATH}:
+        - "/opt/homebrew/opt/gnupg@2.2/bin"
+        - "/Users/jayvaughan/.pyenv/shims"
+        - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin"
+        - "/opt/homebrew/opt/lua@5.3/bin"
+        - "/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin"
+        - "/opt/homebrew/opt/openjdk/bin"
+        - "/opt/homebrew/sbin"
+        - "/Users/jayvaughan/bin"
+        - "/usr/local/bin"
+        - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu//bin"
+        - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin"
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/X11/bin"
+        - "/Library/Apple/usr/bin"
+        - "/usr/local/share/dotnet"
+        - "~/.dotnet/tools"
+        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+        - "/Applications/iTerm.app/Contents/Resources/utilities"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+        - "/Users/jayvaughan/Library/Android/sdk/emulator"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:3 (project)"
+    mode: "program"
+    variable: "CMAKE_ADDR2LINE"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "addr2line"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/homebrew/opt/gnupg@2.2/bin/"
+      - "/Users/jayvaughan/.pyenv/shims/"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/"
+      - "/opt/homebrew/opt/lua@5.3/bin/"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/"
+      - "/opt/homebrew/opt/openjdk/bin/"
+      - "/opt/homebrew/sbin/"
+      - "/Users/jayvaughan/bin/"
+      - "/usr/local/bin/"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/"
+      - "/opt/homebrew/bin/"
+      - "/System/Cryptexes/App/usr/bin/"
+      - "/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/X11/bin/"
+      - "/Library/Apple/usr/bin/"
+      - "/usr/local/share/dotnet/"
+      - "/Users/jayvaughan/.dotnet/tools/"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/"
+    searched_directories:
+      - "/usr/bin/addr2line"
+      - "/opt/homebrew/opt/gnupg@2.2/bin/addr2line"
+      - "/Users/jayvaughan/.pyenv/shims/addr2line"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/addr2line"
+      - "/opt/homebrew/opt/lua@5.3/bin/addr2line"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/addr2line"
+      - "/opt/homebrew/opt/openjdk/bin/addr2line"
+      - "/opt/homebrew/sbin/addr2line"
+      - "/Users/jayvaughan/bin/addr2line"
+      - "/usr/local/bin/addr2line"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/addr2line"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/addr2line"
+      - "/opt/homebrew/bin/addr2line"
+      - "/System/Cryptexes/App/usr/bin/addr2line"
+      - "/bin/addr2line"
+      - "/usr/sbin/addr2line"
+      - "/sbin/addr2line"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/addr2line"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/addr2line"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/addr2line"
+      - "/opt/X11/bin/addr2line"
+      - "/Library/Apple/usr/bin/addr2line"
+      - "/usr/local/share/dotnet/addr2line"
+      - "/Users/jayvaughan/.dotnet/tools/addr2line"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/addr2line"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/addr2line"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/addr2line"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/addr2line"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/addr2line"
+    found: false
+    search_context:
+      ENV{PATH}:
+        - "/opt/homebrew/opt/gnupg@2.2/bin"
+        - "/Users/jayvaughan/.pyenv/shims"
+        - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin"
+        - "/opt/homebrew/opt/lua@5.3/bin"
+        - "/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin"
+        - "/opt/homebrew/opt/openjdk/bin"
+        - "/opt/homebrew/sbin"
+        - "/Users/jayvaughan/bin"
+        - "/usr/local/bin"
+        - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu//bin"
+        - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin"
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/X11/bin"
+        - "/Library/Apple/usr/bin"
+        - "/usr/local/share/dotnet"
+        - "~/.dotnet/tools"
+        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+        - "/Applications/iTerm.app/Contents/Resources/utilities"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+        - "/Users/jayvaughan/Library/Android/sdk/emulator"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeFindBinUtils.cmake:238 (find_program)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCXXCompiler.cmake:206 (include)"
+      - "CMakeLists.txt:3 (project)"
+    mode: "program"
+    variable: "CMAKE_TAPI"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: false
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: false
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "tapi"
+    candidate_directories:
+      - "/usr/bin/"
+      - "/opt/homebrew/opt/gnupg@2.2/bin/"
+      - "/Users/jayvaughan/.pyenv/shims/"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/"
+      - "/opt/homebrew/opt/lua@5.3/bin/"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/"
+      - "/opt/homebrew/opt/openjdk/bin/"
+      - "/opt/homebrew/sbin/"
+      - "/Users/jayvaughan/bin/"
+      - "/usr/local/bin/"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/"
+      - "/opt/homebrew/bin/"
+      - "/System/Cryptexes/App/usr/bin/"
+      - "/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/X11/bin/"
+      - "/Library/Apple/usr/bin/"
+      - "/usr/local/share/dotnet/"
+      - "/Users/jayvaughan/.dotnet/tools/"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/"
+    searched_directories:
+      - "/usr/bin/tapi"
+      - "/opt/homebrew/opt/gnupg@2.2/bin/tapi"
+      - "/Users/jayvaughan/.pyenv/shims/tapi"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/tapi"
+      - "/opt/homebrew/opt/lua@5.3/bin/tapi"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/tapi"
+      - "/opt/homebrew/opt/openjdk/bin/tapi"
+      - "/opt/homebrew/sbin/tapi"
+      - "/Users/jayvaughan/bin/tapi"
+      - "/usr/local/bin/tapi"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/tapi"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/tapi"
+      - "/opt/homebrew/bin/tapi"
+      - "/System/Cryptexes/App/usr/bin/tapi"
+      - "/bin/tapi"
+      - "/usr/sbin/tapi"
+      - "/sbin/tapi"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/tapi"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/tapi"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/tapi"
+      - "/opt/X11/bin/tapi"
+      - "/Library/Apple/usr/bin/tapi"
+      - "/usr/local/share/dotnet/tapi"
+      - "/Users/jayvaughan/.dotnet/tools/tapi"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/tapi"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/tapi"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/tapi"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/tapi"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/tapi"
+    found: false
+    search_context:
+      ENV{PATH}:
+        - "/opt/homebrew/opt/gnupg@2.2/bin"
+        - "/Users/jayvaughan/.pyenv/shims"
+        - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin"
+        - "/opt/homebrew/opt/lua@5.3/bin"
+        - "/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin"
+        - "/opt/homebrew/opt/openjdk/bin"
+        - "/opt/homebrew/sbin"
+        - "/Users/jayvaughan/bin"
+        - "/usr/local/bin"
+        - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu//bin"
+        - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin"
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/X11/bin"
+        - "/Library/Apple/usr/bin"
+        - "/usr/local/share/dotnet"
+        - "~/.dotnet/tools"
+        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+        - "/Applications/iTerm.app/Contents/Resources/utilities"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+        - "/Users/jayvaughan/Library/Android/sdk/emulator"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+  -
+    kind: "find-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/Platform/Darwin.cmake:76 (find_program)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeSystemSpecificInformation.cmake:32 (include)"
+      - "CMakeLists.txt:3 (project)"
+    mode: "program"
+    variable: "CMAKE_INSTALL_NAME_TOOL"
+    description: "Path to a program."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "install_name_tool"
+    candidate_directories:
+      - "/opt/homebrew/opt/gnupg@2.2/bin/"
+      - "/Users/jayvaughan/.pyenv/shims/"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/"
+      - "/opt/homebrew/opt/lua@5.3/bin/"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/"
+      - "/opt/homebrew/opt/openjdk/bin/"
+      - "/opt/homebrew/sbin/"
+      - "/Users/jayvaughan/bin/"
+      - "/usr/local/bin/"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/"
+      - "/opt/homebrew/bin/"
+      - "/System/Cryptexes/App/usr/bin/"
+      - "/usr/bin/"
+      - "/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/X11/bin/"
+      - "/Library/Apple/usr/bin/"
+      - "/usr/local/share/dotnet/"
+      - "/Users/jayvaughan/.dotnet/tools/"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/"
+    searched_directories:
+      - "/opt/homebrew/opt/gnupg@2.2/bin/install_name_tool"
+      - "/Users/jayvaughan/.pyenv/shims/install_name_tool"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/install_name_tool"
+      - "/opt/homebrew/opt/lua@5.3/bin/install_name_tool"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/install_name_tool"
+      - "/opt/homebrew/opt/openjdk/bin/install_name_tool"
+      - "/opt/homebrew/sbin/install_name_tool"
+      - "/Users/jayvaughan/bin/install_name_tool"
+      - "/usr/local/bin/install_name_tool"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/install_name_tool"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/install_name_tool"
+      - "/opt/homebrew/bin/install_name_tool"
+      - "/System/Cryptexes/App/usr/bin/install_name_tool"
+    found: "/usr/bin/install_name_tool"
+    search_context:
+      ENV{PATH}:
+        - "/opt/homebrew/opt/gnupg@2.2/bin"
+        - "/Users/jayvaughan/.pyenv/shims"
+        - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin"
+        - "/opt/homebrew/opt/lua@5.3/bin"
+        - "/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin"
+        - "/opt/homebrew/opt/openjdk/bin"
+        - "/opt/homebrew/sbin"
+        - "/Users/jayvaughan/bin"
+        - "/usr/local/bin"
+        - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu//bin"
+        - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin"
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/X11/bin"
+        - "/Library/Apple/usr/bin"
+        - "/usr/local/share/dotnet"
+        - "~/.dotnet/tools"
+        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+        - "/Applications/iTerm.app/Contents/Resources/utilities"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+        - "/Users/jayvaughan/Library/Android/sdk/emulator"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+      CMAKE_INSTALL_PREFIX: "/usr/local"
+  -
+    kind: "try_compile-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:83 (try_compile)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    checks:
+      - "Detecting CXX compiler ABI info"
+    directories:
+      source: "/Users/jayvaughan/Documents/Development/Lab/simdsynth/SimdSynth/build/CMakeFiles/CMakeScratch/TryCompile-hL8se0"
+      binary: "/Users/jayvaughan/Documents/Development/Lab/simdsynth/SimdSynth/build/CMakeFiles/CMakeScratch/TryCompile-hL8se0"
+    cmakeVariables:
+      CMAKE_CXX_FLAGS: "-arch arm64 -arch x86_64"
+      CMAKE_CXX_FLAGS_DEBUG: "-g"
+      CMAKE_CXX_SCAN_FOR_MODULES: "OFF"
+      CMAKE_EXE_LINKER_FLAGS: "-arch arm64 -arch x86_64"
+      CMAKE_OSX_ARCHITECTURES: ""
+      CMAKE_OSX_DEPLOYMENT_TARGET: ""
+      CMAKE_OSX_SYSROOT: ""
+    buildResult:
+      variable: "CMAKE_CXX_ABI_COMPILED"
+      cached: true
+      stdout: |
+        Change Dir: '/Users/jayvaughan/Documents/Development/Lab/simdsynth/SimdSynth/build/CMakeFiles/CMakeScratch/TryCompile-hL8se0'
+        
+        Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_915da/fast
+        /Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_915da.dir/build.make CMakeFiles/cmTC_915da.dir/build
+        Building CXX object CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o
+        /usr/bin/c++   -arch arm64 -arch x86_64  -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk   -v -Wl,-v -MD -MT CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
+        Apple clang version 16.0.0 (clang-1600.0.26.6)
+        Target: arm64-apple-darwin23.6.0
+        Thread model: posix
+        InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
+        clang++: warning: -Wl,-v: 'linker' input unused [-Wunused-command-line-argument]
+        ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"
+        ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"
+         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple arm64-apple-macosx14.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -mrelax-all -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -target-sdk-version=15.2 -fvisibility-inlines-hidden-static-local-var -fno-modulemap-allow-subdirectory-search -target-cpu apple-m1 -target-feature +v8.5a -target-feature +aes -target-feature +crc -target-feature +dotprod -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +lse -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sha2 -target-feature +sha3 -target-feature +neon -target-feature +zcm -target-feature +zcz -target-feature +fullfp16 -target-abi darwinpcs -debugger-tuning=lldb -target-linker-version 1115.7.3 -v -fcoverage-compilation-dir=/Users/jayvaughan/Documents/Development/Lab/simdsynth/SimdSynth/build/CMakeFiles/CMakeScratch/TryCompile-hL8se0 -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16 -dependency-file CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -Wno-reorder-init-list -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-final-dtor-non-final-class -Wno-extra-semi-stmt -Wno-misleading-indentation -Wno-quoted-include-in-framework-header -Wno-implicit-fallthrough -Wno-enum-enum-conversion -Wno-enum-float-conversion -Wno-elaborated-enum-base -Wno-reserved-identifier -Wno-gnu-folding-constant -fdeprecated-macro -fdebug-compilation-dir=/Users/jayvaughan/Documents/Development/Lab/simdsynth/SimdSynth/build/CMakeFiles/CMakeScratch/TryCompile-hL8se0 -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fno-cxx-modules -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o /var/folders/kt/8q06z56j3ms1vrd8nwxbygf80000gn/T/CMakeCXXCompilerABI-07d651/CMakeCXXCompilerABI-arm64.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
+        clang -cc1 version 16.0.0 (clang-1600.0.26.6) default target arm64-apple-darwin23.6.0
+        ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include"
+        ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1
+         /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16/include
+         /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include
+         /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include
+         /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)
+        End of search list.
+         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple x86_64-apple-macosx14.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -mrelax-all -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=all -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=2 -target-sdk-version=15.2 -fvisibility-inlines-hidden-static-local-var -fno-modulemap-allow-subdirectory-search -target-cpu penryn -tune-cpu generic -debugger-tuning=lldb -target-linker-version 1115.7.3 -v -fcoverage-compilation-dir=/Users/jayvaughan/Documents/Development/Lab/simdsynth/SimdSynth/build/CMakeFiles/CMakeScratch/TryCompile-hL8se0 -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16 -dependency-file CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -Wno-reorder-init-list -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-final-dtor-non-final-class -Wno-extra-semi-stmt -Wno-misleading-indentation -Wno-quoted-include-in-framework-header -Wno-implicit-fallthrough -Wno-enum-enum-conversion -Wno-enum-float-conversion -Wno-elaborated-enum-base -Wno-reserved-identifier -Wno-gnu-folding-constant -fdeprecated-macro -fdebug-compilation-dir=/Users/jayvaughan/Documents/Development/Lab/simdsynth/SimdSynth/build/CMakeFiles/CMakeScratch/TryCompile-hL8se0 -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fno-cxx-modules -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o /var/folders/kt/8q06z56j3ms1vrd8nwxbygf80000gn/T/CMakeCXXCompilerABI-23f3f4/CMakeCXXCompilerABI-x86_64.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp
+        clang -cc1 version 16.0.0 (clang-1600.0.26.6) default target arm64-apple-darwin23.6.0
+        ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include"
+        ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks"
+        #include "..." search starts here:
+        #include <...> search starts here:
+         /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1
+         /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16/include
+         /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include
+         /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include
+         /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)
+        End of search list.
+         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo" -create -output CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o /var/folders/kt/8q06z56j3ms1vrd8nwxbygf80000gn/T/CMakeCXXCompilerABI-07d651/CMakeCXXCompilerABI-arm64.o /var/folders/kt/8q06z56j3ms1vrd8nwxbygf80000gn/T/CMakeCXXCompilerABI-23f3f4/CMakeCXXCompilerABI-x86_64.o
+        Linking CXX executable cmTC_915da
+        /opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_915da.dir/link.txt --verbose=1
+        Apple clang version 16.0.0 (clang-1600.0.26.6)
+        Target: x86_64-apple-darwin23.6.0
+        Thread model: posix
+        InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
+         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 14.0.0 15.2 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o /var/folders/kt/8q06z56j3ms1vrd8nwxbygf80000gn/T/CMakeCXXCompilerABI-6d404c/CMakeCXXCompilerABI-arm64.out -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o -arch_multiple -final_output cmTC_915da -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16/lib/darwin/libclang_rt.osx.a
+        @(#)PROGRAM:ld PROJECT:ld-1115.7.3
+        BUILD 23:52:02 Dec  5 2024
+        configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em
+        will use ld-classic for: armv6 armv7 armv7s i386 armv6m armv7k armv7m armv7em
+        LTO support using: LLVM version 16.0.0 (static support for 29, runtime is 29)
+        TAPI support using: Apple TAPI version 16.0.0 (tapi-1600.0.11.9)
+        Library search paths:
+        	/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib
+        	/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/swift
+        Framework search paths:
+        	/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks
+         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -no_deduplicate -dynamic -arch x86_64 -platform_version macos 14.0.0 15.2 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o /var/folders/kt/8q06z56j3ms1vrd8nwxbygf80000gn/T/CMakeCXXCompilerABI-3ac1c2/CMakeCXXCompilerABI-x86_64.out -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o -arch_multiple -final_output cmTC_915da -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16/lib/darwin/libclang_rt.osx.a
+        @(#)PROGRAM:ld PROJECT:ld-1115.7.3
+        BUILD 23:52:02 Dec  5 2024
+        configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em
+        will use ld-classic for: armv6 armv7 armv7s i386 armv6m armv7k armv7m armv7em
+        LTO support using: LLVM version 16.0.0 (static support for 29, runtime is 29)
+        TAPI support using: Apple TAPI version 16.0.0 (tapi-1600.0.11.9)
+        Library search paths:
+        	/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib
+        	/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/swift
+        Framework search paths:
+        	/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks
+         "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo" -create -output cmTC_915da /var/folders/kt/8q06z56j3ms1vrd8nwxbygf80000gn/T/CMakeCXXCompilerABI-6d404c/CMakeCXXCompilerABI-arm64.out /var/folders/kt/8q06z56j3ms1vrd8nwxbygf80000gn/T/CMakeCXXCompilerABI-3ac1c2/CMakeCXXCompilerABI-x86_64.out
+        /usr/bin/c++ -arch arm64 -arch x86_64  -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -Wl,-search_paths_first -Wl,-headerpad_max_install_names -arch arm64 -arch x86_64 -v -Wl,-v CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o -o cmTC_915da
+        
+      exitCode: 0
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:122 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Effective list of requested architectures (possibly empty)  : ""
+      Effective list of architectures found in the ABI info binary: "arm64;x86_64"
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:217 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Parsed CXX implicit include dir info: rv=done
+        found start of include info
+        found start of implicit include info
+          add: [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1]
+          add: [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16/include]
+          add: [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include]
+          add: [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include]
+        end of search list found
+        collapse include dir [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1] ==> [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1]
+        collapse include dir [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16/include] ==> [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16/include]
+        collapse include dir [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include] ==> [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include]
+        collapse include dir [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include] ==> [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include]
+        implicit include dirs: [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1;/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16/include;/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include;/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include]
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:253 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Parsed CXX implicit link information:
+        link line regex: [^( *|.*[/\\])(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\\]+-)?ld|collect2)[^/\\]*( |$)]
+        linker tool regex: [^[ 	]*(->|")?[ 	]*(([^"]*[/\\])?(ld[0-9]*(|\\.[a-rt-z][a-z]*|\\.s[a-np-z][a-z]*|\\.so[a-z]+)))("|,| |$)]
+        ignore line: [Change Dir: '/Users/jayvaughan/Documents/Development/Lab/simdsynth/SimdSynth/build/CMakeFiles/CMakeScratch/TryCompile-hL8se0']
+        ignore line: []
+        ignore line: [Run Build Command(s): /opt/homebrew/bin/cmake -E env VERBOSE=1 /usr/bin/make -f Makefile cmTC_915da/fast]
+        ignore line: [/Applications/Xcode.app/Contents/Developer/usr/bin/make  -f CMakeFiles/cmTC_915da.dir/build.make CMakeFiles/cmTC_915da.dir/build]
+        ignore line: [Building CXX object CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o]
+        ignore line: [/usr/bin/c++   -arch arm64 -arch x86_64  -arch arm64 -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk   -v -Wl -v -MD -MT CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o -MF CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o.d -o CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o -c /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [Apple clang version 16.0.0 (clang-1600.0.26.6)]
+        ignore line: [Target: arm64-apple-darwin23.6.0]
+        ignore line: [Thread model: posix]
+        ignore line: [InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin]
+        ignore line: [clang++: warning: -Wl -v: 'linker' input unused [-Wunused-command-line-argument]]
+        ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"]
+        ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/../include/c++/v1"]
+        ignore line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple arm64-apple-macosx14.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -mrelax-all -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=non-leaf -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=1 -fobjc-msgsend-selector-stubs -target-sdk-version=15.2 -fvisibility-inlines-hidden-static-local-var -fno-modulemap-allow-subdirectory-search -target-cpu apple-m1 -target-feature +v8.5a -target-feature +aes -target-feature +crc -target-feature +dotprod -target-feature +fp-armv8 -target-feature +fp16fml -target-feature +lse -target-feature +ras -target-feature +rcpc -target-feature +rdm -target-feature +sha2 -target-feature +sha3 -target-feature +neon -target-feature +zcm -target-feature +zcz -target-feature +fullfp16 -target-abi darwinpcs -debugger-tuning=lldb -target-linker-version 1115.7.3 -v -fcoverage-compilation-dir=/Users/jayvaughan/Documents/Development/Lab/simdsynth/SimdSynth/build/CMakeFiles/CMakeScratch/TryCompile-hL8se0 -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16 -dependency-file CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -Wno-reorder-init-list -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-final-dtor-non-final-class -Wno-extra-semi-stmt -Wno-misleading-indentation -Wno-quoted-include-in-framework-header -Wno-implicit-fallthrough -Wno-enum-enum-conversion -Wno-enum-float-conversion -Wno-elaborated-enum-base -Wno-reserved-identifier -Wno-gnu-folding-constant -fdeprecated-macro -fdebug-compilation-dir=/Users/jayvaughan/Documents/Development/Lab/simdsynth/SimdSynth/build/CMakeFiles/CMakeScratch/TryCompile-hL8se0 -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fno-cxx-modules -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o /var/folders/kt/8q06z56j3ms1vrd8nwxbygf80000gn/T/CMakeCXXCompilerABI-07d651/CMakeCXXCompilerABI-arm64.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [clang -cc1 version 16.0.0 (clang-1600.0.26.6) default target arm64-apple-darwin23.6.0]
+        ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include"]
+        ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16/include]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)]
+        ignore line: [End of search list.]
+        ignore line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" -cc1 -triple x86_64-apple-macosx14.0.0 -Wundef-prefix=TARGET_OS_ -Wdeprecated-objc-isa-usage -Werror=deprecated-objc-isa-usage -Werror=implicit-function-declaration -emit-obj -mrelax-all -disable-free -clear-ast-before-backend -disable-llvm-verifier -discard-value-names -main-file-name CMakeCXXCompilerABI.cpp -mrelocation-model pic -pic-level 2 -mframe-pointer=all -fno-strict-return -ffp-contract=on -fno-rounding-math -funwind-tables=2 -target-sdk-version=15.2 -fvisibility-inlines-hidden-static-local-var -fno-modulemap-allow-subdirectory-search -target-cpu penryn -tune-cpu generic -debugger-tuning=lldb -target-linker-version 1115.7.3 -v -fcoverage-compilation-dir=/Users/jayvaughan/Documents/Development/Lab/simdsynth/SimdSynth/build/CMakeFiles/CMakeScratch/TryCompile-hL8se0 -resource-dir /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16 -dependency-file CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o.d -skip-unused-modulemap-deps -MT CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o -sys-header-deps -isysroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1 -internal-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include -internal-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include -internal-externc-isystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include -Wno-reorder-init-list -Wno-implicit-int-float-conversion -Wno-c99-designator -Wno-final-dtor-non-final-class -Wno-extra-semi-stmt -Wno-misleading-indentation -Wno-quoted-include-in-framework-header -Wno-implicit-fallthrough -Wno-enum-enum-conversion -Wno-enum-float-conversion -Wno-elaborated-enum-base -Wno-reserved-identifier -Wno-gnu-folding-constant -fdeprecated-macro -fdebug-compilation-dir=/Users/jayvaughan/Documents/Development/Lab/simdsynth/SimdSynth/build/CMakeFiles/CMakeScratch/TryCompile-hL8se0 -ferror-limit 19 -stack-protector 1 -fstack-check -mdarwin-stkchk-strong-link -fblocks -fencode-extended-block-signature -fregister-global-dtors-with-atexit -fgnuc-version=4.2.1 -fno-cxx-modules -fcxx-exceptions -fexceptions -fmax-type-align=16 -fcommon -clang-vendor-feature=+disableNonDependentMemberExprInCurrentInstantiation -fno-odr-hash-protocols -clang-vendor-feature=+enableAggressiveVLAFolding -clang-vendor-feature=+revert09abecef7bbf -clang-vendor-feature=+thisNoAlignAttr -clang-vendor-feature=+thisNoNullAttr -clang-vendor-feature=+disableAtImportPrivateFrameworkInImplementationError -D__GCC_HAVE_DWARF2_CFI_ASM=1 -o /var/folders/kt/8q06z56j3ms1vrd8nwxbygf80000gn/T/CMakeCXXCompilerABI-23f3f4/CMakeCXXCompilerABI-x86_64.o -x c++ /opt/homebrew/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
+        ignore line: [clang -cc1 version 16.0.0 (clang-1600.0.26.6) default target arm64-apple-darwin23.6.0]
+        ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/local/include"]
+        ignore line: [ignoring nonexistent directory "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks"]
+        ignore line: [#include "..." search starts here:]
+        ignore line: [#include <...> search starts here:]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/c++/v1]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16/include]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include]
+        ignore line: [ /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks (framework directory)]
+        ignore line: [End of search list.]
+        ignore line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/lipo" -create -output CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o /var/folders/kt/8q06z56j3ms1vrd8nwxbygf80000gn/T/CMakeCXXCompilerABI-07d651/CMakeCXXCompilerABI-arm64.o /var/folders/kt/8q06z56j3ms1vrd8nwxbygf80000gn/T/CMakeCXXCompilerABI-23f3f4/CMakeCXXCompilerABI-x86_64.o]
+        ignore line: [Linking CXX executable cmTC_915da]
+        ignore line: [/opt/homebrew/bin/cmake -E cmake_link_script CMakeFiles/cmTC_915da.dir/link.txt --verbose=1]
+        ignore line: [Apple clang version 16.0.0 (clang-1600.0.26.6)]
+        ignore line: [Target: x86_64-apple-darwin23.6.0]
+        ignore line: [Thread model: posix]
+        ignore line: [InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin]
+        link line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch arm64 -platform_version macos 14.0.0 15.2 -syslibroot /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk -mllvm -enable-linkonceodr-outlining -o /var/folders/kt/8q06z56j3ms1vrd8nwxbygf80000gn/T/CMakeCXXCompilerABI-6d404c/CMakeCXXCompilerABI-arm64.out -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o -arch_multiple -final_output cmTC_915da -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16/lib/darwin/libclang_rt.osx.a]
+          arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld] ==> ignore
+          arg [-demangle] ==> ignore
+          arg [-lto_library] ==> ignore, skip following value
+          arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib] ==> skip value of -lto_library
+          arg [-dynamic] ==> ignore
+          arg [-arch] ==> ignore
+          arg [arm64] ==> ignore
+          arg [-platform_version] ==> ignore
+          arg [macos] ==> ignore
+          arg [14.0.0] ==> ignore
+          arg [15.2] ==> ignore
+          arg [-syslibroot] ==> ignore
+          arg [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk] ==> ignore
+          arg [-mllvm] ==> ignore
+          arg [-enable-linkonceodr-outlining] ==> ignore
+          arg [-o] ==> ignore
+          arg [/var/folders/kt/8q06z56j3ms1vrd8nwxbygf80000gn/T/CMakeCXXCompilerABI-6d404c/CMakeCXXCompilerABI-arm64.out] ==> ignore
+          arg [-search_paths_first] ==> ignore
+          arg [-headerpad_max_install_names] ==> ignore
+          arg [-v] ==> ignore
+          arg [CMakeFiles/cmTC_915da.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+          arg [-arch_multiple] ==> ignore
+          arg [-final_output] ==> ignore
+          arg [cmTC_915da] ==> ignore
+          arg [-lc++] ==> lib [c++]
+          arg [-lSystem] ==> lib [System]
+          arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16/lib/darwin/libclang_rt.osx.a] ==> lib [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16/lib/darwin/libclang_rt.osx.a]
+        linker tool for 'CXX': /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld
+        Library search paths: [;/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib;/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/swift]
+        Framework search paths: [;/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks]
+        remove lib [System]
+        remove lib [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/16/lib/darwin/libclang_rt.osx.a]
+        collapse library dir [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib] ==> [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib]
+        collapse library dir [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/swift] ==> [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/swift]
+        collapse framework dir [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks] ==> [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks]
+        implicit libs: [c++]
+        implicit objs: []
+        implicit dirs: [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib;/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/lib/swift]
+        implicit fwks: [/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks]
+      
+      
+  -
+    kind: "message-v1"
+    backtrace:
+      - "/opt/homebrew/share/cmake/Modules/Internal/CMakeDetermineLinkerId.cmake:36 (message)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeDetermineCompilerABI.cmake:299 (cmake_determine_linker_id)"
+      - "/opt/homebrew/share/cmake/Modules/CMakeTestCXXCompiler.cmake:26 (CMAKE_DETERMINE_COMPILER_ABI)"
+      - "CMakeLists.txt:3 (project)"
+    message: |
+      Running the CXX compiler's linker: "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" "-v"
+      @(#)PROGRAM:ld PROJECT:ld-1115.7.3
+      BUILD 23:52:02 Dec  5 2024
+      configured to support archs: armv6 armv7 armv7s arm64 arm64e arm64_32 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em
+      will use ld-classic for: armv6 armv7 armv7s i386 armv6m armv7k armv7m armv7em
+      LTO support using: LLVM version 16.0.0 (static support for 29, runtime is 29)
+      TAPI support using: Apple TAPI version 16.0.0 (tapi-1600.0.11.9)
+  -
+    kind: "find-v1"
+    backtrace:
+      - "CMakeLists.txt:9 (find_path)"
+    mode: "path"
+    variable: "JUCE_DIR"
+    description: "Path to a file."
+    settings:
+      SearchFramework: "FIRST"
+      SearchAppBundle: "FIRST"
+      CMAKE_FIND_USE_CMAKE_PATH: true
+      CMAKE_FIND_USE_CMAKE_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_SYSTEM_ENVIRONMENT_PATH: true
+      CMAKE_FIND_USE_CMAKE_SYSTEM_PATH: true
+      CMAKE_FIND_USE_INSTALL_PREFIX: true
+    names:
+      - "modules/juce_audio_basics/juce_audio_basics.h"
+    candidate_directories:
+      - "/opt/homebrew/opt/gnupg@2.2/bin/"
+      - "/Users/jayvaughan/.pyenv/shims/"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/"
+      - "/opt/homebrew/opt/lua@5.3/bin/"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/"
+      - "/opt/homebrew/opt/openjdk/bin/"
+      - "/opt/homebrew/sbin/"
+      - "/Users/jayvaughan/bin/"
+      - "/usr/local/bin/"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/"
+      - "/opt/homebrew/bin/"
+      - "/System/Cryptexes/App/usr/bin/"
+      - "/usr/bin/"
+      - "/bin/"
+      - "/usr/sbin/"
+      - "/sbin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/"
+      - "/opt/X11/bin/"
+      - "/Library/Apple/usr/bin/"
+      - "/usr/local/share/dotnet/"
+      - "/Users/jayvaughan/.dotnet/tools/"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/"
+      - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/"
+      - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/"
+      - "/opt/homebrew/include/"
+      - "/opt/homebrew/"
+      - "/usr/local/include/"
+      - "/usr/local/"
+      - "/usr/include/"
+      - "/usr/"
+      - "/include/"
+      - "/usr/X11R6/include/"
+      - "/usr/X11R6/"
+      - "/usr/pkg/include/"
+      - "/usr/pkg/"
+      - "/opt/include/"
+      - "/opt/"
+      - "/sw/include/"
+      - "/sw/"
+      - "/opt/local/include/"
+      - "/opt/local/"
+      - "/usr/include/X11/"
+      - "/Users/jayvaughan/Library/Frameworks/"
+      - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks/"
+      - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Network/Library/Frameworks/"
+      - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/"
+      - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/"
+      - "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/"
+      - "/Library/Frameworks/"
+      - "/Network/Library/Frameworks/"
+      - "/System/Library/Frameworks/"
+      - "/Users/jayvaughan/Documents/Development/Lab/simdsynth/SimdSynth/JUCE/"
+      - "/Users/jayvaughan/Documents/Development/Plugins/JUCE/"
+    searched_directories:
+      - "/opt/homebrew/opt/gnupg@2.2/bin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/.pyenv/shims/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/homebrew/opt/lua@5.3/bin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/homebrew/opt/openjdk/bin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/homebrew/sbin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/bin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/local/bin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/homebrew/bin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/System/Cryptexes/App/usr/bin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/bin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/bin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/sbin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/sbin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/X11/bin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Library/Apple/usr/bin/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/local/share/dotnet/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/.dotnet/tools/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/homebrew/include/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/homebrew/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/local/include/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/local/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/include/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/include/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/X11R6/include/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/X11R6/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/pkg/include/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/pkg/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/include/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/sw/include/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/sw/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/local/include/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/local/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/include/X11/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/Library/Frameworks/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Network/Library/Frameworks/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Library/Frameworks/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Network/Library/Frameworks/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/System/Library/Frameworks/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/Documents/Development/Lab/simdsynth/SimdSynth/JUCE/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/Documents/Development/Plugins/JUCE/modules.framework/Headers/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/homebrew/opt/gnupg@2.2/bin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/.pyenv/shims/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/homebrew/opt/lua@5.3/bin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Applications/Sublime/ Text.app/Contents/SharedSupport/bin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/homebrew/opt/openjdk/bin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/homebrew/sbin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/bin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/local/bin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu/bin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/homebrew/bin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/System/Cryptexes/App/usr/bin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/bin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/bin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/sbin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/sbin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/X11/bin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Library/Apple/usr/bin/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/local/share/dotnet/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/.dotnet/tools/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Library/Frameworks/Mono.framework/Versions/Current/Commands/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Applications/iTerm.app/Contents/Resources/utilities/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/Library/Android/sdk/tools/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/Library/Android/sdk/platform-tools/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/Library/Android/sdk/emulator/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/homebrew/include/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/homebrew/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/local/include/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/local/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/include/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/include/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/X11R6/include/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/X11R6/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/pkg/include/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/pkg/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/include/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/sw/include/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/sw/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/local/include/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/opt/local/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/usr/include/X11/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/Library/Frameworks/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Network/Library/Frameworks/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Applications/Xcode.app/Contents/Developer/Library/Frameworks/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Library/Frameworks/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Network/Library/Frameworks/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/System/Library/Frameworks/modules/juce_audio_basics/juce_audio_basics.h"
+      - "/Users/jayvaughan/Documents/Development/Lab/simdsynth/SimdSynth/JUCE/modules/juce_audio_basics/juce_audio_basics.h"
+    found: "/Users/jayvaughan/Documents/Development/Plugins/JUCE/"
+    search_context:
+      ENV{PATH}:
+        - "/opt/homebrew/opt/gnupg@2.2/bin"
+        - "/Users/jayvaughan/.pyenv/shims"
+        - "/Users/jayvaughan/.sdkman/candidates/gradle/7.6.1/bin"
+        - "/opt/homebrew/opt/lua@5.3/bin"
+        - "/Applications/Sublime\\ Text.app/Contents/SharedSupport/bin"
+        - "/opt/homebrew/opt/openjdk/bin"
+        - "/opt/homebrew/sbin"
+        - "/Users/jayvaughan/bin"
+        - "/usr/local/bin"
+        - "/Users/jayvaughan/.sdkman/candidates/java/11.0.19-zulu//bin"
+        - "/Users/jayvaughan/.nvm/versions/node/v15.14.0/bin"
+        - "/opt/homebrew/bin"
+        - "/usr/local/bin"
+        - "/System/Cryptexes/App/usr/bin"
+        - "/usr/bin"
+        - "/bin"
+        - "/usr/sbin"
+        - "/sbin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin"
+        - "/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin"
+        - "/opt/X11/bin"
+        - "/Library/Apple/usr/bin"
+        - "/usr/local/share/dotnet"
+        - "~/.dotnet/tools"
+        - "/Library/Frameworks/Mono.framework/Versions/Current/Commands"
+        - "/Applications/iTerm.app/Contents/Resources/utilities"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+        - "/Users/jayvaughan/Library/Android/sdk/emulator"
+        - "/Users/jayvaughan/Library/Android/sdk/tools"
+        - "/Users/jayvaughan/Library/Android/sdk/platform-tools"
+      CMAKE_INSTALL_PREFIX: "/usr/local"
+      CMAKE_SYSTEM_PREFIX_PATH:
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr"
+        - "/opt/homebrew"
+        - "/usr/local"
+        - "/usr"
+        - "/"
+        - "/opt/homebrew"
+        - "/usr/local"
+        - "/usr/X11R6"
+        - "/usr/pkg"
+        - "/opt"
+        - "/sw"
+        - "/opt/local"
+      CMAKE_SYSTEM_INCLUDE_PATH:
+        - "/usr/include/X11"
+      CMAKE_SYSTEM_FRAMEWORK_PATH:
+        - "~/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/Network/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/Library/Frameworks"
+        - "/Applications/Xcode.app/Contents/Developer/Library/Frameworks"
+        - "/Library/Frameworks"
+        - "/Network/Library/Frameworks"
+        - "/System/Library/Frameworks"
+...
