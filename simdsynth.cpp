@@ -2,6 +2,8 @@
 #include <cmath>
 #include <cstdint>
 #include <vector>
+#include <cstdlib>
+#include <ctime>
 
 #ifdef __x86_64__
 #include <xmmintrin.h> // SSE for x86/x64
@@ -40,9 +42,14 @@ struct Voice {
     float phaseIncrement;// Per-sample phase increment
     float amplitude;     // Oscillator amplitude (from envelope)
     float cutoff;        // Filter cutoff frequency (Hz)
-    float filterEnv;     // Filter envelope amount
+    float filterEnv;     // Filter envelope output
     float filterStates[4]; // 4-pole filter states
     bool active;         // Voice active state
+    // FEG parameters
+    float fegAttack;     // Filter envelope attack time (s)
+    float fegDecay;      // Filter envelope decay time (s)
+    float fegSustain;    // Filter envelope sustain level (0–1)
+    float fegRelease;    // Filter envelope release time (s)
 };
 
 // Filter state
@@ -63,6 +70,12 @@ float midiToFreq(int midiNote) {
     return 440.0f * powf(2.0f, (midiNote - 69) / 12.0f);
 }
 
+// Random float in range [base * (1 - var), base * (1 + var)]
+float randomize(float base, float var) {
+    float r = static_cast<float>(rand()) / RAND_MAX; // 0 to 1
+    return base * (1.0f - var + r * 2.0f * var);
+}
+
 // Update amplitude and filter envelopes
 void updateEnvelopes(Voice* voices, int numVoices, float attackTime, float decayTime, float sampleRate, int sampleIndex, float currentTime) {
     float t = sampleIndex / sampleRate; // Time in seconds
@@ -73,14 +86,27 @@ void updateEnvelopes(Voice* voices, int numVoices, float attackTime, float decay
             continue;
         }
         float localTime = t - currentTime; // Time relative to chord start
+
+        // Amplitude envelope (AD, no sustain)
         if (localTime < attackTime) {
             voices[i].amplitude = localTime / attackTime; // Linear attack
-            voices[i].filterEnv = localTime / attackTime;
         } else if (localTime < attackTime + decayTime) {
             voices[i].amplitude = 1.0f - (localTime - attackTime) / decayTime; // Linear decay
-            voices[i].filterEnv = 1.0f - (localTime - attackTime) / decayTime;
         } else {
             voices[i].amplitude = 0.0f;
+            voices[i].active = false;
+        }
+
+        // Filter envelope (ADSR)
+        if (localTime < voices[i].fegAttack) {
+            voices[i].filterEnv = localTime / voices[i].fegAttack; // Attack
+        } else if (localTime < voices[i].fegAttack + voices[i].fegDecay) {
+            voices[i].filterEnv = 1.0f - (localTime - voices[i].fegAttack) / voices[i].fegDecay * (1.0f - voices[i].fegSustain); // Decay to sustain
+        } else if (localTime < attackTime + decayTime) {
+            voices[i].filterEnv = voices[i].fegSustain; // Sustain
+        } else if (localTime < attackTime + decayTime + voices[i].fegRelease) {
+            voices[i].filterEnv = voices[i].fegSustain * (1.0f - (localTime - (attackTime + decayTime)) / voices[i].fegRelease); // Release
+        } else {
             voices[i].filterEnv = 0.0f;
             voices[i].active = false;
         }
@@ -130,7 +156,7 @@ void applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& 
     float cutoffs[4];
     for (int i = 0; i < 4; i++) {
         int idx = voiceOffset + i;
-        float modulatedCutoff = voices[idx].cutoff + voices[idx].filterEnv * 2000.0f;
+        float modulatedCutoff = voices[idx].cutoff + voices[idx].filterEnv * 2000.0f; // 500–2500 Hz sweep
         modulatedCutoff = std::max(20.0f, std::min(modulatedCutoff, filter.sampleRate / 2.0f));
         cutoffs[i] = 1.0f - expf(-2.0f * M_PI * modulatedCutoff / filter.sampleRate);
     }
@@ -174,8 +200,8 @@ void applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& 
 void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const std::vector<Chord>& chords) {
     const SIMD_TYPE twoPi = SIMD_SET1(2.0f * M_PI);
     const SIMD_TYPE one = SIMD_SET1(1.0f);
-    float attackTime = 0.1f; // 100 ms attack
-    float decayTime = 1.9f;  // 1.9 s decay
+    float attackTime = 0.1f; // 100 ms attack for amplitude
+    float decayTime = 1.9f;  // 1.9 s decay for amplitude
     float currentTime = 0.0f;
     int currentChord = 0;
 
@@ -187,13 +213,18 @@ void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const st
             currentChord++;
             currentTime = t;
             if (currentChord < chords.size()) {
-                // Assign new frequencies
+                // Assign new frequencies and randomize FEG parameters
                 for (int v = 0; v < 8; v++) {
                     voices[v].active = v < chords[currentChord].frequencies.size();
                     if (voices[v].active) {
                         voices[v].frequency = chords[currentChord].frequencies[v];
                         voices[v].phaseIncrement = (2.0f * M_PI * voices[v].frequency) / filter.sampleRate;
                         voices[v].phase = 0.0f; // Reset phase for new note
+                        // Randomize FEG parameters
+                        voices[v].fegAttack = randomize(0.1f, 0.2f);  // 80–120 ms
+                        voices[v].fegDecay = randomize(1.0f, 0.2f);   // 800–1200 ms
+                        voices[v].fegSustain = randomize(0.5f, 0.2f); // 0.4–0.6
+                        voices[v].fegRelease = randomize(0.2f, 0.2f); // 160–240 ms
                     }
                 }
             }
@@ -247,6 +278,9 @@ void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const st
 }
 
 int main() {
+    // Seed random number generator for reproducibility
+    srand(1234);
+
     // Initialize 8 voices
     const float sampleRate = 48000.0f;
     Voice voices[8];
@@ -258,6 +292,10 @@ int main() {
         voices[i].cutoff = 500.0f; // Base cutoff frequency
         voices[i].filterEnv = 0.0f;
         voices[i].active = false;
+        voices[i].fegAttack = 0.1f;
+        voices[i].fegDecay = 1.0f;
+        voices[i].fegSustain = 0.5f;
+        voices[i].fegRelease = 0.2f;
         for (int j = 0; j < 4; j++) {
             voices[i].filterStates[j] = 0.0f;
         }
