@@ -1,28 +1,30 @@
+set(CMAKE_VERBOSE_MAKEFILE ON)
+
 cmake_minimum_required(VERSION 3.15)
 
 project(SimdSynth VERSION 1.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Find JUCE
-find_path(JUCE_DIR modules/juce_audio_basics/juce_audio_basics.h
-    PATHS "${CMAKE_SOURCE_DIR}/JUCE" "/Users/jayvaughan/Documents/Development/Plugins/JUCE"
-    REQUIRED
+include(FetchContent)
+
+# Fetch JUCE
+FetchContent_Declare(
+    juce
+    GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
+    GIT_TAG        7.0.11    # Replace with the desired JUCE version
 )
 
-# Add JUCE modules
-add_library(juce STATIC IMPORTED)
-set_target_properties(juce PROPERTIES
-    IMPORTED_LOCATION "${JUCE_DIR}/modules"
-)
+FetchContent_MakeAvailable(juce)
 
 # Define plugin
 juce_add_plugin(SimdSynth
     VERSION "1.0.0"
-    COMPANY_NAME "YourCompany"
-    PLUGIN_MANUFACTURER_CODE "Your"
-    PLUGIN_CODE "SimS"
+    COMPANY_NAME "seclorum"
+    PLUGIN_MANUFACTURER_CODE "sclr"
+    PLUGIN_CODE "SmSy"
     FORMATS AU VST3 Standalone
     PRODUCT_NAME "SimdSynth"
     IS_SYNTH TRUE
@@ -36,12 +38,6 @@ target_sources(SimdSynth
     PRIVATE
         Source/SimdSynth.cpp
         Source/SimdSynthProcessor.cpp
-)
-
-# Include directories
-target_include_directories(SimdSynth
-    PRIVATE
-        ${JUCE_DIR}/modules
 )
 
 # Link JUCE modules
@@ -73,3 +69,4 @@ endif()
 
 # Enable strict warnings
 target_compile_options(SimdSynth PRIVATE -Wall -Wextra -Wpedantic)
+
