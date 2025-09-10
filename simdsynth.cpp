@@ -1,6 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <cstdint>
+#include <vector>
 
 #ifdef __x86_64__
 #include <xmmintrin.h> // SSE for x86/x64
@@ -19,14 +20,14 @@
 #include <arm_neon.h> // NEON for ARM
 #define SIMD_TYPE float32x4_t
 #define SIMD_SET1 vdupq_n_f32
-#define SIMD_SET vld1q_f32 // Corrected for loading 4 floats
+#define SIMD_SET vld1q_f32
 #define SIMD_LOAD vld1q_f32
 #define SIMD_ADD vaddq_f32
 #define SIMD_SUB vsubq_f32
 #define SIMD_MUL vmulq_f32
 #define SIMD_DIV vdivq_f32
 #define SIMD_FLOOR my_floor_ps
-#define SIMD_STORE vst1q_f32 // Fixed for NEON store
+#define SIMD_STORE vst1q_f32
 #define SIMD_SIN my_sin_ps
 #else
 #error "Unsupported architecture: Requires x86_64 or arm64"
@@ -41,33 +42,42 @@ struct Voice {
     float cutoff;        // Filter cutoff frequency (Hz)
     float filterEnv;     // Filter envelope amount
     float filterStates[4]; // 4-pole filter states
+    bool active;         // Voice active state
 };
 
-// 4-pole low-pass ladder filter state
+// Filter state
 struct Filter {
     float resonance; // Resonance (0 to 1)
     float sampleRate; // Sample rate (Hz)
 };
 
+// Chord structure
+struct Chord {
+    std::vector<float> frequencies; // Frequencies for the chord
+    float startTime; // Start time in seconds
+    float duration;  // Duration in seconds
+};
+
 // Update amplitude and filter envelopes
-void updateEnvelopes(Voice* voices, float attackTime, float decayTime, float sampleRate, int sampleIndex) {
+void updateEnvelopes(Voice* voices, int numVoices, float attackTime, float decayTime, float sampleRate, int sampleIndex, float currentTime) {
     float t = sampleIndex / sampleRate; // Time in seconds
-    for (int i = 0; i < 4; i++) {
-        // Amplitude envelope
-        if (t < attackTime) {
-            voices[i].amplitude = t / attackTime; // Linear attack
-        } else if (t < attackTime + decayTime) {
-            voices[i].amplitude = 1.0f - (t - attackTime) / decayTime; // Linear decay
+    for (int i = 0; i < numVoices; i++) {
+        if (!voices[i].active) {
+            voices[i].amplitude = 0.0f;
+            voices[i].filterEnv = 0.0f;
+            continue;
+        }
+        float localTime = t - currentTime; // Time relative to chord start
+        if (localTime < attackTime) {
+            voices[i].amplitude = localTime / attackTime; // Linear attack
+            voices[i].filterEnv = localTime / attackTime;
+        } else if (localTime < attackTime + decayTime) {
+            voices[i].amplitude = 1.0f - (localTime - attackTime) / decayTime; // Linear decay
+            voices[i].filterEnv = 1.0f - (localTime - attackTime) / decayTime;
         } else {
             voices[i].amplitude = 0.0f;
-        }
-        // Filter envelope (modulates cutoff)
-        if (t < attackTime) {
-            voices[i].filterEnv = t / attackTime;
-        } else if (t < attackTime + decayTime) {
-            voices[i].filterEnv = 1.0f - (t - attackTime) / decayTime;
-        } else {
             voices[i].filterEnv = 0.0f;
+            voices[i].active = false;
         }
     }
 }
@@ -110,28 +120,28 @@ inline __m128 _mm_sin_ps(__m128 x) {
 #endif
 
 // Compute 4-pole ladder filter for 4 voices
-void applyLadderFilter(Voice* voices, SIMD_TYPE input, Filter& filter, SIMD_TYPE& output) {
-    // Compute alpha = 1 - e^(-2π * cutoff / sampleRate) for each voice
+void applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& filter, SIMD_TYPE& output) {
+    // Compute alpha = 1 - e^(-2π * cutoff / sampleRate)
     float cutoffs[4];
     for (int i = 0; i < 4; i++) {
-        // Modulate cutoff with envelope (base cutoff + envelope amount)
-        float modulatedCutoff = voices[i].cutoff + voices[i].filterEnv * 2000.0f;
-        modulatedCutoff = std::max(20.0f, std::min(modulatedCutoff, filter.sampleRate / 2.0f)); // Clamp
+        int idx = voiceOffset + i;
+        float modulatedCutoff = voices[idx].cutoff + voices[idx].filterEnv * 2000.0f;
+        modulatedCutoff = std::max(20.0f, std::min(modulatedCutoff, filter.sampleRate / 2.0f));
         cutoffs[i] = 1.0f - expf(-2.0f * M_PI * modulatedCutoff / filter.sampleRate);
     }
     SIMD_TYPE alpha = SIMD_SET(cutoffs);
     SIMD_TYPE oneMinusAlpha = SIMD_SUB(SIMD_SET1(1.0f), alpha);
-    SIMD_TYPE resonance = SIMD_SET1(filter.resonance * 4.0f); // Scale resonance for feedback
+    SIMD_TYPE resonance = SIMD_SET1(filter.resonance * 4.0f);
 
     // Load filter states
     SIMD_TYPE states[4];
     for (int i = 0; i < 4; i++) {
-        float temp[4] = { voices[0].filterStates[i], voices[1].filterStates[i],
-                          voices[2].filterStates[i], voices[3].filterStates[i] };
+        float temp[4] = { voices[voiceOffset].filterStates[i], voices[voiceOffset + 1].filterStates[i],
+                          voices[voiceOffset + 2].filterStates[i], voices[voiceOffset + 3].filterStates[i] };
         states[i] = SIMD_LOAD(temp);
     }
 
-    // Apply feedback (simplified, resonance affects input)
+    // Apply feedback
     SIMD_TYPE feedback = SIMD_MUL(states[3], resonance);
     SIMD_TYPE filterInput = SIMD_SUB(input, feedback);
 
@@ -148,92 +158,127 @@ void applyLadderFilter(Voice* voices, SIMD_TYPE input, Filter& filter, SIMD_TYPE
     for (int i = 0; i < 4; i++) {
         float temp[4];
         SIMD_STORE(temp, states[i]);
-        voices[0].filterStates[i] = temp[0];
-        voices[1].filterStates[i] = temp[1];
-        voices[2].filterStates[i] = temp[2];
-        voices[3].filterStates[i] = temp[3];
+        voices[voiceOffset].filterStates[i] = temp[0];
+        voices[voiceOffset + 1].filterStates[i] = temp[1];
+        voices[voiceOffset + 2].filterStates[i] = temp[2];
+        voices[voiceOffset + 3].filterStates[i] = temp[3];
     }
 }
 
-// Generate sine waves and apply filter for 4 voices
-void generateSineSamples(Voice* voices, int numSamples, Filter& filter) {
-    // Constants for oscillator
+// Generate sine waves and apply filter for 8 voices
+void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const std::vector<Chord>& chords) {
     const SIMD_TYPE twoPi = SIMD_SET1(2.0f * M_PI);
     const SIMD_TYPE one = SIMD_SET1(1.0f);
-
-    // Envelope parameters
     float attackTime = 0.1f; // 100 ms attack
-    float decayTime = 1.9f;  // 1.9 s decay (total note = 2 s)
+    float decayTime = 1.9f;  // 1.9 s decay
+    float currentTime = 0.0f;
+    int currentChord = 0;
 
     for (int i = 0; i < numSamples; i++) {
+        float t = i / filter.sampleRate;
+
+        // Update chord if needed
+        if (currentChord < chords.size() && t >= chords[currentChord].startTime + chords[currentChord].duration) {
+            currentChord++;
+            currentTime = t;
+            if (currentChord < chords.size()) {
+                // Assign new frequencies
+                for (int v = 0; v < 8; v++) {
+                    voices[v].active = v < chords[currentChord].frequencies.size();
+                    if (voices[v].active) {
+                        voices[v].frequency = chords[currentChord].frequencies[v];
+                        voices[v].phaseIncrement = (2.0f * M_PI * voices[v].frequency) / filter.sampleRate;
+                        voices[v].phase = 0.0f; // Reset phase for new note
+                    }
+                }
+            }
+        }
+
         // Update envelopes
-        updateEnvelopes(voices, attackTime, decayTime, filter.sampleRate, i);
+        updateEnvelopes(voices, 8, attackTime, decayTime, filter.sampleRate, i, currentTime);
 
-        // Load amplitudes and phases
-        float tempAmps[4] = { voices[0].amplitude, voices[1].amplitude,
-                              voices[2].amplitude, voices[3].amplitude };
-        float tempPhases[4] = { voices[0].phase, voices[1].phase,
-                                voices[2].phase, voices[3].phase };
-        float tempIncrements[4] = { voices[0].phaseIncrement, voices[1].phaseIncrement,
-                                    voices[2].phaseIncrement, voices[3].phaseIncrement };
-        SIMD_TYPE amplitudes = SIMD_LOAD(tempAmps);
-        SIMD_TYPE phases = SIMD_LOAD(tempPhases);
-        SIMD_TYPE increments = SIMD_LOAD(tempIncrements);
+        // Process two groups of 4 voices
+        float outputSample = 0.0f;
+        for (int group = 0; group < 2; group++) {
+            int voiceOffset = group * 4;
 
-        // Compute sine for 4 voices
-        SIMD_TYPE sinValues = SIMD_SIN(phases);
-        sinValues = SIMD_MUL(sinValues, amplitudes);
+            // Load amplitudes and phases
+            float tempAmps[4] = { voices[voiceOffset].amplitude, voices[voiceOffset + 1].amplitude,
+                                  voices[voiceOffset + 2].amplitude, voices[voiceOffset + 3].amplitude };
+            float tempPhases[4] = { voices[voiceOffset].phase, voices[voiceOffset + 1].phase,
+                                    voices[voiceOffset + 2].phase, voices[voiceOffset + 3].phase };
+            float tempIncrements[4] = { voices[voiceOffset].phaseIncrement, voices[voiceOffset + 1].phaseIncrement,
+                                        voices[voiceOffset + 2].phaseIncrement, voices[voiceOffset + 3].phaseIncrement };
+            SIMD_TYPE amplitudes = SIMD_LOAD(tempAmps);
+            SIMD_TYPE phases = SIMD_LOAD(tempPhases);
+            SIMD_TYPE increments = SIMD_LOAD(tempIncrements);
 
-        // Apply 4-pole ladder filter
-        SIMD_TYPE filteredOutput;
-        applyLadderFilter(voices, sinValues, filter, filteredOutput);
+            // Compute sine for 4 voices
+            SIMD_TYPE sinValues = SIMD_SIN(phases);
+            sinValues = SIMD_MUL(sinValues, amplitudes);
 
-        // Sum the 4 voices
-        float temp[4];
-        SIMD_STORE(temp, filteredOutput);
-        float outputSample = (temp[0] + temp[1] + temp[2] + temp[3]) * 0.25f; // Scale for volume
+            // Apply 4-pole ladder filter
+            SIMD_TYPE filteredOutput;
+            applyLadderFilter(voices, voiceOffset, sinValues, filter, filteredOutput);
+
+            // Sum the 4 voices
+            float temp[4];
+            SIMD_STORE(temp, filteredOutput);
+            outputSample += (temp[0] + temp[1] + temp[2] + temp[3]) * 0.125f; // Scale for 8 voices
+
+            // Update phases
+            phases = SIMD_ADD(phases, increments);
+            SIMD_TYPE wrap = SIMD_SUB(phases, SIMD_MUL(SIMD_FLOOR(SIMD_DIV(phases, twoPi)), twoPi));
+            SIMD_STORE(temp, wrap);
+            voices[voiceOffset].phase = temp[0];
+            voices[voiceOffset + 1].phase = temp[1];
+            voices[voiceOffset + 2].phase = temp[2];
+            voices[voiceOffset + 3].phase = temp[3];
+        }
 
         // Write raw float sample to stdout
         fwrite(&outputSample, sizeof(float), 1, stdout);
-
-        // Update phases
-        phases = SIMD_ADD(phases, increments);
-        SIMD_TYPE wrap = SIMD_SUB(phases, SIMD_MUL(SIMD_FLOOR(SIMD_DIV(phases, twoPi)), twoPi));
-        SIMD_STORE(temp, wrap);
-        voices[0].phase = temp[0];
-        voices[1].phase = temp[1];
-        voices[2].phase = temp[2];
-        voices[3].phase = temp[3];
     }
 }
 
 int main() {
-    // Initialize 4 voices (A4, C5, E5, A5)
+    // Initialize 8 voices
     const float sampleRate = 48000.0f;
-    Voice voices[4];
-    voices[0].frequency = 440.0f; // A4
-    voices[1].frequency = 523.25f; // C5
-    voices[2].frequency = 659.25f; // E5
-    voices[3].frequency = 880.0f; // A5
-    for (int i = 0; i < 4; i++) {
+    Voice voices[8];
+    for (int i = 0; i < 8; i++) {
+        voices[i].frequency = 0.0f;
         voices[i].phase = 0.0f;
-        voices[i].phaseIncrement = (2.0f * M_PI * voices[i].frequency) / sampleRate;
+        voices[i].phaseIncrement = 0.0f;
         voices[i].amplitude = 0.0f;
         voices[i].cutoff = 500.0f; // Base cutoff frequency
         voices[i].filterEnv = 0.0f;
+        voices[i].active = false;
         for (int j = 0; j < 4; j++) {
-            voices[i].filterStates[j] = 0.0f; // Initialize filter states
+            voices[i].filterStates[j] = 0.0f;
         }
     }
 
     // Initialize filter
     Filter filter;
-    filter.resonance = 0.7f; // Moderate resonance for DFM-1-like sound
+    filter.resonance = 0.7f;
     filter.sampleRate = sampleRate;
 
-    // Generate 2 seconds of audio
-    int numSamples = static_cast<int>(2.0f * sampleRate);
-    generateSineSamples(voices, numSamples, filter);
+    // Define Debussy-inspired chords (frequencies in Hz, MIDI note to Hz)
+    auto midiToFreq = [](int midiNote) { return 440.0f * powf(2.0f, (midiNote - 69) / 12.0f); };
+    std::vector<Chord> chords = {
+        // Chord 1: D♭ major 9 (D♭3, F3, A♭3, C4, E♭4)
+        { { midiToFreq(49), midiToFreq(53), midiToFreq(56), midiToFreq(60), midiToFreq(63) }, 0.0f, 2.0f },
+        // Chord 2: G♭ major 7 (G♭3, B♭3, D♭4, F4)
+        { { midiToFreq(54), midiToFreq(58), midiToFreq(61), midiToFreq(65) }, 2.0f, 2.0f },
+        // Chord 3: B♭ minor 7 (B♭3, D♭4, F4, A♭4)
+        { { midiToFreq(58), midiToFreq(61), midiToFreq(65), midiToFreq(68) }, 4.0f, 2.0f },
+        // Chord 4: F minor 9 (F3, A♭3, C4, E♭4, G4)
+        { { midiToFreq(53), midiToFreq(56), midiToFreq(60), midiToFreq(63), midiToFreq(67) }, 6.0f, 2.0f }
+    };
+
+    // Generate 8 seconds of audio
+    int numSamples = static_cast<int>(8.0f * sampleRate);
+    generateSineSamples(voices, numSamples, filter, chords);
 
     return 0;
 }
