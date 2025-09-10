@@ -81,3 +81,5 @@ simdsynth
 
 # debug information files
 *.dwo
+
+**/.idea
