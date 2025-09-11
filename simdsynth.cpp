@@ -95,7 +95,7 @@ float randomize(float base, float var) {
 }
 
 // Update amplitude and filter envelopes
-void updateEnvelopes(Voice* voices, int numVoices, float attackTime, float decayTime, float sampleRate, int sampleIndex, float currentTime) {
+void updateEnvelopes(Voice* voices, int numVoices, float attackTime, float decayTime, float chordDuration, float sampleRate, int sampleIndex, float currentTime) {
     float t = sampleIndex / sampleRate; // Time in seconds
     for (int i = 0; i < numVoices; i++) {
         if (!voices[i].active) {
@@ -126,10 +126,10 @@ void updateEnvelopes(Voice* voices, int numVoices, float attackTime, float decay
             voices[i].filterEnv = localTime / voices[i].fegAttack; // Attack
         } else if (localTime < voices[i].fegAttack + voices[i].fegDecay) {
             voices[i].filterEnv = 1.0f - (localTime - voices[i].fegAttack) / voices[i].fegDecay * (1.0f - voices[i].fegSustain); // Decay to sustain
-        } else if (localTime < attackTime + decayTime) {
-            voices[i].filterEnv = voices[i].fegSustain; // Sustain
-        } else if (localTime < attackTime + decayTime + voices[i].fegRelease) {
-            voices[i].filterEnv = voices[i].fegSustain * (1.0f - (localTime - (attackTime + decayTime)) / voices[i].fegRelease); // Release
+        } else if (localTime < chordDuration) {
+            voices[i].filterEnv = voices[i].fegSustain; // Sustain for full chord duration
+        } else if (localTime < chordDuration + voices[i].fegRelease) {
+            voices[i].filterEnv = voices[i].fegSustain * (1.0f - (localTime - chordDuration) / voices[i].fegRelease); // Release
         } else {
             voices[i].filterEnv = 0.0f;
             voices[i].active = false;
@@ -221,13 +221,14 @@ inline float32x4_t fast_sin_ps(float32x4_t x) {
 }
 #endif
 
+
 // Compute 4-pole ladder filter for 4 voices
 void applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& filter, SIMD_TYPE& output) {
     float cutoffs[4];
     for (int i = 0; i < 4; i++) {
         int idx = voiceOffset + i;
         float modulatedCutoff = voices[idx].cutoff + voices[idx].filterEnv * 2000.0f;
-        modulatedCutoff = std::max(20.0f, std::min(modulatedCutoff, filter.sampleRate / 2.0f));
+		modulatedCutoff = std::max(200.0f, std::min(modulatedCutoff, filter.sampleRate / 2.0f));
         cutoffs[i] = 1.0f - expf(-2.0f * M_PI * modulatedCutoff / filter.sampleRate);
         if (std::isnan(cutoffs[i]) || !std::isfinite(cutoffs[i])) cutoffs[i] = 0.0f; // Prevent nan
     }
@@ -238,6 +239,18 @@ void applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& 
     SIMD_TYPE alpha = SIMD_LOAD(temp);
 #endif
     SIMD_TYPE resonance = SIMD_SET1(std::min(filter.resonance * 4.0f, 4.0f)); // Clamp resonance
+
+    // Check if any voices in the group are active
+    bool anyActive = false;
+    for (int i = 0; i < 4; i++) {
+        if (voiceOffset + i < MAX_VOICE_POLYPHONY && voices[voiceOffset + i].active) {
+            anyActive = true;
+        }
+    }
+    if (!anyActive) {
+        output = SIMD_SET1(0.0f);
+        return;
+    }
 
     SIMD_TYPE states[4];
     for (int i = 0; i < 4; i++) {
@@ -255,6 +268,18 @@ void applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& 
     states[3] = SIMD_ADD(states[3], SIMD_MUL(alpha, SIMD_SUB(states[2], states[3])));
 
     output = states[3];
+
+    // Clamp output to prevent nan or infinite values
+    float tempCheck[4];
+    SIMD_STORE(tempCheck, output);
+    for (int i = 0; i < 4; i++) {
+        if (!std::isfinite(tempCheck[i])) {
+            tempCheck[i] = 0.0f;
+        } else {
+            tempCheck[i] = std::max(-1.0f, std::min(1.0f, tempCheck[i])); // Clamp output
+        }
+    }
+    output = SIMD_LOAD(tempCheck);
 
     // Debug filter output
     float tempOut[4];
@@ -285,26 +310,28 @@ void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const st
     for (int i = 0; i < numSamples; i++) {
         float t = i / filter.sampleRate;
 
-       if (currentChord < chords.size() && t >= chords[currentChord].startTime) {
-            currentTime = chords[currentChord].startTime;
-            for (size_t v = 0; v < MAX_VOICE_POLYPHONY; v++) {
-                voices[v].active = v < chords[currentChord].frequencies.size();
-                if (voices[v].active) {
-                    voices[v].frequency = chords[currentChord].frequencies[v];
-                    voices[v].phaseIncrement = (2.0f * M_PI * voices[v].frequency) / filter.sampleRate;
-                    voices[v].phase = 0.0f;
-                    voices[v].lfoPhase = 0.0f;
-                    voices[v].fegAttack = randomize(0.1f, 0.2f);
-                    voices[v].fegDecay = randomize(1.0f, 0.2f);
-                    voices[v].fegSustain = randomize(0.5f, 0.2f);
-                    voices[v].fegRelease = randomize(0.2f, 0.2f);
-                    voices[v].lfoRate = randomize(1.0f, 0.125f);
-                    voices[v].lfoDepth = randomize(0.1f, 0.125f);
-                } else {
-                    voices[v].amplitude = 0.0f;
-                    voices[v].filterEnv = 0.0f;
-                    for (int j = 0; j < 4; j++) {
-                        voices[v].filterStates[j] = 0.0f;
+        if (currentChord < chords.size() && t >= chords[currentChord].startTime) {
+            if (currentTime != chords[currentChord].startTime) {
+                currentTime = chords[currentChord].startTime;
+                for (size_t v = 0; v < MAX_VOICE_POLYPHONY; v++) {
+                    voices[v].active = v < chords[currentChord].frequencies.size();
+                    if (voices[v].active) {
+                        voices[v].frequency = chords[currentChord].frequencies[v];
+                        voices[v].phaseIncrement = (2.0f * M_PI * voices[v].frequency) / filter.sampleRate;
+                        voices[v].phase = 0.0f;
+                        voices[v].lfoPhase = 0.0f;
+                        voices[v].fegAttack = randomize(0.1f, 0.2f);
+                        voices[v].fegDecay = randomize(1.0f, 0.2f);
+                        voices[v].fegSustain = randomize(0.5f, 0.2f);
+                        voices[v].fegRelease = randomize(0.2f, 0.2f);
+                        voices[v].lfoRate = randomize(1.0f, 0.125f);
+                        voices[v].lfoDepth = randomize(0.1f, 0.125f);
+                    } else {
+                        voices[v].amplitude = 0.0f;
+                        voices[v].filterEnv = 0.0f;
+                        for (int j = 0; j < 4; j++) {
+                            voices[v].filterStates[j] = 0.0f;
+                        }
                     }
                 }
             }
@@ -316,16 +343,23 @@ void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const st
             currentChord++;
         }
 
-        updateEnvelopes(voices, MAX_VOICE_POLYPHONY, attackTime, decayTime, filter.sampleRate, i, currentTime);
+        float chordDuration = (currentChord < chords.size()) ? chords[currentChord].duration : 2.0f;
+        updateEnvelopes(voices, MAX_VOICE_POLYPHONY, attackTime, decayTime, chordDuration, filter.sampleRate, i, currentTime);
 
         float outputSample = 0.0f;
 #ifdef DEBUG_OUTPUT
         int activeVoices = 0; // Reset per sample
+        for (int v = 0; v < MAX_VOICE_POLYPHONY; v++) {
+            if (voices[v].active) activeVoices++;
+        }
 #endif
 
-		for (int group = 0; group < (MAX_VOICE_POLYPHONY / 4); group++) {
-
+        for (int group = 0; group < (MAX_VOICE_POLYPHONY + 3) / 4; group++) {
             int voiceOffset = group * 4;
+            if (voiceOffset >= MAX_VOICE_POLYPHONY) {
+                std::cerr << "Error: voiceOffset " << voiceOffset << " exceeds MAX_VOICE_POLYPHONY" << std::endl;
+                continue;
+            }
 
             float tempAmps[4] = { voices[voiceOffset].amplitude, voices[voiceOffset + 1].amplitude,
                                   voices[voiceOffset + 2].amplitude, voices[voiceOffset + 3].amplitude };
@@ -359,14 +393,23 @@ void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const st
             SIMD_TYPE filteredOutput;
             applyLadderFilter(voices, voiceOffset, sinValues, filter, filteredOutput);
 
+            #ifdef DEBUG_OUTPUT
+            float tempDebugSin[4], tempDebugFiltered[4], tempDebugAmps[4];
+            SIMD_STORE(tempDebugSin, sinValues);
+            SIMD_STORE(tempDebugAmps, amplitudes);
+            SIMD_STORE(tempDebugFiltered, filteredOutput);
+            if (i % 1000 == 0) {
+                std::cerr << "Sample " << i << ": sinValues = {" << tempDebugSin[0] << ", " << tempDebugSin[1] << ", "
+                          << tempDebugSin[2] << ", " << tempDebugSin[3] << "}, amplitudes = {"
+                          << tempDebugAmps[0] << ", " << tempDebugAmps[1] << ", " << tempDebugAmps[2] << ", "
+                          << tempDebugAmps[3] << "}, filteredOutput = {" << tempDebugFiltered[0] << ", "
+                          << tempDebugFiltered[1] << ", " << tempDebugFiltered[2] << ", " << tempDebugFiltered[3] << "}" << std::endl;
+            }
+            #endif
+
             float temp[4];
             SIMD_STORE(temp, filteredOutput);
             outputSample += (temp[0] + temp[1] + temp[2] + temp[3]);
-#ifdef DEBUG_OUTPUT
-            for (int j = 0; j < 4; j++) {
-                if (voices[voiceOffset + j].active) activeVoices++;
-            }
-#endif
 
             // Update phases
             phases = SIMD_ADD(phases, increments);
@@ -384,7 +427,7 @@ void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const st
         }
 
         // Fixed scaling
-        outputSample *= 0.2f; // Use fixed scaling to avoid issues with activeVoices
+        outputSample *= 0.5f; // Increased scaling for audible output
 
         // Debug print every 1000 samples
 #ifdef DEBUG_OUTPUT
@@ -397,7 +440,7 @@ void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const st
         // Prevent nan output
         if (std::isnan(outputSample) || !std::isfinite(outputSample)) {
             outputSample = 0.0f;
-			std::cerr << "Prevented NAN output!" << std::endl;
+            std::cerr << "Prevented NAN output!" << std::endl;
         }
 
         fwrite(&outputSample, sizeof(float), 1, stdout);
