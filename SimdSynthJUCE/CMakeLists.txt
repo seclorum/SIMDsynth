@@ -68,7 +68,7 @@ target_link_libraries(SimdSynth
 # SIMD compiler flags
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
     target_compile_options(SimdSynth PRIVATE -msse -msse2)
-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "arm64")
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
     target_compile_options(SimdSynth PRIVATE -march=armv8-a+simd)
 endif()
 
