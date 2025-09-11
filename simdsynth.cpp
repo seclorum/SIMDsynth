@@ -16,7 +16,11 @@
 #define MAX_VOICE_POLYPHONY 8
 
 #ifdef __x86_64__
-#include <xmmintrin.h> // SSE for x86/x64
+#include <xmmintrin.h> // SSE
+#include <emmintrin.h> // SSE2
+#ifdef __SSE4_1__
+#include <smmintrin.h> // SSE4.1
+#endif
 #define SIMD_TYPE __m128
 #define SIMD_SET1 _mm_set1_ps
 #define SIMD_SET _mm_set_ps
@@ -27,12 +31,12 @@
 #define SIMD_DIV _mm_div_ps
 #define SIMD_FLOOR _mm_floor_ps
 #define SIMD_STORE _mm_store_ps
-#define SIMD_SIN _mm_sin_ps
+#define SIMD_SIN fast_sin_ps
 #elif defined(__arm64__)
-#include <arm_neon.h> // NEON for ARM
+#include <arm_neon.h> // NEON
 #define SIMD_TYPE float32x4_t
 #define SIMD_SET1 vdupq_n_f32
-#define SIMD_SET vld1q_f32
+#define SIMD_SET(__a, __b, __c, __d) vld1q_f32((float[4]){__a, __b, __c, __d})
 #define SIMD_LOAD vld1q_f32
 #define SIMD_ADD vaddq_f32
 #define SIMD_SUB vsubq_f32
@@ -40,7 +44,7 @@
 #define SIMD_DIV vdivq_f32
 #define SIMD_FLOOR my_floor_ps
 #define SIMD_STORE vst1q_f32
-#define SIMD_SIN my_sin_ps
+#define SIMD_SIN fast_sin_ps
 #else
 #error "Unsupported architecture: Requires x86_64 or arm64"
 #endif
@@ -55,12 +59,10 @@ struct Voice {
     float filterEnv;     // Filter envelope output
     float filterStates[4]; // 4-pole filter states
     bool active;         // Voice active state
-    // FEG parameters
     float fegAttack;     // Filter envelope attack time (s)
     float fegDecay;      // Filter envelope decay time (s)
     float fegSustain;    // Filter envelope sustain level (0–1)
     float fegRelease;    // Filter envelope release time (s)
-    // LFO parameters
     float lfoRate;       // LFO rate (Hz)
     float lfoDepth;      // LFO depth (radians)
     float lfoPhase;      // LFO phase (radians)
@@ -97,6 +99,9 @@ void updateEnvelopes(Voice* voices, int numVoices, float attackTime, float decay
         if (!voices[i].active) {
             voices[i].amplitude = 0.0f;
             voices[i].filterEnv = 0.0f;
+            for (int j = 0; j < 4; j++) {
+                voices[i].filterStates[j] = 0.0f; // Clear filter states for inactive voices
+            }
             continue;
         }
         float localTime = t - currentTime; // Time relative to chord start
@@ -109,6 +114,9 @@ void updateEnvelopes(Voice* voices, int numVoices, float attackTime, float decay
         } else {
             voices[i].amplitude = 0.0f;
             voices[i].active = false;
+            for (int j = 0; j < 4; j++) {
+                voices[i].filterStates[j] = 0.0f; // Clear filter states
+            }
         }
 
         // Filter envelope (ADSR)
@@ -123,6 +131,9 @@ void updateEnvelopes(Voice* voices, int numVoices, float attackTime, float decay
         } else {
             voices[i].filterEnv = 0.0f;
             voices[i].active = false;
+            for (int j = 0; j < 4; j++) {
+                voices[i].filterStates[j] = 0.0f; // Clear filter states
+            }
         }
     }
 }
@@ -140,45 +151,92 @@ inline float32x4_t my_floor_ps(float32x4_t x) {
 }
 #endif
 
-// Custom sine for NEON/SSE (placeholder)
-#ifdef __arm64__
-inline float32x4_t my_sin_ps(float32x4_t x) {
-    float temp[4];
-    vst1q_f32(temp, x);
-    temp[0] = sinf(temp[0]);
-    temp[1] = sinf(temp[1]);
-    temp[2] = sinf(temp[2]);
-    temp[3] = sinf(temp[3]);
-    return vld1q_f32(temp);
+// Fixed fast sine for x86_64 (SSE)
+#ifdef __x86_64__
+inline __m128 fast_sin_ps(__m128 x) {
+    const __m128 twoPi = _mm_set1_ps(2.0f * M_PI);
+    const __m128 invTwoPi = _mm_set1_ps(1.0f / (2.0f * M_PI));
+    const __m128 piOverTwo = _mm_set1_ps(M_PI / 2.0f);
+
+    // Wrap x to [-π, π]
+    __m128 q = _mm_mul_ps(x, invTwoPi);
+    q = _mm_floor_ps(q);
+    __m128 xWrapped = _mm_sub_ps(x, _mm_mul_ps(q, twoPi));
+
+    // Further reduce to [-π/2, π/2] for better polynomial accuracy
+    __m128 sign = _mm_set1_ps(1.0f);
+    __m128 absX = _mm_max_ps(xWrapped, _mm_sub_ps(_mm_setzero_ps(), xWrapped));
+    __m128 gtPiOverTwo = _mm_cmpgt_ps(absX, piOverTwo);
+    sign = _mm_or_ps(_mm_and_ps(gtPiOverTwo, _mm_set1_ps(-1.0f)), _mm_andnot_ps(gtPiOverTwo, _mm_set1_ps(1.0f)));
+    xWrapped = _mm_sub_ps(xWrapped, _mm_and_ps(gtPiOverTwo, _mm_mul_ps(piOverTwo, _mm_set1_ps(2.0f))));
+
+    // Taylor series: sin(x) ≈ x - x³/6 + x⁵/120 - x⁷/5040
+    const __m128 c3 = _mm_set1_ps(-1.0f / 6.0f);
+    const __m128 c5 = _mm_set1_ps(1.0f / 120.0f);
+    const __m128 c7 = _mm_set1_ps(-1.0f / 5040.0f);
+
+    __m128 x2 = _mm_mul_ps(xWrapped, xWrapped);
+    __m128 x3 = _mm_mul_ps(x2, xWrapped);
+    __m128 x5 = _mm_mul_ps(x3, x2);
+    __m128 x7 = _mm_mul_ps(x5, x2);
+
+    __m128 result = _mm_add_ps(xWrapped, _mm_add_ps(_mm_mul_ps(c3, x3), _mm_add_ps(_mm_mul_ps(c5, x5), _mm_mul_ps(c7, x7))));
+    return _mm_mul_ps(result, sign);
 }
 #endif
-#ifdef __x86_64__
-inline __m128 _mm_sin_ps(__m128 x) {
-    float temp[4];
-    _mm_store_ps(temp, x);
-    temp[0] = sinf(temp[0]);
-    temp[1] = sinf(temp[1]);
-    temp[2] = sinf(temp[2]);
-    temp[3] = sinf(temp[3]);
-    return _mm_load_ps(temp);
+
+// Fixed fast sine for ARM64 (NEON)
+#ifdef __arm64__
+inline float32x4_t fast_sin_ps(float32x4_t x) {
+    const float32x4_t twoPi = vdupq_n_f32(2.0f * M_PI);
+    const float32x4_t invTwoPi = vdupq_n_f32(1.0f / (2.0f * M_PI));
+    const float32x4_t piOverTwo = vdupq_n_f32(M_PI / 2.0f);
+
+    // Wrap x to [-π, π]
+    float32x4_t q = vmulq_f32(x, invTwoPi);
+    q = my_floor_ps(q);
+    float32x4_t xWrapped = vsubq_f32(x, vmulq_f32(q, twoPi));
+
+    // Further reduce to [-π/2, π/2] for better polynomial accuracy
+    float32x4_t sign = vdupq_n_f32(1.0f);
+    float32x4_t absX = vmaxq_f32(xWrapped, vsubq_f32(vdupq_n_f32(0.0f), xWrapped));
+    uint32x4_t gtPiOverTwo = vcgtq_f32(absX, piOverTwo);
+    sign = vbslq_f32(gtPiOverTwo, vdupq_n_f32(-1.0f), vdupq_n_f32(1.0f));
+    xWrapped = vsubq_f32(xWrapped, vbslq_f32(gtPiOverTwo, vmulq_f32(piOverTwo, vdupq_n_f32(2.0f)), vdupq_n_f32(0.0f)));
+
+    // Taylor series: sin(x) ≈ x - x³/6 + x⁵/120 - x⁷/5040
+    const float32x4_t c3 = vdupq_n_f32(-1.0f / 6.0f);
+    const float32x4_t c5 = vdupq_n_f32(1.0f / 120.0f);
+    const float32x4_t c7 = vdupq_n_f32(-1.0f / 5040.0f);
+
+    float32x4_t x2 = vmulq_f32(xWrapped, xWrapped);
+    float32x4_t x3 = vmulq_f32(x2, xWrapped);
+    float32x4_t x5 = vmulq_f32(x3, x2);
+    float32x4_t x7 = vmulq_f32(x5, x2);
+
+    float32x4_t result = vaddq_f32(xWrapped, vaddq_f32(vmulq_f32(c3, x3), vaddq_f32(vmulq_f32(c5, x5), vmulq_f32(c7, x7))));
+    return vmulq_f32(result, sign);
 }
 #endif
 
 // Compute 4-pole ladder filter for 4 voices
 void applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& filter, SIMD_TYPE& output) {
-    // Compute alpha = 1 - e^(-2π * cutoff / sampleRate)
     float cutoffs[4];
     for (int i = 0; i < 4; i++) {
         int idx = voiceOffset + i;
-        float modulatedCutoff = voices[idx].cutoff + voices[idx].filterEnv * 2000.0f; // 500–2500 Hz sweep
+        float modulatedCutoff = voices[idx].cutoff + voices[idx].filterEnv * 2000.0f;
         modulatedCutoff = std::max(20.0f, std::min(modulatedCutoff, filter.sampleRate / 2.0f));
         cutoffs[i] = 1.0f - expf(-2.0f * M_PI * modulatedCutoff / filter.sampleRate);
+        if (std::isnan(cutoffs[i]) || !std::isfinite(cutoffs[i])) cutoffs[i] = 0.0f; // Prevent nan
     }
-    SIMD_TYPE alpha = SIMD_SET(cutoffs);
-    SIMD_TYPE oneMinusAlpha = SIMD_SUB(SIMD_SET1(1.0f), alpha);
-    SIMD_TYPE resonance = SIMD_SET1(filter.resonance * 4.0f);
+#ifdef __x86_64__
+    SIMD_TYPE alpha = SIMD_SET(cutoffs[0], cutoffs[1], cutoffs[2], cutoffs[3]);
+#elif defined(__arm64__)
+    float temp[4] = {cutoffs[0], cutoffs[1], cutoffs[2], cutoffs[3]};
+    SIMD_TYPE alpha = SIMD_LOAD(temp);
+#endif
+    SIMD_TYPE resonance = SIMD_SET1(std::min(filter.resonance * 4.0f, 4.0f)); // Clamp resonance
 
-    // Load filter states
     SIMD_TYPE states[4];
     for (int i = 0; i < 4; i++) {
         float temp[4] = { voices[voiceOffset].filterStates[i], voices[voiceOffset + 1].filterStates[i],
@@ -186,20 +244,24 @@ void applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& 
         states[i] = SIMD_LOAD(temp);
     }
 
-    // Apply feedback
     SIMD_TYPE feedback = SIMD_MUL(states[3], resonance);
     SIMD_TYPE filterInput = SIMD_SUB(input, feedback);
 
-    // Cascade four one-pole filters
     states[0] = SIMD_ADD(states[0], SIMD_MUL(alpha, SIMD_SUB(filterInput, states[0])));
     states[1] = SIMD_ADD(states[1], SIMD_MUL(alpha, SIMD_SUB(states[0], states[1])));
     states[2] = SIMD_ADD(states[2], SIMD_MUL(alpha, SIMD_SUB(states[1], states[2])));
     states[3] = SIMD_ADD(states[3], SIMD_MUL(alpha, SIMD_SUB(states[2], states[3])));
 
-    // Output is the final stage
     output = states[3];
 
-    // Store updated states
+    // Debug filter output
+    float tempOut[4];
+    SIMD_STORE(tempOut, output);
+    if (std::isnan(tempOut[0]) || std::isnan(tempOut[1]) || std::isnan(tempOut[2]) || std::isnan(tempOut[3])) {
+        std::cerr << "Filter output nan at voiceOffset " << voiceOffset << ": {"
+                  << tempOut[0] << ", " << tempOut[1] << ", " << tempOut[2] << ", " << tempOut[3] << "}" << std::endl;
+    }
+
     for (int i = 0; i < 4; i++) {
         float temp[4];
         SIMD_STORE(temp, states[i]);
@@ -210,53 +272,57 @@ void applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& 
     }
 }
 
-// Generate sine waves and apply filter for MAX_VOICE_POLYPHONY voices
+// Generate sine samples
 void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const std::vector<Chord>& chords) {
     const SIMD_TYPE twoPi = SIMD_SET1(2.0f * M_PI);
-    const SIMD_TYPE one = SIMD_SET1(1.0f);
-    float attackTime = 0.1f; // 100 ms attack for amplitude
-    float decayTime = 1.9f;  // 1.9 s decay for amplitude
+    float attackTime = 0.1f;
+    float decayTime = 1.9f;
     float currentTime = 0.0f;
-    int currentChord = 0;
+    size_t currentChord = 0;
 
     for (int i = 0; i < numSamples; i++) {
         float t = i / filter.sampleRate;
 
-        // Update chord if needed
-        if (currentChord < chords.size() && t >= chords[currentChord].startTime + chords[currentChord].duration) {
-            currentChord++;
-            currentTime = t;
-            if (currentChord < chords.size()) {
-                // Assign new frequencies and randomize FEG and LFO parameters
-                for (int v = 0; v < MAX_VOICE_POLYPHONY; v++) {
-                    voices[v].active = v < chords[currentChord].frequencies.size();
-                    if (voices[v].active) {
-                        voices[v].frequency = chords[currentChord].frequencies[v];
-                        voices[v].phaseIncrement = (2.0f * M_PI * voices[v].frequency) / filter.sampleRate;
-                        voices[v].phase = 0.0f; // Reset phase for new note
-                        voices[v].lfoPhase = 0.0f; // Reset LFO phase
-                        // Randomize FEG parameters
-                        voices[v].fegAttack = randomize(0.1f, 0.2f);  // 80–120 ms
-                        voices[v].fegDecay = randomize(1.0f, 0.2f);   // 800–1200 ms
-                        voices[v].fegSustain = randomize(0.5f, 0.2f); // 0.4–0.6
-                        voices[v].fegRelease = randomize(0.2f, 0.2f); // 160–240 ms
-                        // Randomize LFO parameters
-                        voices[v].lfoRate = randomize(1.0f, 0.125f);    // 0.8–1.2 Hz
-                        voices[v].lfoDepth = randomize(0.1f, 0.125f);  // 0.008–0.012 radians
+       if (currentChord < chords.size() && t >= chords[currentChord].startTime) {
+            currentTime = chords[currentChord].startTime;
+            for (size_t v = 0; v < MAX_VOICE_POLYPHONY; v++) {
+                voices[v].active = v < chords[currentChord].frequencies.size();
+                if (voices[v].active) {
+                    voices[v].frequency = chords[currentChord].frequencies[v];
+                    voices[v].phaseIncrement = (2.0f * M_PI * voices[v].frequency) / filter.sampleRate;
+                    voices[v].phase = 0.0f;
+                    voices[v].lfoPhase = 0.0f;
+                    voices[v].fegAttack = randomize(0.1f, 0.2f);
+                    voices[v].fegDecay = randomize(1.0f, 0.2f);
+                    voices[v].fegSustain = randomize(0.5f, 0.2f);
+                    voices[v].fegRelease = randomize(0.2f, 0.2f);
+                    voices[v].lfoRate = randomize(1.0f, 0.125f);
+                    voices[v].lfoDepth = randomize(0.1f, 0.125f);
+                } else {
+                    voices[v].amplitude = 0.0f;
+                    voices[v].filterEnv = 0.0f;
+                    for (int j = 0; j < 4; j++) {
+                        voices[v].filterStates[j] = 0.0f;
                     }
                 }
             }
         }
 
-        // Update envelopes
+        // Advance to next chord after current chord finishes
+        if (currentChord < chords.size() &&
+            t >= chords[currentChord].startTime + chords[currentChord].duration) {
+            currentChord++;
+        }
+
         updateEnvelopes(voices, MAX_VOICE_POLYPHONY, attackTime, decayTime, filter.sampleRate, i, currentTime);
 
-        // Process groups of 4 voices
         float outputSample = 0.0f;
-        for (int group = 0; group < (MAX_VOICE_POLYPHONY / 2); group++) {
+        int activeVoices = 0; // Reset per sample
+
+		for (int group = 0; group < (MAX_VOICE_POLYPHONY / 4); group++) {
+
             int voiceOffset = group * 4;
 
-            // Load amplitudes, phases, and increments
             float tempAmps[4] = { voices[voiceOffset].amplitude, voices[voiceOffset + 1].amplitude,
                                   voices[voiceOffset + 2].amplitude, voices[voiceOffset + 3].amplitude };
             float tempPhases[4] = { voices[voiceOffset].phase, voices[voiceOffset + 1].phase,
@@ -276,28 +342,27 @@ void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const st
             SIMD_TYPE lfoRates = SIMD_LOAD(tempLfoRates);
             SIMD_TYPE lfoDepths = SIMD_LOAD(tempLfoDepths);
 
-            // Compute LFO and modulate phases
             SIMD_TYPE lfoIncrements = SIMD_MUL(lfoRates, SIMD_SET1(2.0f * M_PI / filter.sampleRate));
             lfoPhases = SIMD_ADD(lfoPhases, lfoIncrements);
-            lfoPhases = SIMD_SUB(lfoPhases, SIMD_MUL(SIMD_FLOOR(SIMD_DIV(lfoPhases, twoPi)), twoPi)); // Wrap LFO phase
+            lfoPhases = SIMD_SUB(lfoPhases, SIMD_MUL(SIMD_FLOOR(SIMD_DIV(lfoPhases, twoPi)), twoPi));
             SIMD_TYPE lfoValues = SIMD_SIN(lfoPhases);
             lfoValues = SIMD_MUL(lfoValues, lfoDepths);
-            phases = SIMD_ADD(phases, lfoValues); // Modulate oscillator phase
+            phases = SIMD_ADD(phases, lfoValues);
 
-            // Compute sine for 4 voices
             SIMD_TYPE sinValues = SIMD_SIN(phases);
             sinValues = SIMD_MUL(sinValues, amplitudes);
 
-            // Apply 4-pole ladder filter
             SIMD_TYPE filteredOutput;
             applyLadderFilter(voices, voiceOffset, sinValues, filter, filteredOutput);
 
-            // Sum the 4 voices
             float temp[4];
             SIMD_STORE(temp, filteredOutput);
-            outputSample += (temp[0] + temp[1] + temp[2] + temp[3]) * 0.125f; // Scale for MAX_VOICE_POLYPHONY voices
+            outputSample += (temp[0] + temp[1] + temp[2] + temp[3]);
+            for (int j = 0; j < 4; j++) {
+                if (voices[voiceOffset + j].active) activeVoices++;
+            }
 
-            // Update phases and LFO phases
+            // Update phases
             phases = SIMD_ADD(phases, increments);
             SIMD_TYPE wrap = SIMD_SUB(phases, SIMD_MUL(SIMD_FLOOR(SIMD_DIV(phases, twoPi)), twoPi));
             SIMD_STORE(temp, wrap);
@@ -312,16 +377,26 @@ void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const st
             voices[voiceOffset + 3].lfoPhase = temp[3];
         }
 
-        // Write raw float sample to stdout
+        // Fixed scaling
+        outputSample *= 0.2f; // Use fixed scaling to avoid issues with activeVoices
+
+        // Debug print every 1000 samples
+        if (i % 1000 == 0) {
+            std::cerr << "Sample " << i << ": outputSample = " << outputSample
+                      << ", activeVoices = " << activeVoices << std::endl;
+        }
+
+        // Prevent nan output
+        if (std::isnan(outputSample) || !std::isfinite(outputSample)) {
+            outputSample = 0.0f;
+        }
+
         fwrite(&outputSample, sizeof(float), 1, stdout);
     }
 }
 
 int main() {
-    // Seed random number generator for reproducibility
     srand(1234);
-
-    // Initialize the voices
     const float sampleRate = 48000.0f;
     Voice voices[MAX_VOICE_POLYPHONY];
     for (int i = 0; i < MAX_VOICE_POLYPHONY; i++) {
@@ -329,7 +404,7 @@ int main() {
         voices[i].phase = 0.0f;
         voices[i].phaseIncrement = 0.0f;
         voices[i].amplitude = 0.0f;
-        voices[i].cutoff = 500.0f; // Base cutoff frequency
+        voices[i].cutoff = 1000.0f; // Increased to reduce attenuation
         voices[i].filterEnv = 0.0f;
         voices[i].active = false;
         voices[i].fegAttack = 0.1f;
@@ -344,27 +419,33 @@ int main() {
         }
     }
 
-    // Initialize filter
     Filter filter;
     filter.resonance = 0.7f;
     filter.sampleRate = sampleRate;
 
-    // Define Debussy-inspired chords (frequencies in Hz, MIDI note to Hz)
     std::vector<Chord> chords;
-    chords.emplace_back(Chord{{midiToFreq(49), midiToFreq(53), midiToFreq(56), midiToFreq(60), midiToFreq(63)}, 0.0f, 2.0f});  // D♭ major 9
-    chords.emplace_back(Chord{{midiToFreq(54), midiToFreq(58), midiToFreq(61), midiToFreq(65)}, 2.0f, 2.0f});           // G♭ major 7
-    chords.emplace_back(Chord{{midiToFreq(58), midiToFreq(61), midiToFreq(65), midiToFreq(68)}, 4.0f, 2.0f});           // B♭ minor 7
-    chords.emplace_back(Chord{{midiToFreq(53), midiToFreq(56), midiToFreq(60), midiToFreq(63), midiToFreq(67)}, 6.0f, 2.0f}); // F minor 9
-    chords.emplace_back(Chord{{midiToFreq(56), midiToFreq(60), midiToFreq(63), midiToFreq(67)}, 8.0f, 2.0f});           // A♭ major 7
-    chords.emplace_back(Chord{{midiToFreq(51), midiToFreq(55), midiToFreq(58), midiToFreq(62), midiToFreq(65)}, 10.0f, 2.0f}); // E♭ major 9
-    chords.emplace_back(Chord{{midiToFreq(60), midiToFreq(63), midiToFreq(67), midiToFreq(70)}, 12.0f, 2.0f});          // C minor 7
-    chords.emplace_back(Chord{{midiToFreq(54), midiToFreq(58), midiToFreq(61), midiToFreq(65), midiToFreq(68)}, 14.0f, 2.0f}); // G♭ major 9
-    chords.emplace_back(Chord{{midiToFreq(61), midiToFreq(65), midiToFreq(68), midiToFreq(72)}, 16.0f, 2.0f});          // D♭ major 7
-    chords.emplace_back(Chord{{midiToFreq(58), midiToFreq(61), midiToFreq(65), midiToFreq(68), midiToFreq(72)}, 18.0f, 2.0f}); // B♭ minor 9
-    chords.emplace_back(Chord{{midiToFreq(53), midiToFreq(56), midiToFreq(60), midiToFreq(63)}, 20.0f, 2.0f});          // F minor 7
-    chords.emplace_back(Chord{{midiToFreq(56), midiToFreq(60), midiToFreq(63), midiToFreq(67), midiToFreq(70)}, 22.0f, 2.0f}); // A♭ major 9
+    chords.emplace_back(Chord{{midiToFreq(49), midiToFreq(53), midiToFreq(56), midiToFreq(60), midiToFreq(63)}, 0.0f, 2.0f});
+    chords.emplace_back(Chord{{midiToFreq(54), midiToFreq(58), midiToFreq(61), midiToFreq(65)}, 2.0f, 2.0f});
+    chords.emplace_back(Chord{{midiToFreq(58), midiToFreq(61), midiToFreq(65), midiToFreq(68)}, 4.0f, 2.0f});
+    chords.emplace_back(Chord{{midiToFreq(53), midiToFreq(56), midiToFreq(60), midiToFreq(63), midiToFreq(67)}, 6.0f, 2.0f});
+    chords.emplace_back(Chord{{midiToFreq(56), midiToFreq(60), midiToFreq(63), midiToFreq(67)}, 8.0f, 2.0f});
+    chords.emplace_back(Chord{{midiToFreq(51), midiToFreq(55), midiToFreq(58), midiToFreq(62), midiToFreq(65)}, 10.0f, 2.0f});
+    chords.emplace_back(Chord{{midiToFreq(60), midiToFreq(63), midiToFreq(67), midiToFreq(70)}, 12.0f, 2.0f});
+    chords.emplace_back(Chord{{midiToFreq(54), midiToFreq(58), midiToFreq(61), midiToFreq(65), midiToFreq(68)}, 14.0f, 2.0f});
+    chords.emplace_back(Chord{{midiToFreq(61), midiToFreq(65), midiToFreq(68), midiToFreq(72)}, 16.0f, 2.0f});
+    chords.emplace_back(Chord{{midiToFreq(58), midiToFreq(61), midiToFreq(65), midiToFreq(68), midiToFreq(72)}, 18.0f, 2.0f});
+    chords.emplace_back(Chord{{midiToFreq(53), midiToFreq(56), midiToFreq(60), midiToFreq(63)}, 20.0f, 2.0f});
+    chords.emplace_back(Chord{{midiToFreq(56), midiToFreq(60), midiToFreq(63), midiToFreq(67), midiToFreq(70)}, 22.0f, 2.0f});
 
-    // Generate 24 seconds of audio
+    // Debug sine function
+    float test[4] = {0.0f, M_PI/4, M_PI/2, 3*M_PI/4};
+    SIMD_TYPE x = SIMD_LOAD(test);
+    SIMD_TYPE sin_x = SIMD_SIN(x);
+    float result[4];
+    SIMD_STORE(result, sin_x);
+    for (int i = 0; i < 4; ++i)
+        std::cerr << "sin(" << test[i] << ") = " << result[i] << std::endl;
+
     int numSamples = static_cast<int>(24.0f * sampleRate);
     generateSineSamples(voices, numSamples, filter, chords);
 
