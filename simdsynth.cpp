@@ -1,9 +1,19 @@
+/*
+ *
+ *	simdsynth - a playground for experimenting with SIMD-based audio
+ *			    synthesis, with simple polyphonic oscillator, filter, 
+ *				envelopes and LFO per voice, up to 8 voices.
+ *
+ */
+
 #include <iostream>
 #include <cmath>
 #include <cstdint>
 #include <vector>
 #include <cstdlib>
 #include <ctime>
+
+#define MAX_VOICE_POLYPHONY 8
 
 #ifdef __x86_64__
 #include <xmmintrin.h> // SSE for x86/x64
@@ -200,7 +210,7 @@ void applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& 
     }
 }
 
-// Generate sine waves and apply filter for 8 voices
+// Generate sine waves and apply filter for MAX_VOICE_POLYPHONY voices
 void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const std::vector<Chord>& chords) {
     const SIMD_TYPE twoPi = SIMD_SET1(2.0f * M_PI);
     const SIMD_TYPE one = SIMD_SET1(1.0f);
@@ -218,7 +228,7 @@ void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const st
             currentTime = t;
             if (currentChord < chords.size()) {
                 // Assign new frequencies and randomize FEG and LFO parameters
-                for (int v = 0; v < 8; v++) {
+                for (int v = 0; v < MAX_VOICE_POLYPHONY; v++) {
                     voices[v].active = v < chords[currentChord].frequencies.size();
                     if (voices[v].active) {
                         voices[v].frequency = chords[currentChord].frequencies[v];
@@ -231,19 +241,19 @@ void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const st
                         voices[v].fegSustain = randomize(0.5f, 0.2f); // 0.4–0.6
                         voices[v].fegRelease = randomize(0.2f, 0.2f); // 160–240 ms
                         // Randomize LFO parameters
-                        voices[v].lfoRate = randomize(1.0f, 0.2f);    // 0.8–1.2 Hz
-                        voices[v].lfoDepth = randomize(0.01f, 0.2f);  // 0.008–0.012 radians
+                        voices[v].lfoRate = randomize(1.0f, 0.125f);    // 0.8–1.2 Hz
+                        voices[v].lfoDepth = randomize(0.1f, 0.125f);  // 0.008–0.012 radians
                     }
                 }
             }
         }
 
         // Update envelopes
-        updateEnvelopes(voices, 8, attackTime, decayTime, filter.sampleRate, i, currentTime);
+        updateEnvelopes(voices, MAX_VOICE_POLYPHONY, attackTime, decayTime, filter.sampleRate, i, currentTime);
 
-        // Process two groups of 4 voices
+        // Process groups of 4 voices
         float outputSample = 0.0f;
-        for (int group = 0; group < 2; group++) {
+        for (int group = 0; group < (MAX_VOICE_POLYPHONY / 2); group++) {
             int voiceOffset = group * 4;
 
             // Load amplitudes, phases, and increments
@@ -285,7 +295,7 @@ void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const st
             // Sum the 4 voices
             float temp[4];
             SIMD_STORE(temp, filteredOutput);
-            outputSample += (temp[0] + temp[1] + temp[2] + temp[3]) * 0.125f; // Scale for 8 voices
+            outputSample += (temp[0] + temp[1] + temp[2] + temp[3]) * 0.125f; // Scale for MAX_VOICE_POLYPHONY voices
 
             // Update phases and LFO phases
             phases = SIMD_ADD(phases, increments);
@@ -311,10 +321,10 @@ int main() {
     // Seed random number generator for reproducibility
     srand(1234);
 
-    // Initialize 8 voices
+    // Initialize the voices
     const float sampleRate = 48000.0f;
-    Voice voices[8];
-    for (int i = 0; i < 8; i++) {
+    Voice voices[MAX_VOICE_POLYPHONY];
+    for (int i = 0; i < MAX_VOICE_POLYPHONY; i++) {
         voices[i].frequency = 0.0f;
         voices[i].phase = 0.0f;
         voices[i].phaseIncrement = 0.0f;
