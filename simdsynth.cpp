@@ -13,6 +13,8 @@
 #include <cstdlib>
 #include <ctime>
 
+#undef DEBUG_OUTPUT
+
 #define MAX_VOICE_POLYPHONY 8
 
 #ifdef __x86_64__
@@ -317,7 +319,9 @@ void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const st
         updateEnvelopes(voices, MAX_VOICE_POLYPHONY, attackTime, decayTime, filter.sampleRate, i, currentTime);
 
         float outputSample = 0.0f;
+#ifdef DEBUG_OUTPUT
         int activeVoices = 0; // Reset per sample
+#endif
 
 		for (int group = 0; group < (MAX_VOICE_POLYPHONY / 4); group++) {
 
@@ -358,9 +362,11 @@ void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const st
             float temp[4];
             SIMD_STORE(temp, filteredOutput);
             outputSample += (temp[0] + temp[1] + temp[2] + temp[3]);
+#ifdef DEBUG_OUTPUT
             for (int j = 0; j < 4; j++) {
                 if (voices[voiceOffset + j].active) activeVoices++;
             }
+#endif
 
             // Update phases
             phases = SIMD_ADD(phases, increments);
@@ -381,14 +387,17 @@ void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const st
         outputSample *= 0.2f; // Use fixed scaling to avoid issues with activeVoices
 
         // Debug print every 1000 samples
+#ifdef DEBUG_OUTPUT
         if (i % 1000 == 0) {
             std::cerr << "Sample " << i << ": outputSample = " << outputSample
                       << ", activeVoices = " << activeVoices << std::endl;
         }
+#endif
 
         // Prevent nan output
         if (std::isnan(outputSample) || !std::isfinite(outputSample)) {
             outputSample = 0.0f;
+			std::cerr << "Prevented NAN output!" << std::endl;
         }
 
         fwrite(&outputSample, sizeof(float), 1, stdout);
@@ -437,6 +446,7 @@ int main() {
     chords.emplace_back(Chord{{midiToFreq(53), midiToFreq(56), midiToFreq(60), midiToFreq(63)}, 20.0f, 2.0f});
     chords.emplace_back(Chord{{midiToFreq(56), midiToFreq(60), midiToFreq(63), midiToFreq(67), midiToFreq(70)}, 22.0f, 2.0f});
 
+#if DEBUG_OUTPUT
     // Debug sine function
     float test[4] = {0.0f, M_PI/4, M_PI/2, 3*M_PI/4};
     SIMD_TYPE x = SIMD_LOAD(test);
@@ -445,6 +455,7 @@ int main() {
     SIMD_STORE(result, sin_x);
     for (int i = 0; i < 4; ++i)
         std::cerr << "sin(" << test[i] << ") = " << result[i] << std::endl;
+#endif
 
     int numSamples = static_cast<int>(24.0f * sampleRate);
     generateSineSamples(voices, numSamples, filter, chords);
