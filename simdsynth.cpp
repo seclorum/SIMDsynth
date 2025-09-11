@@ -324,8 +324,8 @@ void generateSineSamples(Voice* voices, int numSamples, Filter& filter, const st
                         voices[v].fegDecay = randomize(1.0f, 0.2f);
                         voices[v].fegSustain = randomize(0.5f, 0.2f);
                         voices[v].fegRelease = randomize(0.2f, 0.2f);
-                        voices[v].lfoRate = randomize(1.0f, 0.125f);
-                        voices[v].lfoDepth = randomize(0.1f, 0.125f);
+                        voices[v].lfoRate = 0; //randomize(1.0f, 0.125f);
+                        voices[v].lfoDepth = 0; //randomize(0.1f, 0.125f);
                     } else {
                         voices[v].amplitude = 0.0f;
                         voices[v].filterEnv = 0.0f;
