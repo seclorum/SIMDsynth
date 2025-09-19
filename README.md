@@ -1,6 +1,6 @@
 # SIMDsynth
 
-This code is a SIMD-accelerated audio synthesizer written in C++, using vectorized math to simulate polyphonic audio synthesis with filters, envelopes, LFOs, and sine wave oscillators. It's optimized for both x86-64 (SSE) and ARM64 (NEON) platforms.
+This is a SIMD-accelerated audio synthesizer written in C++, using vectorized math to simulate polyphonic audio synthesis with filters, envelopes, LFOs, and sine wave oscillators. It's optimized for both x86-64 (SSE) and ARM64 (NEON) platforms.
 
 A basic "C" version of the synth is implemented in `simdsynth.cpp`, which can be tested during development with the `make test` target of the Makefile (requires `sox` to play samples from piped output). 
 
