@@ -2,7 +2,9 @@
 
 This code is a SIMD-accelerated audio synthesizer written in C++, using vectorized math to simulate polyphonic audio synthesis with filters, envelopes, LFOs, and sine wave oscillators. It's optimized for both x86-64 (SSE) and ARM64 (NEON) platforms.
 
-A basic "C" version of the synth is implemented in `simdsynth.cpp`, which can be tested with the `make test` target of the Makefile (requires `sox` to play samples from piped output). Additionally, a more sophisticated JUCE-based plugin wrapper is implemented to highlight the SIMD techniques in a JUCE context.
+A basic "C" version of the synth is implemented in `simdsynth.cpp`, which can be tested during development with the `make test` target of the Makefile (requires `sox` to play samples from piped output). Additionally, a more sophisticated JUCE-based plugin wrapper is implemented to highlight the SIMD techniques in a JUCE context.
+
+Additionally, you can listen to demonstration of the current capabilities: [demo.wav](demo.wav)
 
 ## High-Level Overview
 
@@ -16,6 +18,5 @@ A basic "C" version of the synth is implemented in `simdsynth.cpp`, which can be
 - Plays a sequence of Debussy-style chords over 24 seconds.
 - Uses SSE or NEON depending on platform (x86_64 or ARM64).
 
-Listen to a sample output: [demo.wav](demo.wav)
 
 (c) 2025, seclorum
