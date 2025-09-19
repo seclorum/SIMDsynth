@@ -20,7 +20,8 @@ Additionally, you can listen to a demonstration of the current capabilities:
   - Amplitude envelopes (AD): Attack-Decay
   - Filter envelopes (ADSR): Attack-Decay-Sustain-Release
   - LFO (Low Frequency Oscillator): Used to modulate the pitch
-  - 4-pole ladder filters per voice group.
+  - 4-pole ladder filters per voice group
+  - Sub-oscillator per voice
 - Plays a sequence of Debussy-style chords over 24 seconds.
 - Uses SSE or NEON depending on platform (x86_64 or ARM64).
 
