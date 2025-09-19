@@ -7,10 +7,10 @@ A basic "C" version of the synth is implemented in `simdsynth.cpp`, which can be
 Additionally, you can listen to a demonstration of the current capabilities:
 
 <audio controls>
-  <source src="https://raw.githubusercontent.com/username/SIMDsynth/main/demo.wav" type="audio/wav">
+  <source src="https://raw.githubusercontent.com/username/SIMDsynth/main/demo.mp3" type="audio/mpeg">
+  Your browser does not support the audio element. <a href="https://raw.githubusercontent.com/username/SIMDsynth/main/demo.mp3">Download the demo.mp3 to play locally.</a>.
 </audio>
 
-  Click here to download the demo.wav:  [demo.wav](demo.wav)
 
 ## High-Level Overview
 
