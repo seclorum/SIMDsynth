@@ -7,8 +7,8 @@ A basic "C" version of the synth is implemented in `simdsynth.cpp`, which can be
 Additionally, you can listen to a demonstration of the current capabilities:
 
 <audio controls>
-  <source src="demo.mp3" type="audio/mpeg">
-  <a href="demo.mp3">Download the demo.mp3 to play locally.</a>.
+	<source src="https://raw.githubusercontent.com/seclorum/SIMDsynth/main/demo.mp3" type="audio/mpeg">
+	<a href="https://raw.githubusercontent.com/seclorum/SIMDsynth/main/demo.mp3">Download the demo.mp3 to play locally.</a>
 </audio>
 
 
