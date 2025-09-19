@@ -8,8 +8,9 @@ Additionally, you can listen to a demonstration of the current capabilities:
 
 <audio controls>
   <source src="https://raw.githubusercontent.com/username/SIMDsynth/main/demo.wav" type="audio/wav">
-  Click here to download the demo.wav:  [demo.wav](demo.wav)
 </audio>
+
+  Click here to download the demo.wav:  [demo.wav](demo.wav)
 
 ## High-Level Overview
 
