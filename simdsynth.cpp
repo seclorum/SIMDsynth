@@ -4,6 +4,7 @@
  *			    synthesis, with simple polyphonic oscillator,
  * 				filter, envelopes and LFO per voice, up to 8 voices.
  *
+ *	MIT Licensed, (c) 2025, seclorum
  */
 
 #include <iostream>
