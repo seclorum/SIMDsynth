@@ -8,7 +8,7 @@ Additionally, you can listen to a demonstration of the current capabilities:
 
 <audio controls>
   <source src="https://raw.githubusercontent.com/seclorum/SIMDsynth/main/demo.mp3" type="audio/mpeg">
-  Your browser does not support the audio element. <a href="https://raw.githubusercontent.com/seclorum/SIMDsynth/main/demo.mp3">Download the demo.mp3 to play locally.</a>.
+  <a href="https://raw.githubusercontent.com/seclorum/SIMDsynth/main/demo.mp3">Download the demo.mp3 to play locally.</a>.
 </audio>
 
 
