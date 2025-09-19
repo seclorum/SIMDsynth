@@ -4,7 +4,12 @@ This code is a SIMD-accelerated audio synthesizer written in C++, using vectoriz
 
 A basic "C" version of the synth is implemented in `simdsynth.cpp`, which can be tested during development with the `make test` target of the Makefile (requires `sox` to play samples from piped output). Additionally, a more sophisticated JUCE-based plugin wrapper is implemented to highlight the SIMD techniques in a JUCE context.
 
-Additionally, you can listen to demonstration of the current capabilities: [demo.wav](demo.wav)
+Additionally, you can listen to a demonstration of the current capabilities:
+
+<audio controls>
+  <source src="https://raw.githubusercontent.com/username/SIMDsynth/main/demo.wav" type="audio/wav">
+  Your browser does not support the audio element.
+</audio>
 
 ## High-Level Overview
 
