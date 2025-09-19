@@ -17,5 +17,8 @@ simdsynth: simdsynth.cpp
 test: simdsynth
 	./simdsynth | play -t raw -r 48000 -e floating-point -b 32 -c 1 -
 
+demo: simdsynth
+	./simdsynth | sox -t raw -r 48000 -e floating-point -b 32 -c 1 - demo.wav
+
 clean:
 	rm -rf *.o *~ simdsynth
