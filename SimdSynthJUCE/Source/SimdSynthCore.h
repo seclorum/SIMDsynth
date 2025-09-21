@@ -1,0 +1,8 @@
+//
+// Created by Jay Vaughan on 14.09.25.
+//
+
+#ifndef SIMDSYNTH_SIMDSYNTHCORE_H
+#define SIMDSYNTH_SIMDSYNTHCORE_H
+
+#endif //SIMDSYNTH_SIMDSYNTHCORE_H
