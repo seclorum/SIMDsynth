@@ -15,7 +15,8 @@ simdsynth: simdsynth.cpp
 	$(CXX) $(CXXFLAGS) simdsynth.cpp -o simdsynth
 
 test: simdsynth
-	./simdsynth | play -t raw -r 48000 -e floating-point -b 32 -c 1 -
+	./simdsynth sine | play -t raw -r 48000 -e floating-point -b 32 -c 1 -
+	./simdsynth saw | play -t raw -r 48000 -e floating-point -b 32 -c 1 -
 
 demo: simdsynth
 	./simdsynth | sox -t raw -r 48000 -e floating-point -b 32 -c 1 - demo.mp3
