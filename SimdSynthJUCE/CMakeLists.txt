@@ -46,37 +46,36 @@ target_include_directories(SimdSynth INTERFACE ${juce_generated_headers_director
 # Source files
 target_sources(SimdSynth
     PRIVATE
-        Source/SimdSynth.cpp
-        Source/SimdSynthPluginProcessor.cpp
+        Source/PluginProcessor.cpp
+        Source/PluginProcessor.h
+        Source/PluginEntry.cpp
 )
 
 # Link JUCE modules
 target_link_libraries(SimdSynth
     PRIVATE
-        juce::juce_audio_basics
-        juce::juce_audio_devices
-        juce::juce_audio_formats
-        juce::juce_audio_plugin_client
-        juce::juce_audio_processors
         juce::juce_audio_utils
-        juce::juce_core
-        juce::juce_data_structures
-        juce::juce_events
-        juce::juce_graphics
-        juce::juce_gui_basics
+        juce::juce_dsp
     PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags
 )
 
+# Define compile definitions
+target_compile_definitions(SimdSynth
+    PUBLIC
+        JUCE_WEB_BROWSER=0
+        JUCE_USE_CURL=0
+        JUCE_VST3_CAN_REPLACE_VST2=0
+)
+
 # SIMD compiler flags
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
-    target_compile_options(SimdSynth PRIVATE -msse -msse2)
-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+    target_compile_options(SimdSynth PRIVATE -msse -msse2 -msse4.1)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
     target_compile_options(SimdSynth PRIVATE -march=armv8-a+simd)
 endif()
 
 # Enable strict warnings
 target_compile_options(SimdSynth PRIVATE -Wall -Wextra -Wpedantic)
-
