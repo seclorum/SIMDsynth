@@ -13,7 +13,7 @@
 class SimdSynthEditor : public juce::AudioProcessorEditor
 {
 public:
-    SimdSynthEditor(SimdSynthProcessor&);
+    SimdSynthEditor(SimdSynthPluginProcessor&);
     ~SimdSynthEditor() override;
 
     //==============================================================================
@@ -22,7 +22,7 @@ public:
 
 private:
     // Reference to the processor
-    SimdSynthProcessor& processor;
+    SimdSynthPluginProcessor& processor;
 
     // Sliders for parameters
     juce::Slider attackSlider;
@@ -49,7 +49,7 @@ private:
 };
 
 //==============================================================================
-SimdSynthEditor::SimdSynthEditor(SimdSynthProcessor& p)
+SimdSynthEditor::SimdSynthEditor(SimdSynthPluginProcessor& p)
     : AudioProcessorEditor(&p), processor(p)
 {
     // Set editor size

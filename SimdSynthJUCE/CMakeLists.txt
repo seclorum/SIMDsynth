@@ -2,11 +2,16 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 
 cmake_minimum_required(VERSION 3.15)
 
-project(SimdSynth VERSION 1.0.0 LANGUAGES CXX)
+project(SimdSynth VERSION 1.0.0 LANGUAGES CXX C)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+# By default we don't want Xcode schemes to be made for modules, etc
+#set(CMAKE_XCODE_GENERATE_SCHEME OFF)
+# set(CMAKE_OSX_ARCHITECTURES arm64 x86_64)
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.13" CACHE STRING "Support macOS down to High Sierra")
 
 include(FetchContent)
 
@@ -14,7 +19,7 @@ include(FetchContent)
 FetchContent_Declare(
     juce
     GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-    GIT_TAG        7.0.11    # Replace with the desired JUCE version
+    GIT_TAG        8.0.9    # Replace with the desired JUCE version
 )
 
 FetchContent_MakeAvailable(juce)
@@ -42,7 +47,7 @@ target_include_directories(SimdSynth INTERFACE ${juce_generated_headers_director
 target_sources(SimdSynth
     PRIVATE
         Source/SimdSynth.cpp
-        Source/SimdSynthProcessor.cpp
+        Source/SimdSynthPluginProcessor.cpp
 )
 
 # Link JUCE modules

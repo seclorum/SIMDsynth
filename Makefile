@@ -19,7 +19,8 @@ test: simdsynth
 	./simdsynth saw | play -t raw -r 48000 -e floating-point -b 32 -c 1 -
 
 demo: simdsynth
-	./simdsynth | sox -t raw -r 48000 -e floating-point -b 32 -c 1 - demo.mp3
+	./simdsynth sine | sox -t raw -r 48000 -e floating-point -b 32 -c 1 - demo_sine.mp3
+	./simdsynth saw | sox -t raw -r 48000 -e floating-point -b 32 -c 1 - demo_saw.mp3
 
 clean:
 	rm -rf *.o *~ simdsynth

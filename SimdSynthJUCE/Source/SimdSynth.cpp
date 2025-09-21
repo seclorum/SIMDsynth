@@ -1,5 +1,9 @@
 #include "SimdSynth.h"
 
+#ifdef __cplusplus__
+extern "C" {
+#endif
+
 // Custom SIMD functions
 #ifdef __arm64__
 inline float32x4_t my_floor_ps(float32x4_t x) {
@@ -60,7 +64,12 @@ void applyLadderFilter(VoiceState* voices, int voiceOffset, SIMD_TYPE input, Fil
         modulatedCutoff = std::max(20.0f, std::min(modulatedCutoff, sampleRate / 2.0f));
         cutoffs[i] = 1.0f - expf(-2.0f * M_PI * modulatedCutoff / sampleRate);
     }
+#ifdef __x86_64__
     SIMD_TYPE alpha = SIMD_SET(cutoffs[0], cutoffs[1], cutoffs[2], cutoffs[3]);
+#elif defined(__arm64__)
+    float temp[4] = {cutoffs[0], cutoffs[1], cutoffs[2], cutoffs[3]};
+    SIMD_TYPE alpha = SIMD_LOAD(temp);
+#endif
     SIMD_TYPE resonance = SIMD_SET1(filter.resonance * 4.0f);
 
     SIMD_TYPE states[4];
@@ -124,6 +133,11 @@ void updateEnvelopes(VoiceState* voices, int numVoices, float ampAttack, float a
     }
 }
 
+#ifdef __cplusplus__
+    }
+#endif
+
+
 // Dummy sound class
 class SimdSynthSound : public juce::SynthesiserSound {
 public:
@@ -160,7 +174,7 @@ bool SimdSynthVoice::canPlaySound(juce::SynthesiserSound* sound) {
 
 void SimdSynthVoice::startNote(int midiNoteNumber, float /*velocity*/, juce::SynthesiserSound* /*sound*/, int /*currentPitchWheelPosition*/) {
     int voiceIdx = -1;
-    double oldestTime = DBL_MAX;
+    double oldestTime = std::numeric_limits<float>::max();;
     for (int i = 0; i < 8; ++i) {
         if (!states[i].active) {
             voiceIdx = i;
@@ -206,13 +220,12 @@ void SimdSynthVoice::stopNote(float /*velocity*/, bool allowTailOff) {
 void SimdSynthVoice::pitchWheelMoved(int) {}
 void SimdSynthVoice::controllerMoved(int, int) {}
 
-void SimdSynthVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, const juce::MidiBuffer& midiMessages, int startSample, int numSamples) {
-    for (int i = startSample; i < startSample + numSamples; ++i) {
-        outputBuffer.addSample(0, i, 0.0f);
-    }
-
+void SimdSynthVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples)  {
+    juce::ScopedNoDenormals noDenormals; // Add for JUCE 8.0.2 to prevent denormalized floating-point issues
+    outputBuffer.clear(startSample, numSamples); // Clear all channels efficiently
+#if 0
     if (!demoActive) {
-        for (const auto metadata : midiMessages) {
+        for (const auto& metadata : midiMessages) {
             auto m = metadata.getMessage();
             if (m.isNoteOn()) {
                 startNote(m.getNoteNumber(), m.getFloatVelocity(), nullptr, 0);
@@ -221,17 +234,18 @@ void SimdSynthVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, con
             }
         }
     }
+#endif
 
     if (demoActive) {
-        double currentTime = demoTime + (startSample / sampleRate);
+        float currentTime = demoTime + (startSample / sampleRate);
         if (demoIndex < demoChords.size() && currentTime >= demoChords[demoIndex].startTime + demoChords[demoIndex].duration) {
             demoIndex++;
             if (demoIndex < demoChords.size()) {
-                for (int v = 0; v < 8; ++v) {
+                for (size_t v = 0; v < 8; ++v) { // Use size_t for sign safety
                     states[v].active = v < demoChords[demoIndex].frequencies.size();
                     if (states[v].active) {
                         states[v].frequency = demoChords[demoIndex].frequencies[v];
-                        states[v].phaseIncrement = (2.0f * juce::MathConstants<float>::twoPi * states[v].frequency) / sampleRate;
+                        states[v].phaseIncrement = (2.0f * juce::MathConstants<float>::pi * states[v].frequency) / sampleRate;
                         states[v].phase = 0.0f;
                         states[v].lfoPhase = 0.0f;
                         states[v].noteStartTime = currentTime;
@@ -252,24 +266,24 @@ void SimdSynthVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, con
         int globalIndex = startSample + sample;
         float currentTime = globalIndex / sampleRate;
 
-        updateEnvelopes(states, 8, ampAttack, ampDecay, sampleRate, globalIndex, currentTime);
+        updateEnvelopes(states, 8, ampAttack, ampDecay, sampleRate, sample, currentTime);
 
         float outputSample = 0.0f;
         for (int group = 0; group < 2; ++group) {
             int offset = group * 4;
 
-            float amps[4] = { states[offset].amplitude, states[offset+1].amplitude,
-                              states[offset+2].amplitude, states[offset+3].amplitude };
-            float phases[4] = { states[offset].phase, states[offset+1].phase,
-                                states[offset+2].phase, states[offset+3].phase };
-            float increments[4] = { states[offset].phaseIncrement, states[offset+1].phaseIncrement,
-                                    states[offset+2].phaseIncrement, states[offset+3].phaseIncrement };
-            float lfoPhases[4] = { states[offset].lfoPhase, states[offset+1].lfoPhase,
-                                   states[offset+2].lfoPhase, states[offset+3].lfoPhase };
-            float lfoRates[4] = { states[offset].lfoRate, states[offset+1].lfoRate,
-                                  states[offset+2].lfoRate, states[offset+3].lfoRate };
-            float lfoDepths[4] = { states[offset].lfoDepth, states[offset+1].lfoDepth,
-                                   states[offset+2].lfoDepth, states[offset+3].lfoDepth };
+            float amps[4] = { states[offset].amplitude, states[offset + 1].amplitude,
+                              states[offset + 2].amplitude, states[offset + 3].amplitude };
+            float phases[4] = { states[offset].phase, states[offset + 1].phase,
+                                states[offset + 2].phase, states[offset + 3].phase };
+            float increments[4] = { states[offset].phaseIncrement, states[offset + 1].phaseIncrement,
+                                    states[offset + 2].phaseIncrement, states[offset + 3].phaseIncrement };
+            float lfoPhases[4] = { states[offset].lfoPhase, states[offset + 1].lfoPhase,
+                                   states[offset + 2].lfoPhase, states[offset + 3].lfoPhase };
+            float lfoRates[4] = { states[offset].lfoRate, states[offset + 1].lfoRate,
+                                  states[offset + 2].lfoRate, states[offset + 3].lfoRate };
+            float lfoDepths[4] = { states[offset].lfoDepth, states[offset + 1].lfoDepth,
+                                   states[offset + 2].lfoDepth, states[offset + 3].lfoDepth };
 
             SIMD_TYPE amplitudes = SIMD_LOAD(amps);
             SIMD_TYPE phasesSIMD = SIMD_LOAD(phases);
@@ -300,15 +314,129 @@ void SimdSynthVoice::renderNextBlock(juce::AudioBuffer<float>& outputBuffer, con
             SIMD_TYPE wrap = SIMD_SUB(phasesSIMD, SIMD_MUL(SIMD_FLOOR(SIMD_DIV(phasesSIMD, twoPi)), twoPi));
             SIMD_STORE(temp, wrap);
             states[offset].phase = temp[0];
-            states[offset+1].phase = temp[1];
-            states[offset+2].phase = temp[2];
-            states[offset+3].phase = temp[3];
+            states[offset + 1].phase = temp[1];
+            states[offset + 2].phase = temp[2];
+            states[offset + 3].phase = temp[3];
 
             SIMD_STORE(temp, lfoPhasesSIMD);
             states[offset].lfoPhase = temp[0];
-            states[offset+1].lfoPhase = temp[1];
-            states[offset+2].lfoPhase = temp[2];
-            states[offset+3].lfoPhase = temp[3];
+            states[offset + 1].lfoPhase = temp[1];
+            states[offset + 2].lfoPhase = temp[2];
+            states[offset + 3].lfoPhase = temp[3];
+        }
+
+        if (outputBuffer.getNumChannels() > 0) {
+            outputBuffer.addSample(0, startSample + sample, outputSample);
+            for (int ch = 1; ch < outputBuffer.getNumChannels(); ++ch) {
+                outputBuffer.addSample(ch, startSample + sample, outputSample);
+            }
+        }
+    }
+}
+
+void SimdSynthVoice::renderNextBlock(juce::AudioBuffer<double>& outputBuffer, int startSample, int numSamples) {
+    juce::ScopedNoDenormals noDenormals; // Add for JUCE 8.0.2
+    outputBuffer.clear(startSample, numSamples); // Clear all channels
+#if 0
+    if (!demoActive) {
+        for (const auto& metadata : midiMessages) {
+            auto m = metadata.getMessage();
+            if (m.isNoteOn()) {
+                startNote(m.getNoteNumber(), m.getFloatVelocity(), nullptr, 0);
+            } else if (m.isNoteOff()) {
+                stopNote(m.getFloatVelocity(), true);
+            }
+        }
+    }
+#endif
+
+    if (demoActive) {
+        float currentTime = demoTime + (startSample / sampleRate);
+        if (demoIndex < demoChords.size() && currentTime >= demoChords[demoIndex].startTime + demoChords[demoIndex].duration) {
+            demoIndex++;
+            if (demoIndex < demoChords.size()) {
+                for (size_t v = 0; v < 8; ++v) {
+                    states[v].active = v < demoChords[demoIndex].frequencies.size();
+                    if (states[v].active) {
+                        states[v].frequency = demoChords[demoIndex].frequencies[v];
+                        states[v].phaseIncrement = (2.0f * juce::MathConstants<float>::pi * states[v].frequency) / sampleRate;
+                        states[v].phase = 0.0f;
+                        states[v].lfoPhase = 0.0f;
+                        states[v].noteStartTime = currentTime;
+                        states[v].fegAttack = randomize(0.1f, 0.2f);
+                        states[v].fegDecay = randomize(1.0f, 0.2f);
+                        states[v].fegSustain = randomize(0.5f, 0.2f);
+                        states[v].fegRelease = randomize(0.2f, 0.2f);
+                        states[v].lfoRate = randomize(1.0f, 0.2f);
+                        states[v].lfoDepth = randomize(0.01f, 0.2f);
+                    }
+                }
+            }
+        }
+        demoTime += (numSamples / sampleRate);
+    }
+
+    for (int sample = 0; sample < numSamples; ++sample) {
+        int globalIndex = startSample + sample;
+        float currentTime = globalIndex / sampleRate;
+
+        updateEnvelopes(states, 8, ampAttack, ampDecay, sampleRate, sample, currentTime);
+
+        double outputSample = 0.0; // Use double for precision
+        for (int group = 0; group < 2; ++group) {
+            int offset = group * 4;
+
+            float amps[4] = { states[offset].amplitude, states[offset + 1].amplitude,
+                              states[offset + 2].amplitude, states[offset + 3].amplitude };
+            float phases[4] = { states[offset].phase, states[offset + 1].phase,
+                                states[offset + 2].phase, states[offset + 3].phase };
+            float increments[4] = { states[offset].phaseIncrement, states[offset + 1].phaseIncrement,
+                                    states[offset + 2].phaseIncrement, states[offset + 3].phaseIncrement };
+            float lfoPhases[4] = { states[offset].lfoPhase, states[offset + 1].lfoPhase,
+                                   states[offset + 2].lfoPhase, states[offset + 3].lfoPhase };
+            float lfoRates[4] = { states[offset].lfoRate, states[offset + 1].lfoRate,
+                                  states[offset + 2].lfoRate, states[offset + 3].lfoRate };
+            float lfoDepths[4] = { states[offset].lfoDepth, states[offset + 1].lfoDepth,
+                                   states[offset + 2].lfoDepth, states[offset + 3].lfoDepth };
+
+            SIMD_TYPE amplitudes = SIMD_LOAD(amps);
+            SIMD_TYPE phasesSIMD = SIMD_LOAD(phases);
+            SIMD_TYPE incrementsSIMD = SIMD_LOAD(increments);
+            SIMD_TYPE lfoPhasesSIMD = SIMD_LOAD(lfoPhases);
+            SIMD_TYPE lfoRatesSIMD = SIMD_LOAD(lfoRates);
+            SIMD_TYPE lfoDepthsSIMD = SIMD_LOAD(lfoDepths);
+
+            SIMD_TYPE twoPi = SIMD_SET1(2.0f * juce::MathConstants<float>::pi);
+            SIMD_TYPE lfoIncrements = SIMD_MUL(lfoRatesSIMD, SIMD_SET1(2.0f * juce::MathConstants<float>::pi / sampleRate));
+            lfoPhasesSIMD = SIMD_ADD(lfoPhasesSIMD, lfoIncrements);
+            lfoPhasesSIMD = SIMD_SUB(lfoPhasesSIMD, SIMD_MUL(SIMD_FLOOR(SIMD_DIV(lfoPhasesSIMD, twoPi)), twoPi));
+            SIMD_TYPE lfoValues = SIMD_SIN(lfoPhasesSIMD);
+            lfoValues = SIMD_MUL(lfoValues, lfoDepthsSIMD);
+            phasesSIMD = SIMD_ADD(phasesSIMD, lfoValues);
+
+            SIMD_TYPE sinValues = SIMD_SIN(phasesSIMD);
+            sinValues = SIMD_MUL(sinValues, amplitudes);
+
+            SIMD_TYPE filtered;
+            applyLadderFilter(states, offset, sinValues, filter, filtered, sampleRate);
+
+            float temp[4];
+            SIMD_STORE(temp, filtered);
+            outputSample += (temp[0] + temp[1] + temp[2] + temp[3]) * 0.125;
+
+            phasesSIMD = SIMD_ADD(phasesSIMD, incrementsSIMD);
+            SIMD_TYPE wrap = SIMD_SUB(phasesSIMD, SIMD_MUL(SIMD_FLOOR(SIMD_DIV(phasesSIMD, twoPi)), twoPi));
+            SIMD_STORE(temp, wrap);
+            states[offset].phase = temp[0];
+            states[offset + 1].phase = temp[1];
+            states[offset + 2].phase = temp[2];
+            states[offset + 3].phase = temp[3];
+
+            SIMD_STORE(temp, lfoPhasesSIMD);
+            states[offset].lfoPhase = temp[0];
+            states[offset + 1].lfoPhase = temp[1];
+            states[offset + 2].lfoPhase = temp[2];
+            states[offset + 3].lfoPhase = temp[3];
         }
 
         if (outputBuffer.getNumChannels() > 0) {

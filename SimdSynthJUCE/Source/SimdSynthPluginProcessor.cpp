@@ -1,5 +1,5 @@
-#include "PluginProcessor.h"
-#include "PluginEditor.h"
+#include "SimdSynthPluginProcessor.h"
+#include "SimdSynthPluginEditor.h"
 
 //==============================================================================
 // Custom SynthesiserSound class (applies to all notes and channels)
@@ -15,6 +15,9 @@ public:
 class SimdSynthVoice : public juce::SynthesiserVoice
 {
 public:
+    VoiceState voices[MAX_VOICE_POLYPHONY];
+    Filter filter;
+
     SimdSynthVoice(float& attack, float& decay, float& resonance, float& cutoff)
         : attackTime(attack), decayTime(decay), filterResonance(resonance), filterCutoff(cutoff)
     {
@@ -96,11 +99,11 @@ public:
     void pitchWheelMoved(int /*newPitchWheelValue*/) override {}
     void controllerMoved(int /*controllerNumber*/, int /*newControllerValue*/) override {}
 
-    void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, const juce::MidiBuffer& midiMessages, int startSample, int numSamples) override
+    void renderNextBlock(juce::AudioBuffer<float>& outputBuffer, int startSample, int numSamples) override
     {
         juce::ScopedNoDenormals noDenormals;
         outputBuffer.clear(startSample, numSamples);
-
+#if 0
         // Process MIDI events
         for (const auto metadata : midiMessages)
         {
@@ -110,6 +113,7 @@ public:
             else if (m.isNoteOff())
                 stopNote(m.getFloatVelocity(), true);
         }
+#endif
 
         // Update filter parameters
         filter.resonance = filterResonance;
@@ -161,7 +165,7 @@ public:
                 sinValues = SIMD_MUL(sinValues, amplitudes);
 
                 SIMD_TYPE filteredOutput;
-                applyLadderFilter(voices, voiceOffset, sinValues, filter, filteredOutput);
+                applyLadderFilter(voices, voiceOffset, sinValues, filter, filteredOutput, filter.sampleRate);
 
                 float temp[4];
                 SIMD_STORE(temp, filteredOutput);
@@ -189,11 +193,13 @@ public:
         }
     }
 
-    void renderNextBlock(juce::AudioBuffer<double>& outputBuffer, const juce::MidiBuffer& midiMessages, int startSample, int numSamples) override
+    void renderNextBlock(juce::AudioBuffer<double>& outputBuffer, int startSample, int numSamples) override
     {
         juce::AudioBuffer<float> tempBuffer(outputBuffer.getNumChannels(), numSamples);
         tempBuffer.clear();
+#if 0
         renderNextBlock(tempBuffer, midiMessages, 0, numSamples);
+#endif
         for (int ch = 0; ch < outputBuffer.getNumChannels(); ++ch)
         {
             auto* dest = outputBuffer.getWritePointer(ch, startSample);
@@ -206,8 +212,6 @@ public:
     void setSampleRate(float newSampleRate) { filter.sampleRate = newSampleRate; }
 
 private:
-    Voice voices[MAX_VOICE_POLYPHONY];
-    Filter filter;
     float& attackTime;
     float& decayTime;
     float& filterResonance;
@@ -215,43 +219,41 @@ private:
 };
 
 //==============================================================================
-SimdSynthProcessor::SimdSynthProcessor()
+SimdSynthPluginProcessor::SimdSynthPluginProcessor()
     : AudioProcessor(BusesProperties()
-                        .withOutput("Output", juce::AudioChannelSet::stereo(), true))
+                        .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
+    parameters(*this, nullptr, juce::Identifier("SimdSynth"), // Initialize parameters
+                 {
+                     std::make_unique<juce::AudioParameterFloat>("attack", "Attack", juce::NormalisableRange<float>(0.01f, 2.0f, 0.01f), 0.1f),
+                     std::make_unique<juce::AudioParameterFloat>("decay", "Decay", juce::NormalisableRange<float>(0.1f, 4.0f, 0.01f), 1.9f),
+                     std::make_unique<juce::AudioParameterFloat>("resonance", "Resonance", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.7f),
+                     std::make_unique<juce::AudioParameterFloat>("cutoff", "Cutoff", juce::NormalisableRange<float>(50.0f, 5000.0f, 1.0f), 1000.0f),
+                     std::make_unique<juce::AudioParameterBool>("demoMode", "Demo Mode", false)
+                 })
 {
-    // Initialize parameters
-    parameters.createAndAddParameter(std::make_unique<juce::AudioParameterFloat>(
-        "attack", "Attack", juce::NormalisableRange<float>(0.01f, 2.0f, 0.01f), 0.1f));
-    parameters.createAndAddParameter(std::make_unique<juce::AudioParameterFloat>(
-        "decay", "Decay", juce::NormalisableRange<float>(0.1f, 4.0f, 0.01f), 1.9f));
-    parameters.createAndAddParameter(std::make_unique<juce::AudioParameterFloat>(
-        "resonance", "Resonance", juce::NormalisableRange<float>(0.0f, 1.0f, 0.01f), 0.7f));
-    parameters.createAndAddParameter(std::make_unique<juce::AudioParameterFloat>(
-        "cutoff", "Cutoff", juce::NormalisableRange<float>(50.0f, 5000.0f, 1.0f), 1000.0f));
-    parameters.createAndAddParameter(std::make_unique<juce::AudioParameterBool>(
-        "demoMode", "Demo Mode", false));
 
-    attackParam = parameters.getParameter("attack")->getValueObject().getRawParameterValue();
-    decayParam = parameters.getParameter("decay")->getValueObject().getRawParameterValue();
-    resonanceParam = parameters.getParameter("resonance")->getValueObject().getRawParameterValue();
-    cutoffParam = parameters.getParameter("cutoff")->getValueObject().getRawParameterValue();
-    demoModeParam = parameters.getParameter("demoMode")->getValueObject().getRawParameterValue();
+    // Initialize parameter pointers
+    attackParam = parameters.getParameter("attack")->getValue();
+    decayParam = parameters.getParameter("decay")->getValue();
+    resonanceParam = parameters.getParameter("resonance")->getValue();
+    cutoffParam = parameters.getParameter("cutoff")->getValue();
+    demoModeParam = parameters.getParameter("demoMode")->getValue();
 
     // Initialize synthesizer
     synth.addSound(new SimdSynthSound());
     for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i)
-        synth.addVoice(new SimdSynthVoice(*attackParam, *decayParam, *resonanceParam, *cutoffParam));
+        synth.addVoice(new SimdSynthVoice(attackParam, decayParam, resonanceParam, cutoffParam));
 
     // Initialize chords (from main())
     initializeChords();
 }
 
-SimdSynthProcessor::~SimdSynthProcessor()
+SimdSynthPluginProcessor::~SimdSynthPluginProcessor()
 {
 }
 
 //==============================================================================
-void SimdSynthProcessor::initializeChords()
+void SimdSynthPluginProcessor::initializeChords()
 {
     chords.emplace_back(Chord{{midiToFreq(49), midiToFreq(53), midiToFreq(56), midiToFreq(60), midiToFreq(63)}, 0.0f, 2.0f});
     chords.emplace_back(Chord{{midiToFreq(54), midiToFreq(58), midiToFreq(61), midiToFreq(65)}, 2.0f, 2.0f});
@@ -267,7 +269,7 @@ void SimdSynthProcessor::initializeChords()
     chords.emplace_back(Chord{{midiToFreq(56), midiToFreq(60), midiToFreq(63), midiToFreq(67), midiToFreq(70)}, 22.0f, 2.0f});
 }
 
-void SimdSynthProcessor::prepareToPlay(double sampleRate, int /*samplesPerBlock*/)
+void SimdSynthPluginProcessor::prepareToPlay(double sampleRate, int /*samplesPerBlock*/)
 {
     synth.setCurrentPlaybackSampleRate(sampleRate);
     for (int i = 0; i < synth.getNumVoices(); ++i)
@@ -275,19 +277,19 @@ void SimdSynthProcessor::prepareToPlay(double sampleRate, int /*samplesPerBlock*
             voice->setSampleRate(static_cast<float>(sampleRate));
 }
 
-void SimdSynthProcessor::releaseResources()
+void SimdSynthPluginProcessor::releaseResources()
 {
 }
 
-bool SimdSynthProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
+bool SimdSynthPluginProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
     return layouts.getMainOutputChannelSet() == juce::AudioChannelSet::stereo();
 }
 
-void SimdSynthProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
+void SimdSynthPluginProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::ScopedNoDenormals noDenormals;
-    if (*demoModeParam)
+    if (demoModeParam)
     {
         // Demo mode: play chords
         for (int i = 0; i < synth.getNumVoices(); ++i)
@@ -326,7 +328,7 @@ void SimdSynthProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Mi
     synth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
 }
 
-void SimdSynthProcessor::processBlock(juce::AudioBuffer<double>& buffer, juce::MidiBuffer& midiMessages)
+void SimdSynthPluginProcessor::processBlock(juce::AudioBuffer<double>& buffer, juce::MidiBuffer& midiMessages)
 {
     juce::AudioBuffer<float> tempBuffer(buffer.getNumChannels(), buffer.getNumSamples());
     tempBuffer.clear();
@@ -340,21 +342,29 @@ void SimdSynthProcessor::processBlock(juce::AudioBuffer<double>& buffer, juce::M
     }
 }
 
-juce::AudioProcessorEditor* SimdSynthProcessor::createEditor()
+juce::AudioProcessorEditor* SimdSynthPluginProcessor::createEditor()
 {
     return new SimdSynthEditor(*this);
 }
 
-void SimdSynthProcessor::getStateInformation(juce::MemoryBlock& destData)
+void SimdSynthPluginProcessor::getStateInformation(juce::MemoryBlock& destData)
 {
     auto state = parameters.copyState();
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
     copyXmlToBinary(*xml, destData);
 }
 
-void SimdSynthProcessor::setStateInformation(const void* data, int sizeInBytes)
+void SimdSynthPluginProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
     std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
     if (xmlState.get() != nullptr)
         parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
+}
+
+
+//==============================================================================
+// This creates new instances of the plugin..
+AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+{
+    return new SimdSynthPluginProcessor();
 }

@@ -4,12 +4,12 @@
 #include "SimdSynthCore.h" // Include the provided simdsynth code
 
 //==============================================================================
-class PluginProcessor : public juce::AudioProcessor
+class SimdSynthPluginProcessor : public juce::AudioProcessor
 {
 public:
     //==============================================================================
-    PluginProcessor();
-    ~PluginProcessor() override;
+    SimdSynthPluginProcessor();
+    ~SimdSynthPluginProcessor() override;
 
     //==============================================================================
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
@@ -45,6 +45,8 @@ public:
     void getStateInformation(juce::MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
 
+juce::AudioProcessorValueTreeState parameters;
+
 private:
     //==============================================================================
     // Synthesizer and voice management
@@ -56,15 +58,14 @@ private:
     size_t demoIndex = 0;
 
     // Audio parameters for UI control
-    juce::AudioProcessorValueTreeState parameters;
-    std::atomic<float>* attackParam = nullptr;
-    std::atomic<float>* decayParam = nullptr;
-    std::atomic<float>* resonanceParam = nullptr;
-    std::atomic<float>* cutoffParam = nullptr;
-    std::atomic<float>* demoModeParam = nullptr;
+    float attackParam = 0.0f;
+    float decayParam = 0.0f;
+    float resonanceParam = 0.0f;
+    float cutoffParam = 0.0f;
+    float demoModeParam = 0.0f;
 
     // Helper to initialize chords (from main())
     void initializeChords();
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PluginProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimdSynthPluginProcessor)
 };
