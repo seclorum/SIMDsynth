@@ -138,7 +138,7 @@ private:
     float midiToFreq(int midiNote);
     float randomize(float base, float var);
     void updateEnvelopes(int sampleIndex);
-    void applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, SIMD_TYPE& output);
+    void applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& filter, SIMD_TYPE& output);
     SIMD_TYPE wavetable_lookup_ps(SIMD_TYPE phase, const float* table);
 
 #ifdef __arm64__
@@ -153,3 +153,6 @@ private:
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimdSynthAudioProcessor)
 };
+
+// Declare the plugin creation function with C++ linkage
+juce::AudioProcessor* createPluginFilter();

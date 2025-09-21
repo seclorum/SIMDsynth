@@ -1,5 +1,6 @@
+#include <JuceHeader.h>
 #include "PluginProcessor.h"
 
-extern "C" JUCE_EXPORT juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() {
+juce::AudioProcessor* createPluginFilter() {
     return new SimdSynthAudioProcessor();
 }

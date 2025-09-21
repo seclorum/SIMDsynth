@@ -128,7 +128,7 @@ SIMD_TYPE SimdSynthAudioProcessor::wavetable_lookup_ps(SIMD_TYPE phase, const fl
     return SIMD_ADD(value1, SIMD_MUL(frac, SIMD_SUB(value2, value1)));
 }
 
-void SimdSynthAudioProcessor::applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, SIMD_TYPE& output) {
+void SimdSynthAudioProcessor::applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& filter, SIMD_TYPE& output) {
     float cutoffs[4];
     for (int i = 0; i < 4; i++) {
         int idx = voiceOffset + i;
