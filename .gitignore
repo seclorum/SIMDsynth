@@ -83,3 +83,5 @@ simdsynth
 *.dwo
 
 **/.idea
+
+**/.DS_Store
