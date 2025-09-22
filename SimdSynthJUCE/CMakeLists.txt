@@ -17,25 +17,25 @@ include(FetchContent)
 
 # Fetch JUCE
 FetchContent_Declare(
-    juce
-    GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
-    GIT_TAG        8.0.9    # Replace with the desired JUCE version
+        juce
+        GIT_REPOSITORY https://github.com/juce-framework/JUCE.git
+        GIT_TAG        8.0.9    # Replace with the desired JUCE version
 )
 
 FetchContent_MakeAvailable(juce)
 
 # Define plugin
 juce_add_plugin(SimdSynth
-    VERSION "1.0.0"
-    COMPANY_NAME "seclorum"
-    PLUGIN_MANUFACTURER_CODE "SCLR"
-    PLUGIN_CODE "SmSy"
-    FORMATS AU VST3 Standalone
-    PRODUCT_NAME "SimdSynth"
-    IS_SYNTH TRUE
-    NEEDS_MIDI_INPUT TRUE
-    NEEDS_MIDI_OUTPUT FALSE
-    IS_MIDI_EFFECT FALSE
+        VERSION "1.0.0"
+        COMPANY_NAME "seclorum"
+        PLUGIN_MANUFACTURER_CODE "SCLR"
+        PLUGIN_CODE "SmSy"
+        FORMATS AU VST3 Standalone
+        PRODUCT_NAME "SimdSynth"
+        IS_SYNTH TRUE
+        NEEDS_MIDI_INPUT TRUE
+        NEEDS_MIDI_OUTPUT FALSE
+        IS_MIDI_EFFECT FALSE
 )
 
 # Add the generated header path (e.g., JuceHeader.h)
@@ -45,7 +45,7 @@ target_include_directories(SimdSynth INTERFACE ${juce_generated_headers_director
 
 # Source files
 target_sources(SimdSynth
-    PRIVATE
+        PRIVATE
         Source/PluginProcessor.cpp
         Source/PluginProcessor.h
         Source/PluginEntry.cpp
@@ -53,10 +53,10 @@ target_sources(SimdSynth
 
 # Link JUCE modules
 target_link_libraries(SimdSynth
-    PRIVATE
+        PRIVATE
         juce::juce_audio_utils
         juce::juce_dsp
-    PUBLIC
+        PUBLIC
         juce::juce_recommended_config_flags
         juce::juce_recommended_lto_flags
         juce::juce_recommended_warning_flags
@@ -64,18 +64,38 @@ target_link_libraries(SimdSynth
 
 # Define compile definitions
 target_compile_definitions(SimdSynth
-    PUBLIC
+        PUBLIC
         JUCE_WEB_BROWSER=0
         JUCE_USE_CURL=0
         JUCE_VST3_CAN_REPLACE_VST2=0
 )
 
+# Copy plugin to standard plugin directories after build
+juce_enable_copy_plugin_step(SimdSynth)
+
+message("Processor: ${CMAKE_SYSTEM_PROCESSOR}")
+
 # SIMD compiler flags
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
     target_compile_options(SimdSynth PRIVATE -msse -msse2 -msse4.1)
 elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
-    target_compile_options(SimdSynth PRIVATE -march=armv8-a+simd)
+    if(APPLE)
+        # For Apple Silicon (M1, M2, etc.), NEON is enabled by default, but we can ensure it
+        target_compile_options(SimdSynth PRIVATE -mcpu=apple-m1)
+    else()
+        # For other ARM64 systems (e.g., Linux), use a generic ARMv8-A with NEON
+        target_compile_options(SimdSynth PRIVATE -march=armv8-a -mfpu=neon)
+    endif()
 endif()
+
+# Alternative - TODO: Check on other arm targets, etc.
+## SIMD compiler flags
+#if(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+#    target_compile_options(SimdSynth PRIVATE -msse -msse2 -msse4.1)
+#elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
+#    # NEON is typically enabled by default on ARM64, but we can ensure compatibility
+#    target_compile_options(SimdSynth PRIVATE -march=armv8-a)
+#endif()
 
 # Enable strict warnings
 target_compile_options(SimdSynth PRIVATE -Wall -Wextra -Wpedantic)

@@ -114,6 +114,8 @@ private:
     Filter filter;
 
     // Parameters
+    static const int parameterVersion = 1;
+
     juce::AudioProcessorValueTreeState parameters;
     std::atomic<float>* wavetableTypeParam;
     std::atomic<float>* attackTimeParam;

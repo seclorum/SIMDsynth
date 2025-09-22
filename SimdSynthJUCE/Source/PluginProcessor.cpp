@@ -257,25 +257,25 @@ void SimdSynthAudioProcessor::updateEnvelopes(int sampleIndex) {
     }
 }
 
+
 SimdSynthAudioProcessor::SimdSynthAudioProcessor()
     : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       parameters(*this, nullptr, juce::Identifier("SimdSynth"),
                  {
-                     std::make_unique<juce::AudioParameterFloat>("wavetable", "Wavetable Type", 0.0f, 1.0f, 0.0f),
-                     std::make_unique<juce::AudioParameterFloat>("attack", "Attack Time", 0.01f, 2.0f, 0.1f),
-                     std::make_unique<juce::AudioParameterFloat>("decay", "Decay Time", 0.1f, 5.0f, 1.9f),
-                     std::make_unique<juce::AudioParameterFloat>("cutoff", "Filter Cutoff", 200.0f, 8000.0f, 1000.0f),
-                     std::make_unique<juce::AudioParameterFloat>("resonance", "Filter Resonance", 0.0f, 1.0f, 0.7f),
-                     std::make_unique<juce::AudioParameterFloat>("fegAttack", "Filter EG Attack", 0.01f, 2.0f, 0.1f),
-                     std::make_unique<juce::AudioParameterFloat>("fegDecay", "Filter EG Decay", 0.1f, 5.0f, 1.0f),
-                     std::make_unique<juce::AudioParameterFloat>("fegSustain", "Filter EG Sustain", 0.0f, 1.0f, 0.5f),
-                     std::make_unique<juce::AudioParameterFloat>("fegRelease", "Filter EG Release", 0.01f, 2.0f, 0.2f),
-                     std::make_unique<juce::AudioParameterFloat>("lfoRate", "LFO Rate", 0.0f, 20.0f, 1.0f),
-                     std::make_unique<juce::AudioParameterFloat>("lfoDepth", "LFO Depth", 0.0f, 0.1f, 0.01f),
-                     std::make_unique<juce::AudioParameterFloat>("subTune", "Sub Osc Tune", -24.0f, 0.0f, -12.0f),
-                     std::make_unique<juce::AudioParameterFloat>("subMix", "Sub Osc Mix", 0.0f, 1.0f, 0.5f),
-                     std::make_unique<juce::AudioParameterFloat>("subTrack", "Sub Osc Track", 0.0f, 1.0f, 1.0f)
-                 }) {
+                         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"wavetable", parameterVersion}, "Wavetable Type", 0.0f, 1.0f, 0.0f),
+                         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"attack", parameterVersion}, "Attack Time", 0.01f, 2.0f, 0.1f),
+                         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"decay", parameterVersion}, "Decay Time", 0.1f, 5.0f, 1.9f),
+                         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"cutoff", parameterVersion}, "Filter Cutoff", 200.0f, 8000.0f, 1000.0f),
+                         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"resonance", parameterVersion}, "Filter Resonance", 0.0f, 1.0f, 0.7f),
+                         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegAttack", parameterVersion}, "Filter EG Attack", 0.01f, 2.0f, 0.1f),
+                         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegDecay", parameterVersion}, "Filter EG Decay", 0.1f, 5.0f, 1.0f),
+                         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegSustain", parameterVersion}, "Filter EG Sustain", 0.0f, 1.0f, 0.5f),
+                         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegRelease", parameterVersion}, "Filter EG Release", 0.01f, 2.0f, 0.2f),
+                         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"lfoRate", parameterVersion}, "LFO Rate", 0.0f, 20.0f, 1.0f),
+                         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"lfoDepth", parameterVersion}, "LFO Depth", 0.0f, 0.1f, 0.01f),
+                         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subTune", parameterVersion}, "Sub Osc Tune", -24.0f, 0.0f, -12.0f),
+                         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subMix", parameterVersion}, "Sub Osc Mix", 0.0f, 1.0f, 0.5f),
+                         std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subTrack", parameterVersion}, "Sub Osc Track", 0.0f, 1.0f, 1.0f)                 }) {
     wavetableTypeParam = parameters.getRawParameterValue("wavetable");
     attackTimeParam = parameters.getRawParameterValue("attack");
     decayTimeParam = parameters.getRawParameterValue("decay");
