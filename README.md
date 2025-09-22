@@ -6,7 +6,9 @@ It's optimized for both x86-64 (SSE) and ARM64 (NEON) platforms.
 
 A basic "C" version of the synth is implemented in `simdsynth.cpp`, which can be tested during development with the `make test` target of the Makefile (requires `sox` to play samples from piped output). 
 
-This project will include a more sophisticated JUCE-based plugin wrapper to highlight the SIMD techniques in a JUCE context - however development is first done on the simdsynth.cpp command-line/standalone version of the synth, for the sake of simplicity - the JUCE plugin will be brought up to date once a few more features have been implemented in the standalone code.
+This project includes a more sophisticated JUCE-based plugin wrapper to highlight the SIMD techniques in a JUCE context - however development is first done on the simdsynth.cpp command-line/standalone version of the synth, for the sake of simplicity - the JUCE plugin will sometimes lag behind the standalone version, as features get implemented more rapidly in the cli version, then ported into the SimdSynthJUCE Plugin project.
+
+Some rudimentary factory presets are included in the SimdSynthJUCE Plugin module - they will be created automatically on first execution of the plugin.
 
 To listen to a demonstration of the current capabilities, download the demo.mp3 file:
 
@@ -31,6 +33,7 @@ To listen to a demonstration of the current capabilities, download the demo.mp3 
   - Sub-oscillator per voice
 - Plays a sequence of Debussy-style chords over 24 seconds.
 - Uses SSE or NEON depending on platform (x86_64 or ARM64).
+- Includes a basic set of Factory Presets for testing purposes.
 
 
 (c) 2025, seclorum
