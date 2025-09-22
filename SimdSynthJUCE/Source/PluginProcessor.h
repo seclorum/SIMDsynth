@@ -149,6 +149,7 @@ private:
     std::vector<juce::String> presetNames;
     int currentProgram = 0;
     void loadPresetsFromDirectory();
+    void loadProgram(int index);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimdSynthAudioProcessor)
 };

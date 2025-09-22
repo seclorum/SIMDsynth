@@ -112,27 +112,27 @@ void SimdSynthAudioProcessor::setCurrentProgram(int index) {
             if (parsedJson.isObject()) {
                 // Define parameter IDs and their default values (from constructor)
                 std::map<juce::String, float> defaultValues = {
-                        {"wavetable_1", 0.0f},
-                        {"attack_1", 0.1f},
-                        {"decay_1", 1.9f},
-                        {"cutoff_1", 1000.0f},
-                        {"resonance_1", 0.7f},
-                        {"fegAttack_1", 0.1f},
-                        {"fegDecay_1", 1.0f},
-                        {"fegSustain_1", 0.5f},
-                        {"fegRelease_1", 0.2f},
-                        {"lfoRate_1", 1.0f},
-                        {"lfoDepth_1", 0.01f},
-                        {"subTune_1", -12.0f},
-                        {"subMix_1", 0.5f},
-                        {"subTrack_1", 1.0f}
+                        {"wavetable", 0.0f},
+                        {"attack", 0.1f},
+                        {"decay", 1.9f},
+                        {"cutoff", 1000.0f},
+                        {"resonance", 0.7f},
+                        {"fegAttack", 0.1f},
+                        {"fegDecay", 1.0f},
+                        {"fegSustain", 0.5f},
+                        {"fegRelease", 0.2f},
+                        {"lfoRate", 1.0f},
+                        {"lfoDepth", 0.01f},
+                        {"subTune", -12.0f},
+                        {"subMix", 0.5f},
+                        {"subTrack", 1.0f}
                 };
 
                 // List of parameter IDs
                 juce::StringArray paramIds = {
-                        "wavetable_1", "attack_1", "decay_1", "cutoff_1", "resonance_1",
-                        "fegAttack_1", "fegDecay_1", "fegSustain_1", "fegRelease_1",
-                        "lfoRate_1", "lfoDepth_1", "subTune_1", "subMix_1", "subTrack_1"
+                        "wavetable", "attack", "decay", "cutoff", "resonance",
+                        "fegAttack", "fegDecay", "fegSustain", "fegRelease",
+                        "lfoRate", "lfoDepth", "subTune", "subMix", "subTrack"
                 };
 
                 for (const auto& paramId : paramIds) {
@@ -141,7 +141,7 @@ void SimdSynthAudioProcessor::setCurrentProgram(int index) {
                             if (parsedJson.hasProperty(paramId)) {
                                 float value = parsedJson.getProperty(paramId, defaultValues[paramId]);
                                 // Special handling for wavetable to map float to integer
-                                if (paramId == "wavetable_1") {
+                                if (paramId == "wavetable") {
                                     // Map 0.0-1.0 to 0 or 1 (sine or saw)
                                     value = (value >= 0.5f) ? 1.0f : 0.0f;
                                 }
