@@ -34,7 +34,7 @@ Some rudimentary factory presets are included in the plugin - they will be creat
 - [ ] Add a modulation matrix for more flexible routing
 - [ ] Implement additional LFO waveforms
 - [ ] Add envelope curves/shapes
-- [ ] Add filter types (currently appears to only have one filter type)
+- [ ] Add filter types (currently has one filter type)
 - [ ] Implement additional oscillator waveforms
 - [ ] Add effects section (reverb, delay, etc.)
 - [ ] Add MIDI learn functionality for parameters
