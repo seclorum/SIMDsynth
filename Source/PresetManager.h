@@ -18,10 +18,10 @@ class PresetManager {
 public:
     PresetManager();
     void createDefaultPresets();
+    void writePresetFile(const juce::String& presetName, const juce::var& parameters);
 
 private:
     juce::File getPresetDirectory();
-    void writePresetFile(const juce::String& presetName, const juce::var& parameters);
 };
 
 #endif //SIMDSYNTH_PRESETMANAGER_H

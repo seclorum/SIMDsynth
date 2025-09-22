@@ -120,9 +120,26 @@ public:
     void setStateInformation(const void* data, int sizeInBytes) override;
     void updateEnvelopes(float t);
 
-    static const int parameterVersion = 1;
-    // Public access to parameters for the editor
+    // Added public methods for preset management
+    void savePreset(const juce::String& presetName, const juce::var& parameters) {
+        presetManager.writePresetFile(presetName, parameters);
+    }
+    void loadPresets() {
+        loadPresetsFromDirectory();
+    }
     juce::AudioProcessorValueTreeState& getParameters() { return parameters; }
+
+    juce::StringArray getPresetNames() const
+    {
+        juce::StringArray presets;
+        // Populate with your preset names, e.g.:
+        presets.add("Bass");
+        presets.add("Strings2");
+        // Add more presets as needed
+        return presets;
+    }
+
+    static const int parameterVersion = 1;
 
 private:
     juce::AudioProcessorValueTreeState parameters;
@@ -175,7 +192,6 @@ private:
     std::vector<juce::String> presetNames;
     int currentProgram = 0;
     void loadPresetsFromDirectory();
-    // void loadProgram(int index); // Removed: Not used in implementation
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimdSynthAudioProcessor)
 };
