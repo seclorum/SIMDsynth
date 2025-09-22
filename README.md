@@ -20,5 +20,6 @@ Some rudimentary factory presets are included in the plugin - they will be creat
 - Uses SSE or NEON depending on platform (x86_64 or ARM64).
 - Includes a basic set of Factory Presets for testing purposes.
 
+![screenshot](screenshot1.png "Screenshot")
 
 (c) 2025, seclorum

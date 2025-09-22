@@ -1,41 +1,12 @@
 #include "PluginEditor.h"
 
-// Custom LookAndFeel for improved slider appearance
-class CustomLookAndFeel : public juce::LookAndFeel_V4
-{
-public:
-    void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos,
-                          float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider) override
-    {
-        auto radius = juce::jmin(width, height) * 0.4f;
-        auto centreX = x + width * 0.5f;
-        auto centreY = y + height * 0.5f;
-        auto angle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
 
-        // Draw knob background
-        g.setColour(juce::Colours::darkgrey);
-        g.fillEllipse(centreX - radius, centreY - radius, radius * 2, radius * 2);
-
-        // Draw knob outline
-        g.setColour(juce::Colours::white);
-        g.drawEllipse(centreX - radius, centreY - radius, radius * 2, radius * 2, 1.0f);
-
-        // Draw pointer
-        juce::Path p;
-        auto pointerLength = radius * 0.8f;
-        auto pointerThickness = 2.0f;
-        p.addRectangle(-pointerThickness * 0.5f, -radius, pointerThickness, pointerLength);
-        p.applyTransform(juce::AffineTransform::rotation(angle).translated(centreX, centreY));
-        g.setColour(juce::Colours::white);
-        g.fillPath(p);
-    }
-};
 
 SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProcessor& p)
     : AudioProcessorEditor(&p), processor(p)
 {
     // Apply custom LookAndFeel
-    setLookAndFeel(new CustomLookAndFeel());
+    setLookAndFeel(&simdSynthLAF);
 
     // Disable Metal to avoid default.metallib error
     setPaintingIsUnclipped(true);
@@ -339,7 +310,7 @@ void SimdSynthAudioProcessorEditor::resized()
         return;
     }
 
-    auto presetArea = bounds.removeFromTop(50).reduced(15); // Increased height and margin
+    auto presetArea = bounds.removeFromTop(50).reduced(5); // Increased height and margin
     auto controlArea = bounds.reduced(15);
 
     // Layout preset controls using FlexBox

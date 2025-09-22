@@ -2,11 +2,42 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 
+// Custom LookAndFeel for improved slider appearance
+class CustomLookAndFeel : public juce::LookAndFeel_V4
+{
+    public:
+        void drawRotarySlider(juce::Graphics& g, int x, int y, int width, int height, float sliderPos,
+                              float rotaryStartAngle, float rotaryEndAngle, juce::Slider& slider) override
+        {
+            auto radius = juce::jmin(width, height) * 0.4f;
+            auto centreX = x + width * 0.5f;
+            auto centreY = y + height * 0.5f;
+            auto angle = rotaryStartAngle + sliderPos * (rotaryEndAngle - rotaryStartAngle);
+
+            // Draw knob background
+            g.setColour(juce::Colours::darkgrey);
+            g.fillEllipse(centreX - radius, centreY - radius, radius * 2, radius * 2);
+
+            // Draw knob outline
+            g.setColour(juce::Colours::white);
+            g.drawEllipse(centreX - radius, centreY - radius, radius * 2, radius * 2, 1.0f);
+
+            // Draw pointer
+            juce::Path p;
+            auto pointerLength = radius * 0.8f;
+            auto pointerThickness = 2.0f;
+            p.addRectangle(-pointerThickness * 0.5f, -radius, pointerThickness, pointerLength);
+            p.applyTransform(juce::AffineTransform::rotation(angle).translated(centreX, centreY));
+            g.setColour(juce::Colours::white);
+            g.fillPath(p);
+        }
+};
+
 class SimdSynthAudioProcessorEditor : public juce::AudioProcessorEditor,
                                       public juce::ComboBox::Listener
 {
 public:
-    SimdSynthAudioProcessorEditor(SimdSynthAudioProcessor& p);
+    explicit SimdSynthAudioProcessorEditor(SimdSynthAudioProcessor& p);
     ~SimdSynthAudioProcessorEditor() override;
 
     void comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) override;
@@ -16,6 +47,9 @@ public:
     void updatePresetComboBox();
 
 private:
+
+    CustomLookAndFeel simdSynthLAF;
+
     void layoutGroupSliders(juce::GroupComponent* group, const std::vector<juce::Slider*>& sliders);
 
     SimdSynthAudioProcessor& processor;
