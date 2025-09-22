@@ -51,24 +51,27 @@ struct Voice {
     int noteNumber = 0;
     int velocity = 0;
     float noteOnTime = 0.0f;
+    float lfoPhase = 0.0f;
     float filterEnv = 0.0f;
     float filterStates[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    int wavetableType = 0;
     float cutoff = 1000.0f;
     float fegAttack = 0.1f;
     float fegDecay = 1.0f;
     float fegSustain = 0.5f;
     float fegRelease = 0.2f;
-    float lfoPhase = 0.0f;
     float lfoRate = 1.0f;
     float lfoDepth = 0.01f;
-    float subFrequency = 0.0f;
-    float subPhase = 0.0f;
-    float subPhaseIncrement = 0.0f;
     float subTune = -12.0f;
     float subMix = 0.5f;
     float subTrack = 1.0f;
-    int wavetableType = 0;
+    float subFrequency = 0.0f;
+    float subPhase = 0.0f;
+    float subPhaseIncrement = 0.0f;
+    float attack = 0.1f;
+    float decay = 1.9f;
 };
+
 
 struct Filter {
     float resonance = 0.7f;

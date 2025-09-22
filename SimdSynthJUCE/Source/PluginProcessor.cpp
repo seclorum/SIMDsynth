@@ -42,6 +42,8 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
         voices[i] = Voice();
         voices[i].active = false;
         voices[i].wavetableType = static_cast<int>(*wavetableTypeParam);
+        voices[i].attack = *attackTimeParam;
+        voices[i].decay = *decayTimeParam;
         voices[i].cutoff = *cutoffParam;
         voices[i].fegAttack = *fegAttackParam;
         voices[i].fegDecay = *fegDecayParam;
@@ -73,6 +75,7 @@ void SimdSynthAudioProcessor::loadPresetsFromDirectory() {
 
     if (!presetDir.exists()) {
         presetDir.createDirectory();
+        presetManager.createDefaultPresets(); // Create default presets if directory is empty
     }
 
     juce::Array<juce::File> presetFiles;
@@ -82,8 +85,15 @@ void SimdSynthAudioProcessor::loadPresetsFromDirectory() {
         presetNames.push_back(file.getFileNameWithoutExtension());
     }
 
-    // Sort presets alphabetically
-//    presetNames.sort();
+    if (presetNames.empty()) {
+        DBG("No presets found in directory: " << presetDir.getFullPathName());
+        presetNames.push_back("Default"); // Ensure at least one preset exists
+    }
+
+    // Update currentProgram to a valid index
+    if (currentProgram < 0 || currentProgram >= presetNames.size()) {
+        currentProgram = 0;
+    }
 }
 
 int SimdSynthAudioProcessor::getNumPrograms() {
@@ -95,62 +105,96 @@ int SimdSynthAudioProcessor::getCurrentProgram() {
 }
 
 void SimdSynthAudioProcessor::setCurrentProgram(int index) {
+    if (index < 0 || index >= presetNames.size()) {
+        DBG("Error: Invalid preset index: " << index << ", presetNames size: " << presetNames.size());
+        return;
+    }
 
-        if (index >= 0 && index < presetNames.size()) {
-        currentProgram = index;
-        juce::File presetFile = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
-                .getChildFile("SimdSynth/Presets")
-                .getChildFile(presetNames[index] + ".json");
+    currentProgram = index;
+    juce::File presetFile = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
+        .getChildFile("SimdSynth/Presets")
+        .getChildFile(presetNames[index] + ".json");
 
-        if (presetFile.existsAsFile()) {
-            auto jsonString = presetFile.loadFileAsString();
-            auto parsedJson = juce::JSON::parse(jsonString);
+    if (!presetFile.existsAsFile()) {
+        DBG("Error: Preset file not found: " << presetFile.getFullPathName());
+        return;
+    }
 
-            DBG("Loading preset: " << presetNames[index] << ", File: " << presetFile.getFullPathName());
-            DBG("JSON: " << jsonString);
+    auto jsonString = presetFile.loadFileAsString();
+    auto parsedJson = juce::JSON::parse(jsonString);
 
-            if (parsedJson.isObject()) {
-                // Define parameter IDs and their default values (from constructor)
-                std::map<juce::String, float> defaultValues = {
-                        {"wavetable", 0.0f},
-                        {"attack", 0.1f},
-                        {"decay", 1.9f},
-                        {"cutoff", 1000.0f},
-                        {"resonance", 0.7f},
-                        {"fegAttack", 0.1f},
-                        {"fegDecay", 1.0f},
-                        {"fegSustain", 0.5f},
-                        {"fegRelease", 0.2f},
-                        {"lfoRate", 1.0f},
-                        {"lfoDepth", 0.01f},
-                        {"subTune", -12.0f},
-                        {"subMix", 0.5f},
-                        {"subTrack", 1.0f}
-                };
+    DBG("Loading preset: " << presetNames[index] << ", File: " << presetFile.getFullPathName());
+    DBG("JSON: " << jsonString);
 
-                // List of parameter IDs
-                juce::StringArray paramIds = {
-                        "wavetable", "attack", "decay", "cutoff", "resonance",
-                        "fegAttack", "fegDecay", "fegSustain", "fegRelease",
-                        "lfoRate", "lfoDepth", "subTune", "subMix", "subTrack"
-                };
+    if (!parsedJson.isObject()) {
+        DBG("Error: Invalid JSON format in preset: " << presetNames[index]);
+        return;
+    }
 
-                for (const auto& paramId : paramIds) {
-                    if (auto* param = parameters.getParameter(paramId)) {
-                        if (auto* floatParam = dynamic_cast<juce::AudioParameterFloat*>(param)) {
-                            if (parsedJson.hasProperty(paramId)) {
-                                float value = parsedJson.getProperty(paramId, defaultValues[paramId]);
-                                // Special handling for wavetable to map float to integer
-                                if (paramId == "wavetable") {
-                                    // Map 0.0-1.0 to 0 or 1 (sine or saw)
-                                    value = (value >= 0.5f) ? 1.0f : 0.0f;
-                                }
-                                floatParam->setValueNotifyingHost(floatParam->convertTo0to1(value));
-                            }
-                        }
-                    }
+    juce::var synthParams = parsedJson.getProperty("SimdSynth", juce::var());
+    if (!synthParams.isObject()) {
+        DBG("Error: 'SimdSynth' object not found in preset: " << presetNames[index]);
+        return;
+    }
+
+    std::map<juce::String, float> defaultValues = {
+        {"wavetable", 0.0f}, {"attack", 0.1f}, {"decay", 1.9f}, {"cutoff", 1000.0f},
+        {"resonance", 0.7f}, {"fegAttack", 0.1f}, {"fegDecay", 1.0f}, {"fegSustain", 0.5f},
+        {"fegRelease", 0.2f}, {"lfoRate", 1.0f}, {"lfoDepth", 0.01f}, {"subTune", -12.0f},
+        {"subMix", 0.5f}, {"subTrack", 1.0f}
+    };
+
+    juce::StringArray paramIds = {
+        "wavetable", "attack", "decay", "cutoff", "resonance",
+        "fegAttack", "fegDecay", "fegSustain", "fegRelease",
+        "lfoRate", "lfoDepth", "subTune", "subMix", "subTrack"
+    };
+
+    bool anyParamUpdated = false;
+    for (const auto& paramId : paramIds) {
+        if (auto* param = parameters.getParameter(paramId)) {
+            if (auto* floatParam = dynamic_cast<juce::AudioParameterFloat*>(param)) {
+                float value = synthParams.hasProperty(paramId)
+                    ? static_cast<float>(synthParams.getProperty(paramId, defaultValues[paramId]))
+                    : defaultValues[paramId];
+                if (paramId == "wavetable") {
+                    value = (value >= 0.5f) ? 1.0f : 0.0f;
                 }
+                value = juce::jlimit(floatParam->getNormalisableRange().start,
+                                     floatParam->getNormalisableRange().end, value);
+                floatParam->setValueNotifyingHost(floatParam->convertTo0to1(value));
+                DBG("Setting " << paramId << " to " << value);
+                anyParamUpdated = true;
             }
+        }
+    }
+
+    if (!anyParamUpdated) {
+        DBG("Warning: No parameters updated for preset: " << presetNames[index]);
+    }
+
+    // Update voices immediately
+    for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
+        voices[i].wavetableType = static_cast<int>(*wavetableTypeParam);
+        voices[i].attack = *attackTimeParam;
+        voices[i].decay = *decayTimeParam;
+        voices[i].cutoff = *cutoffParam;
+        voices[i].fegAttack = *fegAttackParam;
+        voices[i].fegDecay = *fegDecayParam;
+        voices[i].fegSustain = *fegSustainParam;
+        voices[i].fegRelease = *fegReleaseParam;
+        voices[i].lfoRate = *lfoRateParam;
+        voices[i].lfoDepth = *lfoDepthParam;
+        voices[i].subTune = *subTuneParam;
+        voices[i].subMix = *subMixParam;
+        voices[i].subTrack = *subTrackParam;
+    }
+    filter.resonance = *resonanceParam;
+
+    // Notify editor
+    if (auto* editor = getActiveEditor()) {
+        if (auto* synthEditor = dynamic_cast<SimdSynthAudioProcessorEditor*>(editor)) {
+            synthEditor->updatePresetComboBox();
         }
     }
 }
@@ -388,9 +432,6 @@ void SimdSynthAudioProcessor::applyLadderFilter(Voice* voices, int voiceOffset, 
 }
 
 void SimdSynthAudioProcessor::updateEnvelopes(int sampleIndex) {
-    float attackTime = *attackTimeParam;
-    float decayTime = *decayTimeParam;
-    float chordDuration = 2.0f; // Fixed duration for MIDI-triggered notes
     float t = sampleIndex / filter.sampleRate;
 
     for (int i = 0; i < MAX_VOICE_POLYPHONY; i++) {
@@ -405,10 +446,10 @@ void SimdSynthAudioProcessor::updateEnvelopes(int sampleIndex) {
 
         float localTime = t - voices[i].noteOnTime;
 
-        if (localTime < attackTime) {
-            voices[i].amplitude = localTime / attackTime;
-        } else if (localTime < attackTime + decayTime) {
-            voices[i].amplitude = 1.0f - (localTime - attackTime) / decayTime;
+        if (localTime < voices[i].attack) { // Changed from attackTimeParam
+            voices[i].amplitude = localTime / voices[i].attack;
+        } else if (localTime < voices[i].attack + voices[i].decay) { // Changed from decayTimeParam
+            voices[i].amplitude = 1.0f - (localTime - voices[i].attack) / voices[i].decay;
         } else {
             voices[i].amplitude = 0.0f;
             voices[i].active = false;
@@ -422,10 +463,10 @@ void SimdSynthAudioProcessor::updateEnvelopes(int sampleIndex) {
         } else if (localTime < voices[i].fegAttack + voices[i].fegDecay) {
             voices[i].filterEnv = 1.0f - (localTime - voices[i].fegAttack) /
                                          voices[i].fegDecay * (1.0f - voices[i].fegSustain);
-        } else if (localTime < chordDuration) {
+        } else if (localTime < 2.0f) { // Fixed chordDuration
             voices[i].filterEnv = voices[i].fegSustain;
-        } else if (localTime < chordDuration + voices[i].fegRelease) {
-            voices[i].filterEnv = voices[i].fegSustain * (1.0f - (localTime - chordDuration) / voices[i].fegRelease);
+        } else if (localTime < 2.0f + voices[i].fegRelease) {
+            voices[i].filterEnv = voices[i].fegSustain * (1.0f - (localTime - 2.0f) / voices[i].fegRelease);
         } else {
             voices[i].filterEnv = 0.0f;
             voices[i].active = false;
@@ -457,6 +498,8 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
     // Update parameters
     for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
         voices[i].wavetableType = static_cast<int>(*wavetableTypeParam);
+        voices[i].attack = *attackTimeParam;
+        voices[i].decay = *decayTimeParam;
         voices[i].cutoff = *cutoffParam;
         voices[i].fegAttack = *fegAttackParam;
         voices[i].fegDecay = *fegDecayParam;
@@ -470,10 +513,22 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
     }
     filter.resonance = *resonanceParam;
 
+#if DEBUG
+    // Debug voice parameters for the first voice
+    if (voices[0].active) {
+        DBG("Voice[0] parameters: wavetableType=" << voices[0].wavetableType
+            << ", attack=" << voices[0].attack
+            << ", decay=" << voices[0].decay
+            << ", cutoff=" << voices[0].cutoff
+            << ", fegAttack=" << voices[0].fegAttack);
+    }
+#endif
+
     // Process MIDI
     for (const auto metadata : midiMessages) {
         auto msg = metadata.getMessage();
-        if (msg.isNoteOn()) {
+
+         if (msg.isNoteOn()) {
             int note = msg.getNoteNumber();
             float velocity = msg.getVelocity() / 127.0f;
             for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
@@ -508,7 +563,11 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
             }
         } else if (msg.isProgramChange()) {
             int program = msg.getProgramChangeNumber();
-            setCurrentProgram(program);
+            if (program >= 0 && program < getNumPrograms()) {
+                setCurrentProgram(program);
+            } else {
+                DBG("Invalid program change index: " << program);
+            }
         }
     }
 

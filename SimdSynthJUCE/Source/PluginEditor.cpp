@@ -10,9 +10,7 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     // Initialize preset combo box
     addAndMakeVisible(presetComboBox);
     presetComboBox.addListener(this);
-    for (int i = 0; i < processor.getNumPrograms(); ++i) {
-        presetComboBox.addItem(processor.getProgramName(i), i + 1);
-    }
+    updatePresetComboBox(); // Populate combo box
     presetComboBox.setSelectedItemIndex(processor.getCurrentProgram(), juce::dontSendNotification);
     presetComboBox.setTextWhenNothingSelected("Select Preset");
 
@@ -168,8 +166,23 @@ void SimdSynthAudioProcessorEditor::resized() {
     subTrackSlider.setBounds(bounds.removeFromTop(sliderHeight).removeFromRight(sliderWidth));
 }
 
+void SimdSynthAudioProcessorEditor::updatePresetComboBox() {
+    presetComboBox.clear(juce::dontSendNotification);
+    for (int i = 0; i < processor.getNumPrograms(); ++i) {
+        presetComboBox.addItem(processor.getProgramName(i), i + 1);
+    }
+    int selectedId = processor.getCurrentProgram() + 1;
+    presetComboBox.setSelectedId(selectedId, juce::dontSendNotification);
+    presetComboBox.setTextWhenNothingSelected("Select Preset");
+    DBG("ComboBox2 updated: selectedId=" << selectedId << ", preset=" << presetComboBox.getText());
+}
+
 void SimdSynthAudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) {
     if (comboBoxThatHasChanged == &presetComboBox) {
-        processor.setCurrentProgram(presetComboBox.getSelectedItemIndex());
+        int selectedId = presetComboBox.getSelectedId();
+        if (selectedId > 0) {
+            processor.setCurrentProgram(selectedId - 1);
+            // updatePresetComboBox();
+        }
     }
 }

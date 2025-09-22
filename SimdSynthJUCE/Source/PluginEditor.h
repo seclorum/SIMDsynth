@@ -17,12 +17,14 @@ public:
 
     void paint(juce::Graphics&) override;
     void resized() override;
+    void updatePresetComboBox();
     void comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) override;
+
+    juce::ComboBox presetComboBox;
 
 private:
     SimdSynthAudioProcessor& processor;
 
-    juce::ComboBox presetComboBox;
 
     // Sliders for each parameter
     juce::Slider wavetableSlider;
