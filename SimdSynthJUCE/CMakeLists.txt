@@ -48,7 +48,11 @@ target_sources(SimdSynth
         PRIVATE
         Source/PluginProcessor.cpp
         Source/PluginProcessor.h
+        Source/PluginEditor.cpp
+        Source/PluginEditor.h
         Source/PluginEntry.cpp
+        Source/PresetManager.cpp
+        Source/PresetManager.h
 )
 
 # Link JUCE modules
