@@ -9,43 +9,71 @@
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include <juce_core/juce_core.h> // For File and JSON handling
-#include <juce_dsp/juce_dsp.h>  // For oversampling and DSP utilities
+#include <juce_dsp/juce_dsp.h>   // For oversampling and DSP utilities
 
-// Constructor: Initializes the audio processor with stereo output and enhanced parameters
+// Constructor: Initializes the audio processor with stereo output and enhanced
+// parameters
 SimdSynthAudioProcessor::SimdSynthAudioProcessor()
-        : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
-          parameters(*this, nullptr, juce::Identifier("SimdSynth"),
-                     {
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"wavetable", parameterVersion}, "Wavetable Type", 0.0f, 2.0f, 0.0f), // Extended for sine, saw, square
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"attack", parameterVersion}, "Attack Time", 0.01f, 5.0f, 0.1f), // Extended attack range
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"decay", parameterVersion}, "Decay Time", 0.1f, 5.0f, 0.5f), // Adjusted default
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"sustain", parameterVersion}, "Sustain Level", 0.0f, 1.0f, 0.8f), // Added sustain
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"release", parameterVersion}, "Release Time", 0.01f, 5.0f, 0.2f), // Added release
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"cutoff", parameterVersion}, "Filter Cutoff", 20.0f, 20000.0f, 1000.0f), // Wider cutoff range
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"resonance", parameterVersion}, "Filter Resonance", 0.0f, 1.0f, 0.7f),
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegAttack", parameterVersion}, "Filter EG Attack", 0.01f, 5.0f, 0.1f),
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegDecay", parameterVersion}, "Filter EG Decay", 0.1f, 5.0f, 1.0f),
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegSustain", parameterVersion}, "Filter EG Sustain", 0.0f, 1.0f, 0.5f),
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegRelease", parameterVersion}, "Filter EG Release", 0.01f, 5.0f, 0.2f),
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegAmount", parameterVersion}, "Filter EG Amount", -1.0f, 1.0f, 0.5f), // New: Filter envelope amount
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"lfoRate", parameterVersion}, "LFO Rate", 0.0f, 20.0f, 1.0f),
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"lfoDepth", parameterVersion}, "LFO Depth", 0.0f, 0.5f, 0.05f), // Increased LFO depth range
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subTune", parameterVersion}, "Sub Osc Tune", -24.0f, 24.0f, -12.0f), // Extended sub-tune range
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subMix", parameterVersion}, "Sub Osc Mix", 0.0f, 1.0f, 0.5f),
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subTrack", parameterVersion}, "Sub Osc Track", 0.0f, 1.0f, 1.0f),
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"gain", parameterVersion}, "Output Gain", 0.0f, 2.0f, 1.0f), // New: Output gain control
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"unison", parameterVersion}, "Unison Voices", 1.0f, 8.0f, 1.0f), // New: Unison mode
-                             std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"detune", parameterVersion}, "Unison Detune", 0.0f, 0.1f, 0.01f) // New: Unison detune
-                     }),
-          currentTime(0.0),
-          oversampling(std::make_unique<juce::dsp::Oversampling<float>>(2, 2, juce::dsp::Oversampling<float>::FilterType::filterHalfBandPolyphaseIIR, true, true)) // Modified: Set 4x oversampling (2 stages of 2x) during construction
+    : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
+      parameters(
+          *this, nullptr, juce::Identifier("SimdSynth"),
+          {
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"wavetable", parameterVersion},
+                                                          "Wavetable Type", 0.0f, 2.0f,
+                                                          0.0f), // Extended for sine, saw, square
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"attack", parameterVersion}, "Attack Time",
+                                                          0.01f, 5.0f, 0.1f), // Extended attack range
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"decay", parameterVersion}, "Decay Time",
+                                                          0.1f, 5.0f, 0.5f), // Adjusted default
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"sustain", parameterVersion},
+                                                          "Sustain Level", 0.0f, 1.0f, 0.8f), // Added sustain
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"release", parameterVersion},
+                                                          "Release Time", 0.01f, 5.0f, 0.2f), // Added release
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"cutoff", parameterVersion},
+                                                          "Filter Cutoff", 20.0f, 20000.0f,
+                                                          1000.0f), // Wider cutoff range
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"resonance", parameterVersion},
+                                                          "Filter Resonance", 0.0f, 1.0f, 0.7f),
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegAttack", parameterVersion},
+                                                          "Filter EG Attack", 0.01f, 5.0f, 0.1f),
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegDecay", parameterVersion},
+                                                          "Filter EG Decay", 0.1f, 5.0f, 1.0f),
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegSustain", parameterVersion},
+                                                          "Filter EG Sustain", 0.0f, 1.0f, 0.5f),
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegRelease", parameterVersion},
+                                                          "Filter EG Release", 0.01f, 5.0f, 0.2f),
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegAmount", parameterVersion},
+                                                          "Filter EG Amount", -1.0f, 1.0f,
+                                                          0.5f), // New: Filter envelope amount
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"lfoRate", parameterVersion}, "LFO Rate",
+                                                          0.0f, 20.0f, 1.0f),
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"lfoDepth", parameterVersion}, "LFO Depth",
+                                                          0.0f, 0.5f, 0.05f), // Increased LFO depth range
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subTune", parameterVersion},
+                                                          "Sub Osc Tune", -24.0f, 24.0f,
+                                                          -12.0f), // Extended sub-tune range
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subMix", parameterVersion}, "Sub Osc Mix",
+                                                          0.0f, 1.0f, 0.5f),
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subTrack", parameterVersion},
+                                                          "Sub Osc Track", 0.0f, 1.0f, 1.0f),
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"gain", parameterVersion}, "Output Gain",
+                                                          0.0f, 2.0f, 1.0f), // New: Output gain control
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"unison", parameterVersion},
+                                                          "Unison Voices", 1.0f, 8.0f, 1.0f), // New: Unison mode
+              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"detune", parameterVersion},
+                                                          "Unison Detune", 0.0f, 0.1f, 0.01f) // New: Unison detune
+          }),
+      currentTime(0.0), oversampling(std::make_unique<juce::dsp::Oversampling<float>>(
+                            2, 2, juce::dsp::Oversampling<float>::FilterType::filterHalfBandPolyphaseIIR, true,
+                            true)) // Modified: Set 4x oversampling (2 stages of 2x) during
+                                   // construction
 {
     // Initialize parameter pointers
     wavetableTypeParam = parameters.getRawParameterValue("wavetable");
     attackTimeParam = parameters.getRawParameterValue("attack");
     decayTimeParam = parameters.getRawParameterValue("decay");
     sustainLevelParam = parameters.getRawParameterValue("sustain"); // New
-    releaseTimeParam = parameters.getRawParameterValue("release"); // New
+    releaseTimeParam = parameters.getRawParameterValue("release");  // New
     cutoffParam = parameters.getRawParameterValue("cutoff");
     resonanceParam = parameters.getRawParameterValue("resonance");
     fegAttackParam = parameters.getRawParameterValue("fegAttack");
@@ -58,7 +86,7 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
     subTuneParam = parameters.getRawParameterValue("subTune");
     subMixParam = parameters.getRawParameterValue("subMix");
     subTrackParam = parameters.getRawParameterValue("subTrack");
-    gainParam = parameters.getRawParameterValue("gain"); // New
+    gainParam = parameters.getRawParameterValue("gain");     // New
     unisonParam = parameters.getRawParameterValue("unison"); // New
     detuneParam = parameters.getRawParameterValue("detune"); // New
 
@@ -73,7 +101,7 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
         voices[i].attack = *attackTimeParam;
         voices[i].decay = *decayTimeParam;
         voices[i].sustain = *sustainLevelParam; // New
-        voices[i].release = *releaseTimeParam; // New
+        voices[i].release = *releaseTimeParam;  // New
         voices[i].cutoff = *cutoffParam;
         voices[i].fegAttack = *fegAttackParam;
         voices[i].fegDecay = *fegDecayParam;
@@ -86,7 +114,7 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
         voices[i].subMix = *subMixParam;
         voices[i].subTrack = *subTrackParam;
         voices[i].unison = static_cast<int>(*unisonParam); // New
-        voices[i].detune = *detuneParam; // New
+        voices[i].detune = *detuneParam;                   // New
     }
 
     // Set initial filter resonance
@@ -99,15 +127,13 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
 }
 
 // Destructor: Clean up oversampling
-SimdSynthAudioProcessor::~SimdSynthAudioProcessor() {
-    oversampling.reset();
-}
+SimdSynthAudioProcessor::~SimdSynthAudioProcessor() { oversampling.reset(); }
 
 // Load presets from directory
 void SimdSynthAudioProcessor::loadPresetsFromDirectory() {
     presetNames.clear();
-    juce::File presetDir = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
-            .getChildFile("SimdSynth/Presets");
+    juce::File presetDir =
+        juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory).getChildFile("SimdSynth/Presets");
 
     if (!presetDir.exists()) {
         presetDir.createDirectory();
@@ -116,7 +142,7 @@ void SimdSynthAudioProcessor::loadPresetsFromDirectory() {
 
     juce::Array<juce::File> presetFiles;
     presetDir.findChildFiles(presetFiles, juce::File::findFiles, false, "*.json");
-    for (const auto& file : presetFiles) {
+    for (const auto &file : presetFiles) {
         presetNames.push_back(file.getFileNameWithoutExtension());
     }
 
@@ -128,14 +154,10 @@ void SimdSynthAudioProcessor::loadPresetsFromDirectory() {
 }
 
 // Return the number of available presets
-int SimdSynthAudioProcessor::getNumPrograms() {
-    return presetNames.size();
-}
+int SimdSynthAudioProcessor::getNumPrograms() { return presetNames.size(); }
 
 // Return the current preset index
-int SimdSynthAudioProcessor::getCurrentProgram() {
-    return currentProgram;
-}
+int SimdSynthAudioProcessor::getCurrentProgram() { return currentProgram; }
 
 // Load a preset by index
 void SimdSynthAudioProcessor::setCurrentProgram(int index) {
@@ -146,8 +168,8 @@ void SimdSynthAudioProcessor::setCurrentProgram(int index) {
 
     currentProgram = index;
     juce::File presetFile = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
-        .getChildFile("SimdSynth/Presets")
-        .getChildFile(presetNames[index] + ".json");
+                                .getChildFile("SimdSynth/Presets")
+                                .getChildFile(presetNames[index] + ".json");
 
     if (!presetFile.existsAsFile()) {
         DBG("Error: Preset file not found: " << presetFile.getFullPathName());
@@ -173,31 +195,28 @@ void SimdSynthAudioProcessor::setCurrentProgram(int index) {
 
     // Extended default parameter values
     std::map<juce::String, float> defaultValues = {
-        {"wavetable", 0.0f}, {"attack", 0.1f}, {"decay", 0.5f}, {"sustain", 0.8f}, {"release", 0.2f},
-        {"cutoff", 1000.0f}, {"resonance", 0.7f}, {"fegAttack", 0.1f}, {"fegDecay", 1.0f},
-        {"fegSustain", 0.5f}, {"fegRelease", 0.2f}, {"fegAmount", 0.5f},
-        {"lfoRate", 1.0f}, {"lfoDepth", 0.05f}, {"subTune", -12.0f},
-        {"subMix", 0.5f}, {"subTrack", 1.0f}, {"gain", 1.0f}, {"unison", 1.0f}, {"detune", 0.01f}
-    };
+        {"wavetable", 0.0f},  {"attack", 0.1f},    {"decay", 0.5f},     {"sustain", 0.8f},   {"release", 0.2f},
+        {"cutoff", 1000.0f},  {"resonance", 0.7f}, {"fegAttack", 0.1f}, {"fegDecay", 1.0f},  {"fegSustain", 0.5f},
+        {"fegRelease", 0.2f}, {"fegAmount", 0.5f}, {"lfoRate", 1.0f},   {"lfoDepth", 0.05f}, {"subTune", -12.0f},
+        {"subMix", 0.5f},     {"subTrack", 1.0f},  {"gain", 1.0f},      {"unison", 1.0f},    {"detune", 0.01f}};
 
-    juce::StringArray paramIds = {
-        "wavetable", "attack", "decay", "sustain", "release", "cutoff", "resonance",
-        "fegAttack", "fegDecay", "fegSustain", "fegRelease", "fegAmount",
-        "lfoRate", "lfoDepth", "subTune", "subMix", "subTrack", "gain", "unison", "detune"
-    };
+    juce::StringArray paramIds = {"wavetable",  "attack",    "decay",     "sustain",  "release",
+                                  "cutoff",     "resonance", "fegAttack", "fegDecay", "fegSustain",
+                                  "fegRelease", "fegAmount", "lfoRate",   "lfoDepth", "subTune",
+                                  "subMix",     "subTrack",  "gain",      "unison",   "detune"};
 
     bool anyParamUpdated = false;
-    for (const auto& paramId : paramIds) {
-        if (auto* param = parameters.getParameter(paramId)) {
-            if (auto* floatParam = dynamic_cast<juce::AudioParameterFloat*>(param)) {
+    for (const auto &paramId : paramIds) {
+        if (auto *param = parameters.getParameter(paramId)) {
+            if (auto *floatParam = dynamic_cast<juce::AudioParameterFloat *>(param)) {
                 float value = synthParams.hasProperty(paramId)
-                    ? static_cast<float>(synthParams.getProperty(paramId, defaultValues[paramId]))
-                    : defaultValues[paramId];
+                                  ? static_cast<float>(synthParams.getProperty(paramId, defaultValues[paramId]))
+                                  : defaultValues[paramId];
                 if (paramId == "wavetable" || paramId == "unison") {
                     value = std::round(value); // Quantize for discrete parameters
                 }
-                value = juce::jlimit(floatParam->getNormalisableRange().start,
-                                     floatParam->getNormalisableRange().end, value);
+                value = juce::jlimit(floatParam->getNormalisableRange().start, floatParam->getNormalisableRange().end,
+                                     value);
                 floatParam->setValueNotifyingHost(floatParam->convertTo0to1(value));
                 DBG("Setting " << paramId << " to " << value);
                 anyParamUpdated = true;
@@ -232,8 +251,8 @@ void SimdSynthAudioProcessor::setCurrentProgram(int index) {
     }
     filter.resonance = *resonanceParam;
 
-    if (auto* editor = getActiveEditor()) {
-        if (auto* synthEditor = dynamic_cast<SimdSynthAudioProcessorEditor*>(editor)) {
+    if (auto *editor = getActiveEditor()) {
+        if (auto *synthEditor = dynamic_cast<SimdSynthAudioProcessorEditor *>(editor)) {
             synthEditor->updatePresetComboBox();
         }
     }
@@ -248,14 +267,14 @@ const juce::String SimdSynthAudioProcessor::getProgramName(int index) {
 }
 
 // Rename a preset
-void SimdSynthAudioProcessor::changeProgramName(int index, const juce::String& newName) {
+void SimdSynthAudioProcessor::changeProgramName(int index, const juce::String &newName) {
     if (index >= 0 && index < presetNames.size()) {
         juce::File oldFile = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
-                .getChildFile("SimdSynth/Presets")
-                .getChildFile(presetNames[index] + ".json");
+                                 .getChildFile("SimdSynth/Presets")
+                                 .getChildFile(presetNames[index] + ".json");
         juce::File newFile = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
-                .getChildFile("SimdSynth/Presets")
-                .getChildFile(newName + ".json");
+                                 .getChildFile("SimdSynth/Presets")
+                                 .getChildFile(newName + ".json");
         if (oldFile.existsAsFile()) {
             oldFile.moveFileTo(newFile);
             presetNames[index] = newName;
@@ -267,16 +286,14 @@ void SimdSynthAudioProcessor::changeProgramName(int index, const juce::String& n
 void SimdSynthAudioProcessor::initWavetables() {
     for (int i = 0; i < WAVETABLE_SIZE; ++i) {
         float t = static_cast<float>(i) / WAVETABLE_SIZE;
-        sineTable[i] = sinf(2.0f * M_PI * t); // Sine wave: [-1, 1]
-        sawTable[i] = 2.0f * t - 1.0f; // Sawtooth: [-1, 1]
+        sineTable[i] = sinf(2.0f * M_PI * t);     // Sine wave: [-1, 1]
+        sawTable[i] = 2.0f * t - 1.0f;            // Sawtooth: [-1, 1]
         squareTable[i] = t < 0.5f ? 1.0f : -1.0f; // Square wave: [-1, 1]
     }
 }
 
 // Convert MIDI note number to frequency
-float SimdSynthAudioProcessor::midiToFreq(int midiNote) {
-    return 440.0f * powf(2.0f, (midiNote - 69) / 12.0f);
-}
+float SimdSynthAudioProcessor::midiToFreq(int midiNote) { return 440.0f * powf(2.0f, (midiNote - 69) / 12.0f); }
 
 // Randomize a value within a variation range
 float SimdSynthAudioProcessor::randomize(float base, float var) {
@@ -309,11 +326,8 @@ __m128 SimdSynthAudioProcessor::fast_sin_ps(__m128 x) {
     __m128 sign = _mm_set1_ps(1.0f);
     __m128 absX = _mm_max_ps(xWrapped, _mm_sub_ps(_mm_setzero_ps(), xWrapped));
     __m128 gtPiOverTwo = _mm_cmpgt_ps(absX, piOverTwo);
-    sign = _mm_or_ps(_mm_and_ps(gtPiOverTwo, _mm_set1_ps(-1.0f)),
-                     _mm_andnot_ps(gtPiOverTwo, _mm_set1_ps(1.0f)));
-    xWrapped = _mm_sub_ps(xWrapped,
-                          _mm_and_ps(gtPiOverTwo,
-                                     _mm_mul_ps(piOverTwo, _mm_set1_ps(2.0f))));
+    sign = _mm_or_ps(_mm_and_ps(gtPiOverTwo, _mm_set1_ps(-1.0f)), _mm_andnot_ps(gtPiOverTwo, _mm_set1_ps(1.0f)));
+    xWrapped = _mm_sub_ps(xWrapped, _mm_and_ps(gtPiOverTwo, _mm_mul_ps(piOverTwo, _mm_set1_ps(2.0f))));
     const __m128 c3 = _mm_set1_ps(-1.0f / 6.0f);
     const __m128 c5 = _mm_set1_ps(1.0f / 120.0f);
     const __m128 c7 = _mm_set1_ps(-1.0f / 5040.0f);
@@ -321,10 +335,8 @@ __m128 SimdSynthAudioProcessor::fast_sin_ps(__m128 x) {
     __m128 x3 = _mm_mul_ps(x2, xWrapped);
     __m128 x5 = _mm_mul_ps(x3, x2);
     __m128 x7 = _mm_mul_ps(x5, x2);
-    __m128 result = _mm_add_ps(
-        xWrapped,
-        _mm_add_ps(_mm_mul_ps(c3, x3),
-                   _mm_add_ps(_mm_mul_ps(c5, x5), _mm_mul_ps(c7, x7))));
+    __m128 result =
+        _mm_add_ps(xWrapped, _mm_add_ps(_mm_mul_ps(c3, x3), _mm_add_ps(_mm_mul_ps(c5, x5), _mm_mul_ps(c7, x7))));
     return _mm_mul_ps(result, sign);
 }
 #endif
@@ -342,10 +354,7 @@ float32x4_t SimdSynthAudioProcessor::fast_sin_ps(float32x4_t x) {
     float32x4_t absX = vmaxq_f32(xWrapped, vsubq_f32(vdupq_n_f32(0.0f), xWrapped));
     uint32x4_t gtPiOverTwo = vcgtq_f32(absX, piOverTwo);
     sign = vbslq_f32(gtPiOverTwo, vdupq_n_f32(-1.0f), vdupq_n_f32(1.0f));
-    xWrapped = vsubq_f32(xWrapped,
-                         vbslq_f32(gtPiOverTwo,
-                                   vmulq_f32(piOverTwo, vdupq_n_f32(2.0f)),
-                                   vdupq_n_f32(0.0f)));
+    xWrapped = vsubq_f32(xWrapped, vbslq_f32(gtPiOverTwo, vmulq_f32(piOverTwo, vdupq_n_f32(2.0f)), vdupq_n_f32(0.0f)));
     const float32x4_t c3 = vdupq_n_f32(-1.0f / 6.0f);
     const float32x4_t c5 = vdupq_n_f32(1.0f / 120.0f);
     const float32x4_t c7 = vdupq_n_f32(-1.0f / 5040.0f);
@@ -353,16 +362,14 @@ float32x4_t SimdSynthAudioProcessor::fast_sin_ps(float32x4_t x) {
     float32x4_t x3 = vmulq_f32(x2, xWrapped);
     float32x4_t x5 = vmulq_f32(x3, x2);
     float32x4_t x7 = vmulq_f32(x5, x2);
-    float32x4_t result = vaddq_f32(
-            xWrapped,
-            vaddq_f32(vmulq_f32(c3, x3),
-                      vaddq_f32(vmulq_f32(c5, x5), vmulq_f32(c7, x7))));
+    float32x4_t result =
+        vaddq_f32(xWrapped, vaddq_f32(vmulq_f32(c3, x3), vaddq_f32(vmulq_f32(c5, x5), vmulq_f32(c7, x7))));
     return vmulq_f32(result, sign);
 }
 #endif
 
 // Perform wavetable lookup with linear interpolation
-SIMD_TYPE SimdSynthAudioProcessor::wavetable_lookup_ps(SIMD_TYPE phase, const float* table) {
+SIMD_TYPE SimdSynthAudioProcessor::wavetable_lookup_ps(SIMD_TYPE phase, const float *table) {
     const SIMD_TYPE tableSize = SIMD_SET1(static_cast<float>(WAVETABLE_SIZE));
     SIMD_TYPE index = SIMD_MUL(phase, tableSize);
     SIMD_TYPE indexFloor = SIMD_FLOOR(index);
@@ -370,12 +377,8 @@ SIMD_TYPE SimdSynthAudioProcessor::wavetable_lookup_ps(SIMD_TYPE phase, const fl
     indexFloor = SIMD_SUB(indexFloor, SIMD_MUL(SIMD_FLOOR(SIMD_DIV(indexFloor, tableSize)), tableSize));
     float tempIndices[4];
     SIMD_STORE(tempIndices, indexFloor);
-    int indices[4] = {
-            static_cast<int>(tempIndices[0]),
-            static_cast<int>(tempIndices[1]),
-            static_cast<int>(tempIndices[2]),
-            static_cast<int>(tempIndices[3])
-    };
+    int indices[4] = {static_cast<int>(tempIndices[0]), static_cast<int>(tempIndices[1]),
+                      static_cast<int>(tempIndices[2]), static_cast<int>(tempIndices[3])};
     float samples1[4], samples2[4];
     for (int i = 0; i < 4; ++i) {
         int idx = indices[i];
@@ -388,7 +391,8 @@ SIMD_TYPE SimdSynthAudioProcessor::wavetable_lookup_ps(SIMD_TYPE phase, const fl
 }
 
 // Apply ladder filter to input signal with enhanced envelope amount
-void SimdSynthAudioProcessor::applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& filter, SIMD_TYPE& output) {
+void SimdSynthAudioProcessor::applyLadderFilter(Voice *voices, int voiceOffset, SIMD_TYPE input, Filter &filter,
+                                                SIMD_TYPE &output) {
     float cutoffs[4];
     for (int i = 0; i < 4; i++) {
         int idx = voiceOffset + i;
@@ -396,12 +400,12 @@ void SimdSynthAudioProcessor::applyLadderFilter(Voice* voices, int voiceOffset, 
             cutoffs[i] = 0.0f;
             continue;
         }
-        float envMod = voices[idx].fegAmount * voices[idx].filterEnv * 12000.0f; // New: Adjustable filter envelope amount
+        float envMod =
+            voices[idx].fegAmount * voices[idx].filterEnv * 12000.0f; // New: Adjustable filter envelope amount
         float modulatedCutoff = voices[idx].cutoff + envMod;
         modulatedCutoff = std::max(20.0f, std::min(modulatedCutoff, filter.sampleRate / 2.0f));
         cutoffs[i] = 1.0f - expf(-2.0f * M_PI * modulatedCutoff / filter.sampleRate);
-        if (std::isnan(cutoffs[i]) || !std::isfinite(cutoffs[i]))
-            cutoffs[i] = 0.0f;
+        if (std::isnan(cutoffs[i]) || !std::isfinite(cutoffs[i])) cutoffs[i] = 0.0f;
     }
 #ifdef __x86_64__
     SIMD_TYPE alpha = SIMD_SET(cutoffs[0], cutoffs[1], cutoffs[2], cutoffs[3]);
@@ -422,12 +426,10 @@ void SimdSynthAudioProcessor::applyLadderFilter(Voice* voices, int voiceOffset, 
     }
     SIMD_TYPE states[4];
     for (int i = 0; i < 4; i++) {
-        float temp[4] = {
-                voiceOffset < MAX_VOICE_POLYPHONY ? voices[voiceOffset].filterStates[i] : 0.0f,
-                voiceOffset + 1 < MAX_VOICE_POLYPHONY ? voices[voiceOffset + 1].filterStates[i] : 0.0f,
-                voiceOffset + 2 < MAX_VOICE_POLYPHONY ? voices[voiceOffset + 2].filterStates[i] : 0.0f,
-                voiceOffset + 3 < MAX_VOICE_POLYPHONY ? voices[voiceOffset + 3].filterStates[i] : 0.0f
-        };
+        float temp[4] = {voiceOffset < MAX_VOICE_POLYPHONY ? voices[voiceOffset].filterStates[i] : 0.0f,
+                         voiceOffset + 1 < MAX_VOICE_POLYPHONY ? voices[voiceOffset + 1].filterStates[i] : 0.0f,
+                         voiceOffset + 2 < MAX_VOICE_POLYPHONY ? voices[voiceOffset + 2].filterStates[i] : 0.0f,
+                         voiceOffset + 3 < MAX_VOICE_POLYPHONY ? voices[voiceOffset + 3].filterStates[i] : 0.0f};
         states[i] = SIMD_LOAD(temp);
     }
     SIMD_TYPE feedback = SIMD_MUL(states[3], resonance);
@@ -449,11 +451,9 @@ void SimdSynthAudioProcessor::applyLadderFilter(Voice* voices, int voiceOffset, 
     output = SIMD_LOAD(tempCheck);
     float tempOut[4];
     SIMD_STORE(tempOut, output);
-    if (std::isnan(tempOut[0]) || std::isnan(tempOut[1]) ||
-        std::isnan(tempOut[2]) || std::isnan(tempOut[3])) {
-        DBG("Filter output nan at voiceOffset " << voiceOffset << ": {"
-                  << tempOut[0] << ", " << tempOut[1] << ", " << tempOut[2]
-                  << ", " << tempOut[3] << "}");
+    if (std::isnan(tempOut[0]) || std::isnan(tempOut[1]) || std::isnan(tempOut[2]) || std::isnan(tempOut[3])) {
+        DBG("Filter output nan at voiceOffset " << voiceOffset << ": {" << tempOut[0] << ", " << tempOut[1] << ", "
+                                                << tempOut[2] << ", " << tempOut[3] << "}");
     }
     for (int i = 0; i < 4; i++) {
         float temp[4];
@@ -549,12 +549,10 @@ void SimdSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlo
 }
 
 // Release resources
-void SimdSynthAudioProcessor::releaseResources() {
-    oversampling->reset();
-}
+void SimdSynthAudioProcessor::releaseResources() { oversampling->reset(); }
 
 // Process audio and MIDI with oversampling
-void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
+void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages) {
     juce::ScopedNoDenormals noDenormals;
     auto totalNumOutputChannels = getTotalNumOutputChannels();
     buffer.clear();
@@ -594,7 +592,8 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
     int sampleIndex = 0;
     juce::MidiBuffer oversampledMidi;
     for (const auto metadata : midiMessages) {
-        oversampledMidi.addEvent(metadata.getMessage(), metadata.samplePosition * oversampling->getOversamplingFactor());
+        oversampledMidi.addEvent(metadata.getMessage(),
+                                 metadata.samplePosition * oversampling->getOversamplingFactor());
     }
 
     for (const auto metadata : oversampledMidi) {
@@ -661,7 +660,8 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
                 // Unison processing
                 SIMD_TYPE unisonOutput = SIMD_SET1(0.0f);
                 for (int u = 0; u < static_cast<int>(*unisonParam); ++u) {
-                    float detune = *detuneParam * (u - (static_cast<int>(*unisonParam) - 1) / 2.0f) / (static_cast<int>(*unisonParam) - 1 + 0.0001f);
+                    float detune = *detuneParam * (u - (static_cast<int>(*unisonParam) - 1) / 2.0f) /
+                                   (static_cast<int>(*unisonParam) - 1 + 0.0001f);
                     SIMD_TYPE detuneFactor = SIMD_SET1(powf(2.0f, detune / 12.0f));
                     SIMD_TYPE detunedPhases = SIMD_ADD(phases, phaseMod);
                     detunedPhases = SIMD_MUL(detunedPhases, detuneFactor);
@@ -676,11 +676,14 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
                     SIMD_TYPE maskSaw = SIMD_CMP_EQ(wavetableTypePs, SIMD_SET1(1.0f));
                     SIMD_TYPE maskSquare = SIMD_CMP_EQ(wavetableTypePs, SIMD_SET1(2.0f));
 #ifdef __x86_64__
-                    mainValues = _mm_blendv_ps(_mm_blendv_ps(square_values, saw_values, maskSaw), sine_values, maskSine);
+                    mainValues =
+                        _mm_blendv_ps(_mm_blendv_ps(square_values, saw_values, maskSaw), sine_values, maskSine);
 #elif defined(__arm64__)
                     mainValues = vbslq_f32(maskSine, sine_values, vbslq_f32(maskSaw, saw_values, square_values));
 #endif
-                    mainValues = SIMD_MUL(mainValues, SIMD_SET1(1.0f / static_cast<float>(*unisonParam))); // Normalize unison amplitude
+                    mainValues =
+                        SIMD_MUL(mainValues,
+                                 SIMD_SET1(1.0f / static_cast<float>(*unisonParam))); // Normalize unison amplitude
                     unisonOutput = SIMD_ADD(unisonOutput, mainValues);
                 }
 
@@ -746,7 +749,8 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
                     voices[i].amplitude = 0.0f;
                     voices[i].noteNumber = note;
                     voices[i].velocity = velocity;
-                    voices[i].noteOnTime = static_cast<float>(blockStartTime + static_cast<double>(samplePosition) / sampleRate);
+                    voices[i].noteOnTime =
+                        static_cast<float>(blockStartTime + static_cast<double>(samplePosition) / sampleRate);
                     voices[i].noteOffTime = 0.0f;
                     float subFreq = voices[i].frequency * powf(2.0f, voices[i].subTune / 12.0f) * voices[i].subTrack;
                     voices[i].subFrequency = subFreq;
@@ -760,7 +764,8 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
             for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
                 if (voices[i].active && voices[i].noteNumber == note) {
                     voices[i].released = true;
-                    voices[i].noteOffTime = static_cast<float>(blockStartTime + static_cast<double>(samplePosition) / sampleRate);
+                    voices[i].noteOffTime =
+                        static_cast<float>(blockStartTime + static_cast<double>(samplePosition) / sampleRate);
                 }
             }
         } else if (msg.isProgramChange()) {
@@ -829,7 +834,8 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
 
             SIMD_TYPE unisonOutput = SIMD_SET1(0.0f);
             for (int u = 0; u < static_cast<int>(*unisonParam); ++u) {
-                float detune = *detuneParam * (u - (static_cast<int>(*unisonParam) - 1) / 2.0f) / (static_cast<int>(*unisonParam) - 1 + 0.0001f);
+                float detune = *detuneParam * (u - (static_cast<int>(*unisonParam) - 1) / 2.0f) /
+                               (static_cast<int>(*unisonParam) - 1 + 0.0001f);
                 SIMD_TYPE detuneFactor = SIMD_SET1(powf(2.0f, detune / 12.0f));
                 SIMD_TYPE detunedPhases = SIMD_ADD(phases, phaseMod);
                 detunedPhases = SIMD_MUL(detunedPhases, detuneFactor);
@@ -903,12 +909,10 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
 }
 
 // Create the editor for the plugin
-juce::AudioProcessorEditor* SimdSynthAudioProcessor::createEditor() {
-    return new SimdSynthAudioProcessorEditor(*this);
-}
+juce::AudioProcessorEditor *SimdSynthAudioProcessor::createEditor() { return new SimdSynthAudioProcessorEditor(*this); }
 
 // Save plugin state
-void SimdSynthAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
+void SimdSynthAudioProcessor::getStateInformation(juce::MemoryBlock &destData) {
     auto state = parameters.copyState();
     state.setProperty("currentProgram", currentProgram, nullptr);
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
@@ -916,7 +920,7 @@ void SimdSynthAudioProcessor::getStateInformation(juce::MemoryBlock& destData) {
 }
 
 // Restore plugin state
-void SimdSynthAudioProcessor::setStateInformation(const void* data, int sizeInBytes) {
+void SimdSynthAudioProcessor::setStateInformation(const void *data, int sizeInBytes) {
     std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
     if (xmlState.get() != nullptr) {
         juce::ValueTree state = juce::ValueTree::fromXml(*xmlState);
@@ -928,6 +932,4 @@ void SimdSynthAudioProcessor::setStateInformation(const void* data, int sizeInBy
 }
 
 // Create plugin instance
-juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter() {
-    return new SimdSynthAudioProcessor();
-}
+juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter() { return new SimdSynthAudioProcessor(); }

@@ -8,9 +8,8 @@
 
 #include "PluginEditor.h"
 
-SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProcessor& p)
-    : AudioProcessorEditor(&p), processor(p)
-{
+SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProcessor &p)
+    : AudioProcessorEditor(&p), processor(p) {
     // Apply custom LookAndFeel
     setLookAndFeel(&simdSynthLAF);
 
@@ -96,16 +95,16 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     unisonSlider->setSliderStyle(juce::Slider::Rotary);
     unisonSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
     oscillatorGroup->addAndMakeVisible(unisonSlider.get());
-    unisonAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        processor.getParameters(), "unison", *unisonSlider);
+    unisonAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.getParameters(),
+                                                                                              "unison", *unisonSlider);
 
     detuneSlider = std::make_unique<juce::Slider>("detuneSlider");
     detuneSlider->setRange(0.0, 0.1, 0.001);
     detuneSlider->setSliderStyle(juce::Slider::Rotary);
     detuneSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
     oscillatorGroup->addAndMakeVisible(detuneSlider.get());
-    detuneAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        processor.getParameters(), "detune", *detuneSlider);
+    detuneAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.getParameters(),
+                                                                                              "detune", *detuneSlider);
 
     // Initialize sliders for Amp Envelope group
     attackSlider = std::make_unique<juce::Slider>("attackSlider");
@@ -113,16 +112,16 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     attackSlider->setSliderStyle(juce::Slider::Rotary);
     attackSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
     ampEnvelopeGroup->addAndMakeVisible(attackSlider.get());
-    attackAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        processor.getParameters(), "attack", *attackSlider);
+    attackAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.getParameters(),
+                                                                                              "attack", *attackSlider);
 
     decaySlider = std::make_unique<juce::Slider>("decaySlider");
     decaySlider->setRange(0.0, 5.0, 0.01);
     decaySlider->setSliderStyle(juce::Slider::Rotary);
     decaySlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
     ampEnvelopeGroup->addAndMakeVisible(decaySlider.get());
-    decayAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        processor.getParameters(), "decay", *decaySlider);
+    decayAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.getParameters(),
+                                                                                             "decay", *decaySlider);
 
     sustainSlider = std::make_unique<juce::Slider>("sustainSlider");
     sustainSlider->setRange(0.0, 1.0, 0.01);
@@ -147,8 +146,8 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     cutoffSlider->setSliderStyle(juce::Slider::Rotary);
     cutoffSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
     filterGroup->addAndMakeVisible(cutoffSlider.get());
-    cutoffAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        processor.getParameters(), "cutoff", *cutoffSlider);
+    cutoffAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.getParameters(),
+                                                                                              "cutoff", *cutoffSlider);
 
     resonanceSlider = std::make_unique<juce::Slider>("resonanceSlider");
     resonanceSlider->setRange(0.0, 1.0, 0.01);
@@ -230,8 +229,8 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     subMixSlider->setSliderStyle(juce::Slider::Rotary);
     subMixSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
     subOscillatorGroup->addAndMakeVisible(subMixSlider.get());
-    subMixAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        processor.getParameters(), "subMix", *subMixSlider);
+    subMixAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.getParameters(),
+                                                                                              "subMix", *subMixSlider);
 
     subTrackSlider = std::make_unique<juce::Slider>("subTrackSlider");
     subTrackSlider->setRange(0.0, 1.0, 0.01);
@@ -247,8 +246,8 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     gainSlider->setSliderStyle(juce::Slider::Rotary);
     gainSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
     outputGroup->addAndMakeVisible(gainSlider.get());
-    gainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        processor.getParameters(), "gain", *gainSlider);
+    gainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.getParameters(),
+                                                                                            "gain", *gainSlider);
 
     // Ensure all components are visible
     presetComboBox->setVisible(true);
@@ -289,29 +288,27 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
 
     // Debug component initialization
     DBG("Initialized components:");
-    DBG("presetComboBox visible: " << (presetComboBox->isVisible() ? "YES" : "NO") << ", bounds: " << presetComboBox->getBounds().toString());
-    DBG("wavetableSlider visible: " << (wavetableSlider->isVisible() ? "YES" : "NO") << ", bounds: " << wavetableSlider->getBounds().toString());
+    DBG("presetComboBox visible: " << (presetComboBox->isVisible() ? "YES" : "NO")
+                                   << ", bounds: " << presetComboBox->getBounds().toString());
+    DBG("wavetableSlider visible: " << (wavetableSlider->isVisible() ? "YES" : "NO")
+                                    << ", bounds: " << wavetableSlider->getBounds().toString());
 }
 
-SimdSynthAudioProcessorEditor::~SimdSynthAudioProcessorEditor()
-{
+SimdSynthAudioProcessorEditor::~SimdSynthAudioProcessorEditor() {
     setLookAndFeel(nullptr); // Clean up custom LookAndFeel
 }
 
-void SimdSynthAudioProcessorEditor::paint(juce::Graphics& g)
-{
+void SimdSynthAudioProcessorEditor::paint(juce::Graphics &g) {
     g.fillAll(juce::Colours::black);
     g.setColour(juce::Colours::red);
     g.drawRect(getLocalBounds(), 1.0f);
     DBG("Painting editor, bounds: " << getLocalBounds().toString());
 }
 
-void SimdSynthAudioProcessorEditor::resized()
-{
+void SimdSynthAudioProcessorEditor::resized() {
     auto bounds = getLocalBounds();
     // Prevent layout with invalid bounds
-    if (bounds.getWidth() < 600 || bounds.getHeight() < 400)
-    {
+    if (bounds.getWidth() < 600 || bounds.getHeight() < 400) {
         DBG("Window too small: " << bounds.toString());
         return;
     }
@@ -331,7 +328,8 @@ void SimdSynthAudioProcessorEditor::resized()
 
     // Layout groups using Grid
     juce::Grid grid;
-    grid.templateColumns = {juce::Grid::Fr(1), juce::Grid::Fr(1), juce::Grid::Fr(1), juce::Grid::Fr(1), juce::Grid::Fr(1)};
+    grid.templateColumns = {juce::Grid::Fr(1), juce::Grid::Fr(1), juce::Grid::Fr(1), juce::Grid::Fr(1),
+                            juce::Grid::Fr(1)};
     grid.templateRows = {juce::Grid::Fr(2), juce::Grid::Fr(1)}; // Adjusted row heights
     grid.items.add(juce::GridItem(oscillatorGroup.get()).withMargin(15));
     grid.items.add(juce::GridItem(ampEnvelopeGroup.get()).withMargin(15));
@@ -344,9 +342,11 @@ void SimdSynthAudioProcessorEditor::resized()
 
     // Layout sliders within each group
     layoutGroupSliders(oscillatorGroup.get(), {wavetableSlider.get(), unisonSlider.get(), detuneSlider.get()});
-    layoutGroupSliders(ampEnvelopeGroup.get(), {attackSlider.get(), decaySlider.get(), sustainSlider.get(), releaseSlider.get()});
+    layoutGroupSliders(ampEnvelopeGroup.get(),
+                       {attackSlider.get(), decaySlider.get(), sustainSlider.get(), releaseSlider.get()});
     layoutGroupSliders(filterGroup.get(), {cutoffSlider.get(), resonanceSlider.get()});
-    layoutGroupSliders(filterEnvelopeGroup.get(), {fegAttackSlider.get(), fegDecaySlider.get(), fegSustainSlider.get(), fegReleaseSlider.get(), fegAmountSlider.get()});
+    layoutGroupSliders(filterEnvelopeGroup.get(), {fegAttackSlider.get(), fegDecaySlider.get(), fegSustainSlider.get(),
+                                                   fegReleaseSlider.get(), fegAmountSlider.get()});
     layoutGroupSliders(lfoGroup.get(), {lfoRateSlider.get(), lfoDepthSlider.get()});
     layoutGroupSliders(subOscillatorGroup.get(), {subTuneSlider.get(), subMixSlider.get(), subTrackSlider.get()});
     layoutGroupSliders(outputGroup.get(), {gainSlider.get()});
@@ -360,12 +360,11 @@ void SimdSynthAudioProcessorEditor::resized()
     DBG("cutoffSlider bounds: " << cutoffSlider->getBounds().toString());
 }
 
-void SimdSynthAudioProcessorEditor::layoutGroupSliders(juce::GroupComponent* group, const std::vector<juce::Slider*>& sliders)
-{
+void SimdSynthAudioProcessorEditor::layoutGroupSliders(juce::GroupComponent *group,
+                                                       const std::vector<juce::Slider *> &sliders) {
     auto groupBounds = group->getLocalBounds().reduced(15);
     auto sliderHeight = groupBounds.getHeight() / (sliders.size() + 1); // Extra space for better layout
-    for (auto* slider : sliders)
-    {
+    for (auto *slider : sliders) {
         slider->setBounds(groupBounds.removeFromTop(sliderHeight).reduced(5));
     }
 }
@@ -381,7 +380,7 @@ void SimdSynthAudioProcessorEditor::updatePresetComboBox() {
     DBG("ComboBox updated: selectedId=" << selectedId << ", preset=" << presetComboBox->getText());
 }
 
-void SimdSynthAudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) {
+void SimdSynthAudioProcessorEditor::comboBoxChanged(juce::ComboBox *comboBoxThatHasChanged) {
     if (comboBoxThatHasChanged == presetComboBox.get()) {
         int selectedId = presetComboBox->getSelectedId();
         if (selectedId > 0) {

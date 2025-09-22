@@ -15,13 +15,13 @@
 #include <juce_core/juce_core.h>
 
 class PresetManager {
-public:
-    PresetManager();
-    void createDefaultPresets();
-    void writePresetFile(const juce::String& presetName, const juce::var& parameters);
+    public:
+        PresetManager();
+        void createDefaultPresets();
+        void writePresetFile(const juce::String &presetName, const juce::var &parameters);
 
-private:
-    juce::File getPresetDirectory();
+    private:
+        juce::File getPresetDirectory();
 };
 
-#endif //SIMDSYNTH_PRESETMANAGER_H
+#endif // SIMDSYNTH_PRESETMANAGER_H
