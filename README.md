@@ -7,18 +7,24 @@ It's optimized for both x86-64 (SSE) and ARM64 (NEON) platforms, in order to hig
 Some rudimentary factory presets are included in the plugin - they will be created automatically on first execution of the plugin.
 
 ## High-Level Overview
-
-- Supports up to 8 polyphonic voices (notes played at once).
-- Uses SIMD to generate and filter 4 voices in parallel (2 groups of 4).
-- Applies:
-  - Sine and Saw Wavetable Oscillators with phase and sub-phase parameters
-  - Amplitude envelopes (ADSR): Attack-Decay-Sustain-Release
-  - Filter envelopes (ADSR): Attack-Decay-Sustain-Release
-  - LFO (Low Frequency Oscillator): Used to modulate the pitch
-  - 4-pole ladder filters per voice group
-  - Sub-oscillator per voice, with tune, mix and track parameters
-- Uses SSE or NEON depending on platform (x86_64 or ARM64).
+- Multiple synthesis formats (AU, VST3, Standalone)
+- Up to 8-voice polyphony
+- Multiple waveforms (sine, saw, square) using wavetables
+- Sub-oscillator with keyboard tracking
+- Unison feature with detune
+- ADSR envelopes
+- LFO modulation
+- Filter per voice
+- 4x oversampling to reduce aliasing
+- Preset management system
 - Includes a basic set of Factory Presets for testing purposes.
+
+## Technical Implementation:
+- Built using the JUCE framework
+- Uses SIMD (Single Instruction Multiple Data) optimization for efficient processing
+- Supports both x86 (SSE/SSE2/SSE4.1) and ARM (NEON) architectures
+- Implements wavetable synthesis with 2048-point tables
+- Uses modern C++17 features
 
 ![screenshot](screenshot1.png "Screenshot")
 
