@@ -212,13 +212,17 @@ class SimdSynthAudioProcessor : public juce::AudioProcessor {
         std::atomic<float> *gainParam = nullptr;          // Output gain.
         std::atomic<float> *unisonParam = nullptr;        // Unison count.
         std::atomic<float> *detuneParam = nullptr;        // Unison detune.
+        // TODO: std::unique_ptr<std::atomic<float>>  *unisonParam = nullptr;
+        // TODO: std::unique_ptr<std::atomic<float>>  *detuneParam = nullptr;
 
         // Current time counter (for envelopes, etc.).
         double currentTime;
-        // Wavetable arrays for different waveforms.
-        float sineTable[WAVETABLE_SIZE];   // Sine wavetable.
-        float sawTable[WAVETABLE_SIZE];    // Sawtooth wavetable.
-        float squareTable[WAVETABLE_SIZE]; // Square wavetable.
+
+        // Wavetable arrays for different waveforms - note: SIMD-aligned memory
+        alignas(16) float sineTable[WAVETABLE_SIZE];   // Sine wavetable.
+        alignas(16) float sawTable[WAVETABLE_SIZE];    // Sawtooth wavetable.
+        alignas(16) float squareTable[WAVETABLE_SIZE]; // Square wavetable.
+
         // Array of voices.
         Voice voices[MAX_VOICE_POLYPHONY];
         // Shared filter parameters.
