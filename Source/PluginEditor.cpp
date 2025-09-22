@@ -46,9 +46,9 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
 
     // Initialize preset controls
     presetComboBox = std::make_unique<juce::ComboBox>("presetComboBox");
-    presetComboBox->addItem("Bass", 7);
-    presetComboBox->addItem("Strings2", 15);
-    presetComboBox->setSelectedId(15);
+    updatePresetComboBox();
+    presetComboBox->addListener(this);
+    presetComboBox->setSelectedId(1);
     addAndMakeVisible(presetComboBox.get());
 
     saveButton = std::make_unique<juce::TextButton>("saveButton");
@@ -393,15 +393,23 @@ void SimdSynthAudioProcessorEditor::layoutGroupSliders(juce::GroupComponent* gro
     }
 }
 
-void SimdSynthAudioProcessorEditor::updatePresetComboBox()
-{
-    presetComboBox->clear();
-    auto presetNames = processor.getPresetNames();
-    for (int i = 0; i < presetNames.size(); ++i)
-    {
-        presetComboBox->addItem(presetNames[i], i + 1);
+void SimdSynthAudioProcessorEditor::updatePresetComboBox() {
+    presetComboBox->clear(juce::dontSendNotification);
+    for (int i = 0; i < processor.getNumPrograms(); ++i) {
+        presetComboBox->addItem(processor.getProgramName(i), i + 1);
     }
-    presetComboBox->setSelectedId(processor.getCurrentProgram() + 1, juce::dontSendNotification);
-    presetNameEditor->setText(presetComboBox->getText(), juce::dontSendNotification);
-    DBG("Updated presetComboBox with " << presetNames.size() << " presets, selected: " << presetComboBox->getText());
+    int selectedId = processor.getCurrentProgram() + 1;
+    presetComboBox->setSelectedId(selectedId, juce::dontSendNotification);
+    presetComboBox->setTextWhenNothingSelected("Select Preset");
+    DBG("ComboBox updated: selectedId=" << selectedId << ", preset=" << presetComboBox->getText());
+}
+
+void SimdSynthAudioProcessorEditor::comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) {
+    if (comboBoxThatHasChanged == presetComboBox.get()) {
+        int selectedId = presetComboBox->getSelectedId();
+        if (selectedId > 0) {
+            processor.setCurrentProgram(selectedId - 1);
+            // Removed redundant updatePresetComboBox() call to prevent loop
+        }
+    }
 }

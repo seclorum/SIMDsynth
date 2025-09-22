@@ -2,11 +2,14 @@
 #include <JuceHeader.h>
 #include "PluginProcessor.h"
 
-class SimdSynthAudioProcessorEditor : public juce::AudioProcessorEditor
+class SimdSynthAudioProcessorEditor : public juce::AudioProcessorEditor,
+                                      public juce::ComboBox::Listener
 {
 public:
     SimdSynthAudioProcessorEditor(SimdSynthAudioProcessor& p);
     ~SimdSynthAudioProcessorEditor() override;
+
+    void comboBoxChanged(juce::ComboBox* comboBoxThatHasChanged) override;
 
     void paint(juce::Graphics& g) override;
     void resized() override;
