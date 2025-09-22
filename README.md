@@ -41,4 +41,26 @@ Some rudimentary factory presets are included in the plugin - they will be creat
 [] Implement undo/redo for parameter changes
 [] Add parameter smoothing for all controls
 
+[] Consider splitting the Voice struct into smaller components (Oscillator, Envelope, etc.)
+[] Move DSP-related code into separate classes
+[] Create a dedicated parameter management class
+[] Add more robust error handling for file operations
+[] Implement graceful fallbacks for missing presets
+[] Add parameter validation
+[] Add unit tests for DSP algorithms
+[] Implement automated testing for preset loading/saving
+[] Add performance benchmarks
+[] Use more C++17 features: 
+```
+	// Instead of raw pointer management:
+	std::optional<Filter> filter;
+	std::variant<float, double> sampleType;
+```
+
+[] Consider implementing the PIMPL idiom to reduce compilation dependencies and improve build times.
+[] Add detailed parameter documentation
+[] Include performance considerations and CPU usage guidelines
+[] Document the SIMD optimization strategy
+[] Add code comments explaining DSP algorithms
+
 (c) 2025, seclorum
