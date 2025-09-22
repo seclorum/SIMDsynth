@@ -24,6 +24,7 @@
 #define SIMD_FLOOR _mm_floor_ps
 #define SIMD_LOAD _mm_loadu_ps
 #define SIMD_STORE _mm_storeu_ps
+#define SIMD_CMP_EQ(a, b) _mm_cmpeq_ps((a), (b))
 #elif defined(__arm64__)
 #include <arm_neon.h>
 #define SIMD_TYPE float32x4_t
@@ -37,6 +38,7 @@
 #define SIMD_FLOOR my_floor_ps
 #define SIMD_LOAD vld1q_f32
 #define SIMD_STORE vst1q_f32
+#define SIMD_CMP_EQ(a, b) vceqq_f32((a), (b))
 #endif
 
 #define WAVETABLE_SIZE 2048
@@ -49,8 +51,9 @@ struct Voice {
     float phaseIncrement = 0.0f;
     float amplitude = 0.0f;
     int noteNumber = 0;
-    int velocity = 0;
+    float velocity = 0.0f;
     float noteOnTime = 0.0f;
+    float noteOffTime = 0.0f;
     float lfoPhase = 0.0f;
     float filterEnv = 0.0f;
     float filterStates[4] = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -70,6 +73,7 @@ struct Voice {
     float subPhaseIncrement = 0.0f;
     float attack = 0.1f;
     float decay = 1.9f;
+    float released = 0.0f;
 };
 
 
@@ -104,6 +108,7 @@ public:
 
     void getStateInformation(juce::MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
+    void updateEnvelopes(float t);
 
     static const int parameterVersion = 1;
 // Public access to parameters for the editor
@@ -125,6 +130,8 @@ private:
     std::atomic<float>* subTuneParam = nullptr;
     std::atomic<float>* subMixParam = nullptr;
     std::atomic<float>* subTrackParam = nullptr;
+
+    double currentTime;
 
     float sineTable[WAVETABLE_SIZE];
     float sawTable[WAVETABLE_SIZE];
