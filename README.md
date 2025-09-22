@@ -28,4 +28,17 @@ Some rudimentary factory presets are included in the plugin - they will be creat
 
 ![screenshot](screenshot1.png "Screenshot")
 
+## TODO:
+
+[] Move file operations to a background thread to prevent audio glitches.
+[] Add a modulation matrix for more flexible routing
+[] Implement additional LFO waveforms
+[] Add envelope curves/shapes
+[] Add filter types (currently appears to only have one filter type)
+[] Implement additional oscillator waveforms
+[] Add effects section (reverb, delay, etc.)
+[] Add MIDI learn functionality for parameters
+[] Implement undo/redo for parameter changes
+[] Add parameter smoothing for all controls
+
 (c) 2025, seclorum
