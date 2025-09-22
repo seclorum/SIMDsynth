@@ -1,4 +1,11 @@
-// PluginProcessor.h
+/*
+ * simdsynth - a playground for experimenting with SIMD-based audio
+ *             synthesis, with polyphonic main and sub-oscillator,
+ *             filter, envelopes, and LFO per voice, up to 8 voices.
+ *
+ * MIT Licensed, (c) 2025, seclorum
+ */
+
 #pragma once
 
 #include <juce_audio_processors/juce_audio_processors.h>
@@ -9,7 +16,6 @@
 #include <map>
 
 #include "PresetManager.h"
-
 
 #ifdef __x86_64__
 #include <immintrin.h>
@@ -42,40 +48,44 @@
 #endif
 
 #define WAVETABLE_SIZE 2048
-#define MAX_VOICE_POLYPHONY 16
+#define MAX_VOICE_POLYPHONY 8
 
 struct Voice {
     bool active = false;
+    bool released = false;
     float frequency = 0.0f;
     float phase = 0.0f;
     float phaseIncrement = 0.0f;
+    float lfoPhase = 0.0f;
     float amplitude = 0.0f;
     int noteNumber = 0;
     float velocity = 0.0f;
     float noteOnTime = 0.0f;
     float noteOffTime = 0.0f;
-    float lfoPhase = 0.0f;
-    float filterEnv = 0.0f;
     float filterStates[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+    float filterEnv = 0.0f;
+    float subFrequency = 0.0f;
+    float subPhase = 0.0f;
+    float subPhaseIncrement = 0.0f;
     int wavetableType = 0;
+    float attack = 0.1f;
+    float decay = 0.5f;
+    float sustain = 0.8f; // New: Added for full ADSR amplitude envelope
+    float release = 0.2f; // New: Added for full ADSR amplitude envelope
     float cutoff = 1000.0f;
     float fegAttack = 0.1f;
     float fegDecay = 1.0f;
     float fegSustain = 0.5f;
     float fegRelease = 0.2f;
+    float fegAmount = 0.5f; // New: Added for filter envelope amount control
     float lfoRate = 1.0f;
-    float lfoDepth = 0.01f;
+    float lfoDepth = 0.05f;
     float subTune = -12.0f;
     float subMix = 0.5f;
     float subTrack = 1.0f;
-    float subFrequency = 0.0f;
-    float subPhase = 0.0f;
-    float subPhaseIncrement = 0.0f;
-    float attack = 0.1f;
-    float decay = 1.9f;
-    float released = 0.0f;
+    int unison = 1; // New: Added for unison voices (1 to 8)
+    float detune = 0.01f; // New: Added for unison detune amount
 };
-
 
 struct Filter {
     float resonance = 0.7f;
@@ -111,7 +121,7 @@ public:
     void updateEnvelopes(float t);
 
     static const int parameterVersion = 1;
-// Public access to parameters for the editor
+    // Public access to parameters for the editor
     juce::AudioProcessorValueTreeState& getParameters() { return parameters; }
 
 private:
@@ -119,24 +129,31 @@ private:
     std::atomic<float>* wavetableTypeParam = nullptr;
     std::atomic<float>* attackTimeParam = nullptr;
     std::atomic<float>* decayTimeParam = nullptr;
+    std::atomic<float>* sustainLevelParam = nullptr; // New: Added for sustain parameter
+    std::atomic<float>* releaseTimeParam = nullptr; // New: Added for release parameter
     std::atomic<float>* cutoffParam = nullptr;
     std::atomic<float>* resonanceParam = nullptr;
     std::atomic<float>* fegAttackParam = nullptr;
     std::atomic<float>* fegDecayParam = nullptr;
     std::atomic<float>* fegSustainParam = nullptr;
     std::atomic<float>* fegReleaseParam = nullptr;
+    std::atomic<float>* fegAmountParam = nullptr; // New: Added for filter envelope amount
     std::atomic<float>* lfoRateParam = nullptr;
     std::atomic<float>* lfoDepthParam = nullptr;
     std::atomic<float>* subTuneParam = nullptr;
     std::atomic<float>* subMixParam = nullptr;
     std::atomic<float>* subTrackParam = nullptr;
+    std::atomic<float>* gainParam = nullptr; // New: Added for output gain control
+    std::atomic<float>* unisonParam = nullptr; // New: Added for unison voices
+    std::atomic<float>* detuneParam = nullptr; // New: Added for unison detune
 
     double currentTime;
-
     float sineTable[WAVETABLE_SIZE];
     float sawTable[WAVETABLE_SIZE];
+    float squareTable[WAVETABLE_SIZE]; // New: Added for square waveform
     Voice voices[MAX_VOICE_POLYPHONY];
     Filter filter;
+    std::unique_ptr<juce::dsp::Oversampling<float>> oversampling; // New: Added for 4x oversampling to reduce aliasing
 
     void initWavetables();
     float midiToFreq(int midiNote);
@@ -152,14 +169,13 @@ private:
 #endif
     SIMD_TYPE wavetable_lookup_ps(SIMD_TYPE phase, const float* table);
     void applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& filter, SIMD_TYPE& output);
-    void updateEnvelopes(int sampleIndex);
 
     // Preset management
-    PresetManager presetManager; // Added
+    PresetManager presetManager;
     std::vector<juce::String> presetNames;
     int currentProgram = 0;
     void loadPresetsFromDirectory();
-    void loadProgram(int index);
+    // void loadProgram(int index); // Removed: Not used in implementation
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimdSynthAudioProcessor)
 };

@@ -1,6 +1,10 @@
-//
-// Created by Jay Vaughan on 22.09.25.
-//
+/*
+ * simdsynth - a playground for experimenting with SIMD-based audio
+ *             synthesis, with polyphonic main and sub-oscillator,
+ *             filter, envelopes, and LFO per voice, up to 8 voices.
+ *
+ * MIT Licensed, (c) 2025, seclorum
+ */
 
 #ifndef SIMDSYNTH_PRESETMANAGER_H
 #define SIMDSYNTH_PRESETMANAGER_H
