@@ -610,7 +610,6 @@ void SimdSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlo
 
 // Release resources
 void SimdSynthAudioProcessor::releaseResources() { oversampling->reset(); }
-
 // Process audio and MIDI with oversampling
 void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages) {
     juce::ScopedNoDenormals noDenormals;
@@ -671,13 +670,22 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juc
 
             for (int batch = 0; batch < NUM_BATCHES; batch++) {
                 const int voiceOffset = batch * SIMD_WIDTH;
-
                 if (voiceOffset >= MAX_VOICE_POLYPHONY) continue;
 
-                // align datastructures to cache lines
+                // Skip batch if all voices are inactive
+                bool anyActive = false;
+                for (int j = 0; j < 4; ++j) {
+                    int idx = voiceOffset + j;
+                    if (idx < MAX_VOICE_POLYPHONY && voices[idx].active) {
+                        anyActive = true;
+                        break;
+                    }
+                }
+                if (!anyActive) continue;
+
+                // Align data structures to cache lines
                 alignas(32) float tempAmps[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 alignas(32) float tempPhases[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-
                 float tempIncrements[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 float tempLfoPhases[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 float tempLfoRates[4] = {0.0f, 0.0f, 0.0f, 0.0f};
@@ -830,6 +838,10 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juc
             voices[voiceIndex].voiceAge = 0.0f;
             voices[voiceIndex].noteOnTime = static_cast<float>(blockStartTime + static_cast<double>(samplePosition) / sampleRate);
             voices[voiceIndex].releaseStartAmplitude = voices[voiceIndex].amplitude; // Initialize for new note
+            // Initialize sub-oscillator phase and increment
+            float subFreq = voices[voiceIndex].frequency * powf(2.0f, voices[voiceIndex].subTune / 12.0f);
+            voices[voiceIndex].subPhaseIncrement = subFreq / sampleRate;
+            voices[voiceIndex].subPhase = 0.0f;
         }
         else if (msg.isNoteOff()) {
             int note = msg.getNoteNumber();
@@ -868,6 +880,17 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juc
         for (int group = 0; group < (MAX_VOICE_POLYPHONY + 3) / 4; group++) {
             int voiceOffset = group * 4;
             if (voiceOffset >= MAX_VOICE_POLYPHONY) continue;
+
+            // Skip batch if all voices are inactive
+            bool anyActive = false;
+            for (int j = 0; j < 4; ++j) {
+                int idx = voiceOffset + j;
+                if (idx < MAX_VOICE_POLYPHONY && voices[idx].active) {
+                    anyActive = true;
+                    break;
+                }
+            }
+            if (!anyActive) continue;
 
             float tempAmps[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             float tempPhases[4] = {0.0f, 0.0f, 0.0f, 0.0f};
