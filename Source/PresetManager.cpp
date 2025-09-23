@@ -275,4 +275,126 @@ void PresetManager::createDefaultPresets() {
             {"oversampling", 0.0f}                    // Off for performance
         },
         *this);
+
+    // 303 Bass: Emulates a classic acid bass sound with a resonant filter sweep
+    makeSimdSynthPatch(
+        "303bass",
+        {{"wavetable", 1.0f}, // Saw wave for punchy bass
+         {"attack", 0.01f},     {"decay", 0.5f},     {"sustain", 0.7f},    {"release", 0.1f}, // Short, snappy envelope
+         {"cutoff", 800.0f},    {"resonance", 0.9f}, {"fegAttack", 0.01f}, {"fegDecay", 0.3f}, {"fegSustain", 0.5f},
+         {"fegRelease", 0.1f},  {"fegAmount", 0.8f}, {"lfoRate", 0.0f},    {"lfoDepth", 0.0f}, // No LFO
+         {"subTune", -12.0f},   {"subMix", 0.3f},    {"subTrack", 1.0f},   {"gain", 1.0f},     {"unison", 1.0f},
+         {"detune", 0.0f}, // Mono bass
+         {"oversampling", 1.0f}},
+        *this);
+
+    // Thin Pads: Light, airy pad with slow attack and subtle LFO
+    makeSimdSynthPatch(
+        "thinPads",
+        {{"wavetable", 0.0f}, // Sine wave for smooth, warm pads
+         {"attack", 2.0f},      {"decay", 2.0f},     {"sustain", 0.8f},   {"release", 2.5f}, // Long, evolving envelope
+         {"cutoff", 4000.0f},   {"resonance", 0.3f}, {"fegAttack", 2.0f}, {"fegDecay", 2.0f}, {"fegSustain", 0.7f},
+         {"fegRelease", 2.0f},  {"fegAmount", 0.3f}, {"lfoRate", 0.5f},   {"lfoDepth", 0.1f}, // Subtle vibrato
+         {"subTune", -12.0f},   {"subMix", 0.1f},    {"subTrack", 1.0f},  {"gain", 0.8f},     {"unison", 3.0f},
+         {"detune", 0.03f}, // Wide, airy spread
+         {"oversampling", 1.0f}},
+        *this);
+
+    // Fat Pads: Thick, lush pad with heavy unison and slow filter sweep
+    makeSimdSynthPatch(
+        "fatPads",
+        {{"wavetable", 1.0f}, // Saw wave for rich texture
+         {"attack", 3.0f},      {"decay", 3.0f},     {"sustain", 0.9f},   {"release", 4.0f}, // Very long envelope
+         {"cutoff", 2000.0f},   {"resonance", 0.5f}, {"fegAttack", 3.0f}, {"fegDecay", 3.0f},  {"fegSustain", 0.8f},
+         {"fegRelease", 3.5f},  {"fegAmount", 0.6f}, {"lfoRate", 0.3f},   {"lfoDepth", 0.15f}, // Gentle modulation
+         {"subTune", -24.0f},   {"subMix", 0.4f},    {"subTrack", 1.0f},  {"gain", 0.9f},      {"unison", 5.0f},
+         {"detune", 0.05f}, // Thick unison
+         {"oversampling", 1.0f}},
+        *this);
+
+    // Brass Stab: Punchy, short brass-like sound with sharp attack
+    makeSimdSynthPatch(
+        "BrassStab",
+        {{"wavetable", 2.0f}, // Square wave for brassy tone
+         {"attack", 0.01f},     {"decay", 0.4f},     {"sustain", 0.3f},    {"release", 0.2f}, // Quick envelope for stab
+         {"cutoff", 5000.0f},   {"resonance", 0.6f}, {"fegAttack", 0.01f}, {"fegDecay", 0.3f}, {"fegSustain", 0.4f},
+         {"fegRelease", 0.15f}, {"fegAmount", 0.5f}, {"lfoRate", 0.0f},    {"lfoDepth", 0.0f}, // No LFO
+         {"subTune", -12.0f},   {"subMix", 0.2f},    {"subTrack", 1.0f},   {"gain", 1.2f},     {"unison", 3.0f},
+         {"detune", 0.02f}, // Slight detune for richness
+         {"oversampling", 1.0f}},
+        *this);
+
+    // Electro Piano: Bright, bell-like electric piano with medium decay
+    makeSimdSynthPatch(
+        "electroPiano",
+        {{"wavetable", 0.0f}, // Sine wave for bell-like quality
+         {"attack", 0.02f},     {"decay", 1.0f},     {"sustain", 0.3f},    {"release", 0.4f}, // Medium envelope
+         {"cutoff", 3500.0f},   {"resonance", 0.4f}, {"fegAttack", 0.02f}, {"fegDecay", 0.7f}, {"fegSustain", 0.3f},
+         {"fegRelease", 0.3f},  {"fegAmount", 0.3f}, {"lfoRate", 0.0f},    {"lfoDepth", 0.0f}, // No LFO
+         {"subTune", -12.0f},   {"subMix", 0.15f},   {"subTrack", 1.0f},   {"gain", 1.0f},     {"unison", 2.0f},
+         {"detune", 0.015f}, // Subtle detune
+         {"oversampling", 0.0f}},
+        *this);
+
+    // Moroder Sweep: Classic arpeggiated synth sweep with slow filter modulation
+    makeSimdSynthPatch(
+        "MoroderSweep",
+        {{"wavetable", 1.0f}, // Saw wave for classic synth sound
+         {"attack", 0.05f},     {"decay", 1.5f},     {"sustain", 0.6f},   {"release", 1.0f}, // Smooth envelope
+         {"cutoff", 1000.0f},   {"resonance", 0.8f}, {"fegAttack", 2.0f}, {"fegDecay", 2.0f}, {"fegSustain", 0.5f},
+         {"fegRelease", 1.5f},  {"fegAmount", 0.7f}, {"lfoRate", 0.2f},   {"lfoDepth", 0.2f}, // Slow sweep
+         {"subTune", -12.0f},   {"subMix", 0.3f},    {"subTrack", 1.0f},  {"gain", 0.9f},     {"unison", 2.0f},
+         {"detune", 0.03f}, // Light detune
+         {"oversampling", 1.0f}},
+        *this);
+
+    // Long Reso FX: Resonant, evolving effect sound with long release
+    makeSimdSynthPatch("longResoFX",
+                       {{"wavetable", 2.0f}, // Square wave for sharp resonance
+                        {"attack", 1.0f},      {"decay", 2.0f},      {"sustain", 0.7f},
+                        {"release", 5.0f}, // Very long release for FX
+                        {"cutoff", 1500.0f},   {"resonance", 0.9f},  {"fegAttack", 1.5f},
+                        {"fegDecay", 2.0f},    {"fegSustain", 0.6f}, {"fegRelease", 4.0f},
+                        {"fegAmount", 0.8f},   {"lfoRate", 0.1f},    {"lfoDepth", 0.25f}, // Slow, dramatic modulation
+                        {"subTune", -24.0f},   {"subMix", 0.4f},     {"subTrack", 1.0f},
+                        {"gain", 0.8f},        {"unison", 4.0f},     {"detune", 0.04f}, // Wide effect
+                        {"oversampling", 1.0f}},
+                       *this);
+
+    // Robot Fart: Quirky, modulated bass sound with heavy LFO
+    makeSimdSynthPatch(
+        "robotFart",
+        {{"wavetable", 1.0f}, // Saw wave for gritty texture
+         {"attack", 0.01f},     {"decay", 0.3f},     {"sustain", 0.2f},    {"release", 0.2f}, // Short, punchy envelope
+         {"cutoff", 600.0f},    {"resonance", 0.7f}, {"fegAttack", 0.01f}, {"fegDecay", 0.2f}, {"fegSustain", 0.3f},
+         {"fegRelease", 0.15f}, {"fegAmount", 0.6f}, {"lfoRate", 5.0f},    {"lfoDepth", 0.3f}, // Fast, wobbly LFO
+         {"subTune", -12.0f},   {"subMix", 0.5f},    {"subTrack", 1.0f},   {"gain", 1.0f},     {"unison", 1.0f},
+         {"detune", 0.0f}, // Mono for focus
+         {"oversampling", 1.0f}},
+        *this);
+
+    // Jelly Band: Bouncy, elastic sound with moderate LFO and unison
+    makeSimdSynthPatch(
+        "jellyBand",
+        {{"wavetable", 0.0f}, // Sine wave for smooth, rubbery tone
+         {"attack", 0.1f},      {"decay", 0.7f},     {"sustain", 0.5f},   {"release", 0.6f}, // Bouncy envelope
+         {"cutoff", 2500.0f},   {"resonance", 0.5f}, {"fegAttack", 0.1f}, {"fegDecay", 0.6f}, {"fegSustain", 0.4f},
+         {"fegRelease", 0.5f},  {"fegAmount", 0.4f}, {"lfoRate", 2.0f},   {"lfoDepth", 0.2f}, // Bouncing modulation
+         {"subTune", -12.0f},   {"subMix", 0.3f},    {"subTrack", 1.0f},  {"gain", 1.0f},     {"unison", 3.0f},
+         {"detune", 0.03f}, // Elastic spread
+         {"oversampling", 1.0f}},
+        *this);
+
+    // Grok Grok Grok: Playful, vocal-like sound with heavy modulation
+    makeSimdSynthPatch("grokGrokGrok",
+                       {{"wavetable", 2.0f}, // Square wave for vocal-like formants
+                        {"attack", 0.05f},     {"decay", 0.5f},      {"sustain", 0.4f},
+                        {"release", 0.4f}, // Quick, expressive envelope
+                        {"cutoff", 2000.0f},   {"resonance", 0.8f},  {"fegAttack", 0.05f},
+                        {"fegDecay", 0.4f},    {"fegSustain", 0.5f}, {"fegRelease", 0.3f},
+                        {"fegAmount", 0.7f},   {"lfoRate", 3.0f},    {"lfoDepth", 0.25f}, // Fast, vocal modulation
+                        {"subTune", -12.0f},   {"subMix", 0.2f},     {"subTrack", 1.0f},
+                        {"gain", 1.1f},        {"unison", 2.0f},     {"detune", 0.02f}, // Slight detune for character
+                        {"oversampling", 1.0f}},
+                       *this);
 }
