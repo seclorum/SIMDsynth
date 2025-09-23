@@ -97,6 +97,10 @@ struct Voice {
         float decay = 0.5f;
         float sustain = 0.8f;
         float release = 0.2f;
+        float attackCurve = 2.0f;    // Shape of attack curve (1.0 = linear, >1 = more exponential)
+        float releaseCurve = 3.0f;   // Shape of release curve
+        float releaseStartAmplitude; // Store amplitude at note-off
+        float timeScale = 0.7f;      // Time scaling factor for envelope stages
         float cutoff = 1000.0f;
         float fegAttack = 0.1f;
         float fegDecay = 1.0f;

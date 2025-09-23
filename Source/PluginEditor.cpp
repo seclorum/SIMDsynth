@@ -302,14 +302,14 @@ void SimdSynthAudioProcessorEditor::paint(juce::Graphics &g) {
     g.fillAll(juce::Colours::black);
     g.setColour(juce::Colours::red);
     g.drawRect(getLocalBounds(), 1.0f);
-    DBG("Painting editor, bounds: " << getLocalBounds().toString());
+    // DBG("Painting editor, bounds: " << getLocalBounds().toString());
 }
 
 void SimdSynthAudioProcessorEditor::resized() {
     auto bounds = getLocalBounds();
     // Prevent layout with invalid bounds
     if (bounds.getWidth() < 600 || bounds.getHeight() < 400) {
-        DBG("Window too small: " << bounds.toString());
+        // DBG("Window too small: " << bounds.toString());
         return;
     }
 
