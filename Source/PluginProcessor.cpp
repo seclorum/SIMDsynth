@@ -60,7 +60,7 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
           }),
       currentTime(0.0),
       oversampling(std::make_unique<juce::dsp::Oversampling<float>>(
-          2, 2, juce::dsp::Oversampling<float>::FilterType::filterHalfBandPolyphaseIIR, true, true))
+          2, 1, juce::dsp::Oversampling<float>::FilterType::filterHalfBandPolyphaseIIR, true, true))
  {
     // Initialize parameter pointers
     wavetableTypeParam = parameters.getRawParameterValue("wavetable");
