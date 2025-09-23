@@ -74,7 +74,7 @@ inline float32x4_t my_floorq_f32(float32x4_t x) {
 #endif
 
 #define WAVETABLE_SIZE 2048
-#define MAX_VOICE_POLYPHONY 8
+#define MAX_VOICE_POLYPHONY 4
 
 struct Voice {
         bool active = false;
@@ -99,7 +99,7 @@ struct Voice {
         float release = 0.2f;
         float attackCurve = 2.0f;    // Shape of attack curve (1.0 = linear, >1 = more exponential)
         float releaseCurve = 3.0f;   // Shape of release curve
-        float releaseStartAmplitude; // Store amplitude at note-off
+        float releaseStartAmplitude = 0.0f; // Store amplitude at note-off
         float timeScale = 0.7f;      // Time scaling factor for envelope stages
         float cutoff = 1000.0f;
         float fegAttack = 0.1f;

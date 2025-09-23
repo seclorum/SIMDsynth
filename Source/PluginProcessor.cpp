@@ -469,11 +469,11 @@ void SimdSynthAudioProcessor::updateEnvelopes(float t) {
             voices[i].amplitude = 0.0f;
             voices[i].filterEnv = 0.0f;
             for (int j = 0; j < 4; j++) {
-#if defined(__aarch64__) || defined(__arm64__)
-                voices[i].filterStates[j] = vdupq_n_f32(0.0f);
-#else
-                voices[i].filterStates[j] = 0.0f;
-#endif
+                #if defined(__aarch64__) || defined(__arm64__)
+                    voices[i].filterStates[j] = vdupq_n_f32(0.0f);
+                #else
+                    voices[i].filterStates[j] = 0.0f;
+                #endif
             }
             continue;
         }
@@ -484,49 +484,70 @@ void SimdSynthAudioProcessor::updateEnvelopes(float t) {
         float sustain = std::max(voices[i].sustain, 0.0f);
         float release = std::max(voices[i].release, 0.001f);
 
-        // Apply non-linear scaling to release time
-        float scaledRelease = std::pow(release, 0.7f) * 5.0f;
+        // Curve shaping constants
+        const float attackCurve = 2.0f;    // More punchy attack
+        const float decayCurve = 1.5f;     // Smoother decay
+        const float releaseCurve = 3.0f;   // Natural release tail
 
         // Amplitude envelope (ADSR with curves)
         if (localTime < 0.0f) {
             voices[i].amplitude = 0.0f;
         } else if (localTime < attack) {
-            // Curved attack phase
+            // Exponential attack curve
             float attackPhase = localTime / attack;
-            voices[i].amplitude = std::pow(attackPhase, 1.0f/2.0f); // Square root curve for attack
+            voices[i].amplitude = std::pow(attackPhase, 1.0f/attackCurve);
         } else if (localTime < attack + decay) {
-            // Exponential decay to sustain
+            // Exponential decay curve
             float decayPhase = (localTime - attack) / decay;
-            voices[i].amplitude = 1.0f - (1.0f - sustain) * (1.0f - std::exp(-decayPhase * 3.0f));
+            float decayExp = std::pow(decayPhase, 1.0f/decayCurve);
+            voices[i].amplitude = 1.0f - (decayExp * (1.0f - sustain));
         } else if (!voices[i].released) {
             voices[i].amplitude = sustain;
-            voices[i].releaseStartAmplitude = sustain; // Store amplitude for release
         } else {
-            // Exponential release
+            // Exponential release with proper time scaling
             float releaseTime = t - voices[i].noteOffTime;
-            float releasePhase = releaseTime / scaledRelease;
-            voices[i].amplitude = voices[i].releaseStartAmplitude * std::exp(-releasePhase * 3.0f);
+            float releasePhase = releaseTime / (release * std::pow(release, 0.3f)); // Non-linear time scaling
+            float releaseExp = std::exp(-releasePhase * releaseCurve);
+            voices[i].amplitude = voices[i].releaseStartAmplitude * releaseExp;
 
             if (voices[i].amplitude <= 0.001f) {
                 voices[i].amplitude = 0.0f;
                 voices[i].active = false;
                 for (int j = 0; j < 4; j++) {
-#if defined(__aarch64__) || defined(__arm64__)
-                    voices[i].filterStates[j] = vdupq_n_f32(0.0f);
-#else
-                    voices[i].filterStates[j] = 0.0f;
-#endif
+                    #if defined(__aarch64__) || defined(__arm64__)
+                        voices[i].filterStates[j] = vdupq_n_f32(0.0f);
+                    #else
+                        voices[i].filterStates[j] = 0.0f;
+                    #endif
                 }
             }
         }
 
-        // Ensure amplitude stays in valid range
+        // Apply amplitude clamping
         voices[i].amplitude = std::max(0.0f, std::min(1.0f, voices[i].amplitude));
 
         // Apply similar improvements to filter envelope
-        // ... (similar changes for filter envelope calculation)
+        if (localTime < 0.0f) {
+            voices[i].filterEnv = 0.0f;
+        } else if (localTime < voices[i].fegAttack) {
+            float attackPhase = localTime / voices[i].fegAttack;
+            voices[i].filterEnv = std::pow(attackPhase, 1.0f/attackCurve);
+        } else if (localTime < voices[i].fegAttack + voices[i].fegDecay) {
+            float decayPhase = (localTime - voices[i].fegAttack) / voices[i].fegDecay;
+            float decayExp = std::pow(decayPhase, 1.0f/decayCurve);
+            voices[i].filterEnv = 1.0f - (decayExp * (1.0f - voices[i].fegSustain));
+        } else if (!voices[i].released) {
+            voices[i].filterEnv = voices[i].fegSustain;
+        } else {
+            float releaseTime = t - voices[i].noteOffTime;
+            float releasePhase = releaseTime / (voices[i].fegRelease * std::pow(voices[i].fegRelease, 0.3f));
+            voices[i].filterEnv = voices[i].fegSustain * std::exp(-releasePhase * releaseCurve);
+        }
+
+        voices[i].filterEnv = std::max(0.0f, std::min(1.0f, voices[i].filterEnv));
     }
 }
+
 
 // Prepare audio processing with oversampling
 void SimdSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
