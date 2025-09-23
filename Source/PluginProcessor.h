@@ -74,7 +74,7 @@ inline float32x4_t my_floorq_f32(float32x4_t x) {
 #endif
 
 #define WAVETABLE_SIZE 2048
-#define MAX_VOICE_POLYPHONY 12
+#define MAX_VOICE_POLYPHONY 16
 
 struct Voice {
         bool active = false;
