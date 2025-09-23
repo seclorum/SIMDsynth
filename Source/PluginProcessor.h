@@ -25,6 +25,7 @@
 #include "PresetManager.h"
 
 // Platform-specific SIMD includes and macro definitions.
+
 // For x86_64 architecture (Intel/AMD), use SSE intrinsics.
 #ifdef __x86_64__
 #include <immintrin.h>
@@ -40,28 +41,47 @@
 #define SIMD_LOAD _mm_loadu_ps                   // Macro for unaligned load.
 #define SIMD_STORE _mm_storeu_ps                 // Macro for unaligned store.
 #define SIMD_CMP_EQ(a, b) _mm_cmpeq_ps((a), (b)) // Macro for equality comparison.
-// For ARM64 architecture (e.g., Apple Silicon), use NEON intrinsics.
-#elif defined(__arm64__)
+
+// For ARM64 architecture (Linux aarch64 or Apple ARM64), use NEON intrinsics.
+#elif defined(__aarch64__) || defined(__arm64__)
 #include <arm_neon.h>
-#define SIMD_TYPE float32x4_t // Define SIMD type as 128-bit vector (4 floats).
-#define SIMD_SET1 vdupq_n_f32 // Macro for setting all elements to a single value.
-#define SIMD_SET(a, b, c, d)                                                                                           \
-    (float32x4_t) {                                                                                                    \
-        d, c, b, a                                                                                                     \
-    } // Macro for setting individual elements (note reverse order due to NEON
-      // conventions).
-#define SIMD_ADD vaddq_f32   // Macro for vector addition.
-#define SIMD_SUB vsubq_f32   // Macro for vector subtraction.
-#define SIMD_MUL vmulq_f32   // Macro for vector multiplication.
-#define SIMD_DIV vdivq_f32   // Macro for vector division.
-#define SIMD_SIN fast_sin_ps // Macro for fast sine approximation (custom function).
-#define SIMD_FLOOR                                                                                                     \
-    my_floor_ps                               // Macro for custom floor operation (NEON lacks direct floor
-                                              // intrinsic).
-#define SIMD_LOAD vld1q_f32                   // Macro for load.
-#define SIMD_STORE vst1q_f32                  // Macro for store.
-#define SIMD_CMP_EQ(a, b) vceqq_f32((a), (b)) // Macro for equality comparison.
+#define SIMD_TYPE float32x4_t                    // Define SIMD type as 128-bit vector (4 floats).
+#define SIMD_SET1 vdupq_n_f32                    // Macro for setting all elements to a single value.
+#define SIMD_SET(a, b, c, d) vld1q_f32((float[4]){a, b, c, d}) // Macro for setting individual elements.
+#define SIMD_ADD vaddq_f32                       // Macro for vector addition.
+#define SIMD_SUB vsubq_f32                       // Macro for vector subtraction.
+#define SIMD_MUL vmulq_f32                       // Macro for vector multiplication.
+#define SIMD_DIV my_divq_f32                     // Macro for vector division (custom function).
+#define SIMD_SIN fast_sin_ps                     // Macro for fast sine approximation (custom function).
+#define SIMD_FLOOR my_floorq_f32                 // Macro for custom floor operation.
+#define SIMD_LOAD vld1q_f32                      // Macro for unaligned load.
+#define SIMD_STORE vst1q_f32                     // Macro for unaligned store.
+#define SIMD_CMP_EQ(a, b) vceqq_f32((a), (b))    // Macro for equality comparison.
+
+// Custom division function for NEON (since no direct division intrinsic exists).
+inline float32x4_t my_divq_f32(float32x4_t a, float32x4_t b) {
+    // Use reciprocal approximation: a / b ≈ a * (1/b)
+    float32x4_t recip = vrecpeq_f32(b);                    // Initial reciprocal estimate
+    recip = vmulq_f32(recip, vrecpsq_f32(b, recip));       // First Newton-Raphson refinement
+    recip = vmulq_f32(recip, vrecpsq_f32(b, recip));       // Second refinement for better accuracy
+    return vmulq_f32(a, recip);                            // a * (1/b) ≈ a / b
+}
+
+// Custom floor function for NEON (since no direct floor intrinsic exists).
+inline float32x4_t my_floorq_f32(float32x4_t x) {
+    // Convert to integer (truncate), then convert back to float
+    int32x4_t i = vcvtq_s32_f32(x);                        // Convert to signed int (truncates)
+    float32x4_t trunc = vcvtq_f32_s32(i);                  // Convert back to float
+    // Adjust for negative numbers: if x < trunc, subtract 1
+    uint32x4_t lt = vcltq_f32(x, trunc);                   // x < trunc ? 0xffffffff : 0
+    float32x4_t adjust = vcvtq_f32_s32(vreinterpretq_s32_u32(lt)); // Reinterpret uint32x4_t as int32x4_t
+    adjust = vmulq_f32(adjust, vdupq_n_f32(-1.0f));        // Multiply by -1.0f where lt is true
+    return vaddq_f32(trunc, adjust);                       // trunc - 1 for negative non-integers
+}
+#else
+#error "Unsupported architecture: only x86_64, aarch64, and arm64 are supported."
 #endif
+
 
 // Define constants for wavetable size and maximum polyphony.
 #define WAVETABLE_SIZE 2048   // Size of wavetables for oscillators.

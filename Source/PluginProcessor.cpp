@@ -302,7 +302,7 @@ float SimdSynthAudioProcessor::randomize(float base, float var) {
 }
 
 // SIMD floor function for ARM64
-#ifdef __arm64__
+#if defined(__arm64__) || defined(__arch64__)
 float32x4_t SimdSynthAudioProcessor::my_floor_ps(float32x4_t x) {
     float temp[4];
     vst1q_f32(temp, x);
@@ -342,7 +342,7 @@ __m128 SimdSynthAudioProcessor::fast_sin_ps(__m128 x) {
 #endif
 
 // SIMD sine approximation for ARM64
-#ifdef __arm64__
+#if defined(__arm64__) || defined(__aarch64__)
 float32x4_t SimdSynthAudioProcessor::fast_sin_ps(float32x4_t x) {
     const float32x4_t twoPi = vdupq_n_f32(2.0f * M_PI);
     const float32x4_t invTwoPi = vdupq_n_f32(1.0f / (2.0f * M_PI));
@@ -409,7 +409,7 @@ void SimdSynthAudioProcessor::applyLadderFilter(Voice *voices, int voiceOffset, 
     }
 #ifdef __x86_64__
     SIMD_TYPE alpha = SIMD_SET(cutoffs[0], cutoffs[1], cutoffs[2], cutoffs[3]);
-#elif defined(__arm64__)
+#elif defined(__arm64__) || defined(__aarch64__)
     float temp[4] = {cutoffs[0], cutoffs[1], cutoffs[2], cutoffs[3]};
     SIMD_TYPE alpha = SIMD_LOAD(temp);
 #endif
@@ -678,7 +678,7 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juc
 #ifdef __x86_64__
                     mainValues =
                         _mm_blendv_ps(_mm_blendv_ps(square_values, saw_values, maskSaw), sine_values, maskSine);
-#elif defined(__arm64__)
+#elif defined(__arm64__) || defined (__aarch64__)
                     mainValues = vbslq_f32(maskSine, sine_values, vbslq_f32(maskSaw, saw_values, square_values));
 #endif
                     mainValues =
@@ -849,7 +849,7 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juc
                 SIMD_TYPE maskSaw = SIMD_CMP_EQ(wavetableTypePs, SIMD_SET1(1.0f));
 #ifdef __x86_64__
                 mainValues = _mm_blendv_ps(_mm_blendv_ps(square_values, saw_values, maskSaw), sine_values, maskSine);
-#elif defined(__arm64__)
+#elif defined(__arm64__) || defined (__arch64__)
                 mainValues = vbslq_f32(maskSine, sine_values, vbslq_f32(maskSaw, saw_values, square_values));
 #endif
                 mainValues = SIMD_MUL(mainValues, SIMD_SET1(1.0f / static_cast<float>(*unisonParam)));
