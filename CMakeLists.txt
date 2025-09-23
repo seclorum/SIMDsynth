@@ -87,8 +87,25 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "arm64|aarch64")
         # For Apple Silicon (M1, M2, etc.), NEON is enabled by default, but we can ensure it
         target_compile_options(SimdSynth PRIVATE -mcpu=apple-m1)
     else()
-        # For other ARM64 systems (e.g., Linux), use a generic ARMv8-A with NEON
-        target_compile_options(SimdSynth PRIVATE -march=armv8-a -mfpu=neon)
+        # For Linux on aarch64 (e.g., Raspberry Pi 4 with Cortex-A72), enable NEON SIMD
+        target_compile_options(SimdSynth PRIVATE -march=armv8-a+simd -mtune=cortex-a72)
+    endif()
+endif()
+
+# Linux-specific section
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    # Custom compile options for Linux (CFLAGS equivalents in CMake)
+    target_compile_options(SimdSynth PRIVATE -O3 -g)
+
+    # Use CMake's FindFreetype module to locate freetype2-dev automatically
+    find_package(Freetype REQUIRED)
+    target_include_directories(SimdSynth PRIVATE ${FREETYPE_INCLUDE_DIRS})
+    target_link_libraries(SimdSynth PRIVATE ${FREETYPE_LIBRARIES})
+
+    # Ensure NEON is utilized for aarch64 on Linux
+    if(CMAKE_SYSTEM_PROCESSOR MATCHES "aarch64")
+        # Define JUCE_USE_SIMD to enable JUCE's SIMD optimizations
+        target_compile_definitions(SimdSynth PRIVATE JUCE_USE_SIMD=1)
     endif()
 endif()
 
@@ -103,3 +120,4 @@ endif()
 
 # Enable strict warnings
 target_compile_options(SimdSynth PRIVATE -Wall -Wextra -Wpedantic)
+
