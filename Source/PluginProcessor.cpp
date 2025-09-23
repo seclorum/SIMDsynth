@@ -60,12 +60,8 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
           }),
       currentTime(0.0),
       oversampling(std::make_unique<juce::dsp::Oversampling<float>>(
-          2, 2, juce::dsp::Oversampling<float>::FilterType::filterHalfBandPolyphaseIIR, true, true)),
- // Initialize lookup tables for wavetables
-      sineTableTransform([](float x) { return sinf(2.0f * M_PI * x); }, WAVETABLE_SIZE, 0.0f, 1.0f),
-      sawTableTransform([](float x) { return 2.0f * x - 1.0f; }, WAVETABLE_SIZE, 0.0f, 1.0f),
-      squareTableTransform([](float x) { return x < 0.5f ? 1.0f : -1.0f; }, WAVETABLE_SIZE, 0.0f, 1.0f)
-{
+          2, 2, juce::dsp::Oversampling<float>::FilterType::filterHalfBandPolyphaseIIR, true, true))
+ {
     // Initialize parameter pointers
     wavetableTypeParam = parameters.getRawParameterValue("wavetable");
     attackTimeParam = parameters.getRawParameterValue("attack");
@@ -117,6 +113,15 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
 
     // Set initial filter resonance
     filter.resonance = *resonanceParam;
+
+    // Initialize LookupTableTransform objects with debug logging
+    DBG("Initializing sineTableTransform: min=0.0, max=1.0, size=" << WAVETABLE_SIZE);
+    sineTableTransform.initialise([](float x) { return sinf(2.0f * M_PI * x); }, 0.0f, 1.0f, WAVETABLE_SIZE);
+    DBG("Initializing sawTableTransform: min=0.0, max=1.0, size=" << WAVETABLE_SIZE);
+    sawTableTransform.initialise([](float x) { return 2.0f * x - 1.0f; }, 0.0f, 1.0f, WAVETABLE_SIZE);
+    DBG("Initializing squareTableTransform: min=0.0, max=1.0, size=" << WAVETABLE_SIZE);
+    squareTableTransform.initialise([](float x) { return x < 0.5f ? 1.0f : -1.0f; }, 0.0f, 1.0f, WAVETABLE_SIZE);
+
 
     // Initialize wavetables and presets
     initWavetables();
