@@ -74,7 +74,7 @@ inline float32x4_t my_floorq_f32(float32x4_t x) {
 #endif
 
 #define WAVETABLE_SIZE 2048
-#define MAX_VOICE_POLYPHONY 4
+#define MAX_VOICE_POLYPHONY 16
 
 struct Voice {
         bool active = false;
@@ -93,6 +93,9 @@ struct Voice {
         float subPhase = 0.0f;
         float subPhaseIncrement = 0.0f;
         int wavetableType = 0;
+        float voiceAge = 0.0f;
+        bool isHeld = false;
+        float releaseStart = 0.0;
         float attack = 0.1f;
         float decay = 0.5f;
         float sustain = 0.8f;
@@ -152,6 +155,7 @@ class SimdSynthAudioProcessor : public juce::AudioProcessor {
 
         void getStateInformation(juce::MemoryBlock &destData) override;
         void setStateInformation(const void *data, int sizeInBytes) override;
+        int findVoiceToSteal();
         void updateEnvelopes(float t);
 
         void savePreset(const juce::String &presetName, const juce::var &parameters) {

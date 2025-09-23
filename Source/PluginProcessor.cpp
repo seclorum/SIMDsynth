@@ -462,6 +462,35 @@ void SimdSynthAudioProcessor::applyLadderFilter(Voice *voices, int voiceOffset, 
 #endif
 }
 
+int SimdSynthAudioProcessor::findVoiceToSteal() {
+    int voiceToSteal = 0;
+    float highestPriority = -1.0f;
+
+    for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
+        float priority = 0.0f;
+
+        // Released notes have highest priority to be stolen
+        if (voices[i].released) {
+            priority = 1000.0f + (voices[i].amplitude > 0.001f ? voices[i].releaseStartAmplitude : 0.0f);
+        }
+        // Notes in release phase have next priority
+        else if (!voices[i].isHeld) {
+            priority = 500.0f + voices[i].voiceAge;
+        }
+        // Held notes have lowest priority
+        else {
+            priority = voices[i].voiceAge;
+        }
+
+        if (priority > highestPriority) {
+            highestPriority = priority;
+            voiceToSteal = i;
+        }
+    }
+
+    return voiceToSteal;
+}
+
 // Update amplitude and filter envelopes with full ADSR
 void SimdSynthAudioProcessor::updateEnvelopes(float t) {
     for (int i = 0; i < MAX_VOICE_POLYPHONY; i++) {
@@ -760,45 +789,64 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juc
         if (msg.isNoteOn()) {
             int note = msg.getNoteNumber();
             float velocity = 0.7f + (msg.getVelocity() / 127.0f) * 0.3f;
+
+            // First try to find an inactive voice
+            int voiceIndex = -1;
             for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
                 if (!voices[i].active) {
-                    voices[i].active = true;
-                    voices[i].released = false;
-                    voices[i].frequency = midiToFreq(note);
-                    voices[i].phaseIncrement = voices[i].frequency / sampleRate;
-                    voices[i].phase = 0.0f;
-                    voices[i].lfoPhase = 0.0f;
-                    voices[i].amplitude = 0.0f;
-                    voices[i].noteNumber = note;
-                    voices[i].velocity = velocity;
-                    voices[i].noteOnTime =
-                        static_cast<float>(blockStartTime + static_cast<double>(samplePosition) / sampleRate);
-                    voices[i].noteOffTime = 0.0f;
-                    float subFreq = voices[i].frequency * powf(2.0f, voices[i].subTune / 12.0f) * voices[i].subTrack;
-                    voices[i].subFrequency = subFreq;
-                    voices[i].subPhaseIncrement = (2.0f * M_PI * subFreq) / sampleRate;
-                    voices[i].subPhase = 0.0f;
-
+                    voiceIndex = i;
                     break;
                 }
             }
-        } else if (msg.isNoteOff()) {
+
+            // If no inactive voice found, steal one
+            if (voiceIndex == -1) {
+                voiceIndex = findVoiceToSteal();
+                // Store the current amplitude for release phase before modifying
+                if (voices[voiceIndex].released) {
+                    voices[voiceIndex].releaseStartAmplitude = voices[voiceIndex].amplitude;
+                }
+                // Quickly ramp down the stolen voice to prevent clicks
+                voices[voiceIndex].amplitude *= 0.707f; // -3dB
+            }
+
+            // Initialize the voice
+            voices[voiceIndex].active = true;
+            voices[voiceIndex].released = false;
+            voices[voiceIndex].isHeld = true;
+            voices[voiceIndex].frequency = midiToFreq(note);
+            voices[voiceIndex].phaseIncrement = voices[voiceIndex].frequency / sampleRate;
+            voices[voiceIndex].phase = 0.0f;
+            voices[voiceIndex].noteNumber = note;
+            voices[voiceIndex].velocity = velocity;
+            voices[voiceIndex].voiceAge = 0.0f;
+            voices[voiceIndex].noteOnTime = static_cast<float>(blockStartTime + static_cast<double>(samplePosition) / sampleRate);
+            voices[voiceIndex].releaseStartAmplitude = voices[voiceIndex].amplitude; // Initialize for new note
+        }
+        else if (msg.isNoteOff()) {
             int note = msg.getNoteNumber();
             for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
                 if (voices[i].active && voices[i].noteNumber == note) {
                     voices[i].released = true;
-                    voices[i].noteOffTime = currentTime;
-                        //static_cast<float>(blockStartTime + static_cast<double>(samplePosition) / sampleRate);
-                    voices[i].releaseStartAmplitude = voices[i].amplitude; // Store current amplitude
-
+                    voices[i].isHeld = false;
+                    voices[i].releaseStartAmplitude = voices[i].amplitude; // Capture current amplitude
+                    voices[i].noteOffTime = static_cast<float>(blockStartTime + static_cast<double>(samplePosition) / sampleRate);
                 }
             }
-        } else if (msg.isProgramChange()) {
+        }
+        else if (msg.isProgramChange()) {
             int program = msg.getProgramChangeNumber();
             if (program >= 0 && program < getNumPrograms()) {
                 setCurrentProgram(program);
             } else {
                 DBG("Invalid program change index: " << program);
+            }
+        }
+
+        // Update voice ages
+        for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
+            if (voices[i].active) {
+                voices[i].voiceAge += buffer.getNumSamples() / sampleRate;
             }
         }
     }
