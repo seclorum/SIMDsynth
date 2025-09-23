@@ -14,54 +14,49 @@
 // Constructor: Initializes the audio processor with stereo output and enhanced parameters
 SimdSynthAudioProcessor::SimdSynthAudioProcessor()
     : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
-      parameters(
-          *this, nullptr, juce::Identifier("SimdSynth"),
-          {
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"wavetable", parameterVersion},
-                                                          "Wavetable Type", 0.0f, 2.0f, 0.0f), // Sine, saw, square
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"attack", parameterVersion}, "Attack Time",
-                                                          0.01f, 5.0f, 0.1f),
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"decay", parameterVersion}, "Decay Time",
-                                                          0.1f, 5.0f, 0.5f),
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"sustain", parameterVersion},
-                                                          "Sustain Level", 0.0f, 1.0f, 0.8f),
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"release", parameterVersion},
-                                                          "Release Time", 0.01f, 5.0f, 0.2f),
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"cutoff", parameterVersion},
-                                                          "Filter Cutoff", 20.0f, 20000.0f, 1000.0f),
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"resonance", parameterVersion},
-                                                          "Filter Resonance", 0.0f, 1.0f, 0.7f),
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegAttack", parameterVersion},
-                                                          "Filter EG Attack", 0.01f, 5.0f, 0.1f),
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegDecay", parameterVersion},
-                                                          "Filter EG Decay", 0.1f, 5.0f, 1.0f),
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegSustain", parameterVersion},
-                                                          "Filter EG Sustain", 0.0f, 1.0f, 0.5f),
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegRelease", parameterVersion},
-                                                          "Filter EG Release", 0.01f, 5.0f, 0.2f),
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegAmount", parameterVersion},
-                                                          "Filter EG Amount", -1.0f, 1.0f, 0.5f),
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"lfoRate", parameterVersion}, "LFO Rate",
-                                                          0.0f, 20.0f, 1.0f),
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"lfoDepth", parameterVersion}, "LFO Depth",
-                                                          0.0f, 0.5f, 0.05f),
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subTune", parameterVersion},
-                                                          "Sub Osc Tune", -24.0f, 24.0f, -12.0f),
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subMix", parameterVersion}, "Sub Osc Mix",
-                                                          0.0f, 1.0f, 0.5f),
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subTrack", parameterVersion},
-                                                          "Sub Osc Track", 0.0f, 1.0f, 1.0f),
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"gain", parameterVersion}, "Output Gain",
-                                                          0.0f, 2.0f, 1.0f),
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"unison", parameterVersion},
-                                                          "Unison Voices", 1.0f, 8.0f, 1.0f),
-              std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"detune", parameterVersion},
-                                                          "Unison Detune", 0.0f, 0.1f, 0.01f)
-          }),
-      currentTime(0.0),
-      oversampling(std::make_unique<juce::dsp::Oversampling<float>>(
-          2, 1, juce::dsp::Oversampling<float>::FilterType::filterHalfBandPolyphaseIIR, true, true))
- {
+      parameters(*this, nullptr, juce::Identifier("SimdSynth"),
+                 {std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"wavetable", parameterVersion},
+                                                              "Wavetable Type", 0.0f, 2.0f, 0.0f), // Sine, saw, square
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"attack", parameterVersion},
+                                                              "Attack Time", 0.01f, 5.0f, 0.1f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"decay", parameterVersion},
+                                                              "Decay Time", 0.1f, 5.0f, 0.5f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"sustain", parameterVersion},
+                                                              "Sustain Level", 0.0f, 1.0f, 0.8f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"release", parameterVersion},
+                                                              "Release Time", 0.01f, 5.0f, 0.2f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"cutoff", parameterVersion},
+                                                              "Filter Cutoff", 20.0f, 20000.0f, 1000.0f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"resonance", parameterVersion},
+                                                              "Filter Resonance", 0.0f, 1.0f, 0.7f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegAttack", parameterVersion},
+                                                              "Filter EG Attack", 0.01f, 5.0f, 0.1f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegDecay", parameterVersion},
+                                                              "Filter EG Decay", 0.1f, 5.0f, 1.0f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegSustain", parameterVersion},
+                                                              "Filter EG Sustain", 0.0f, 1.0f, 0.5f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegRelease", parameterVersion},
+                                                              "Filter EG Release", 0.01f, 5.0f, 0.2f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegAmount", parameterVersion},
+                                                              "Filter EG Amount", -1.0f, 1.0f, 0.5f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"lfoRate", parameterVersion},
+                                                              "LFO Rate", 0.0f, 20.0f, 1.0f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"lfoDepth", parameterVersion},
+                                                              "LFO Depth", 0.0f, 0.5f, 0.05f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subTune", parameterVersion},
+                                                              "Sub Osc Tune", -24.0f, 24.0f, -12.0f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subMix", parameterVersion},
+                                                              "Sub Osc Mix", 0.0f, 1.0f, 0.5f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subTrack", parameterVersion},
+                                                              "Sub Osc Track", 0.0f, 1.0f, 1.0f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"gain", parameterVersion},
+                                                              "Output Gain", 0.0f, 2.0f, 1.0f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"unison", parameterVersion},
+                                                              "Unison Voices", 1.0f, 8.0f, 1.0f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"detune", parameterVersion},
+                                                              "Unison Detune", 0.0f, 0.1f, 0.01f)}),
+      currentTime(0.0), oversampling(std::make_unique<juce::dsp::Oversampling<float>>(
+                            2, 1, juce::dsp::Oversampling<float>::FilterType::filterHalfBandPolyphaseIIR, true, true)) {
     // Initialize parameter pointers
     wavetableTypeParam = parameters.getRawParameterValue("wavetable");
     attackTimeParam = parameters.getRawParameterValue("attack");
@@ -121,7 +116,6 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
     sawTableTransform.initialise([](float x) { return 2.0f * x - 1.0f; }, 0.0f, 1.0f, WAVETABLE_SIZE);
     DBG("Initializing squareTableTransform: min=0.0, max=1.0, size=" << WAVETABLE_SIZE);
     squareTableTransform.initialise([](float x) { return x < 0.5f ? 1.0f : -1.0f; }, 0.0f, 1.0f, WAVETABLE_SIZE);
-
 
     // Initialize wavetables and presets
     initWavetables();
@@ -365,18 +359,18 @@ SIMD_TYPE SimdSynthAudioProcessor::wavetable_lookup_ps(SIMD_TYPE phase, int wave
         // Ensure phase is in [0, 1]
         tempIn[i] = tempIn[i] - std::floor(tempIn[i]);
         switch (wavetableType) {
-            case 0:
-                tempOut[i] = sineTableTransform(tempIn[i]);
-                break;
-            case 1:
-                tempOut[i] = sawTableTransform(tempIn[i]);
-                break;
-            case 2:
-                tempOut[i] = squareTableTransform(tempIn[i]);
-                break;
-            default:
-                tempOut[i] = 0.0f;
-                break;
+        case 0:
+            tempOut[i] = sineTableTransform(tempIn[i]);
+            break;
+        case 1:
+            tempOut[i] = sawTableTransform(tempIn[i]);
+            break;
+        case 2:
+            tempOut[i] = squareTableTransform(tempIn[i]);
+            break;
+        default:
+            tempOut[i] = 0.0f;
+            break;
         }
     }
     return SIMD_LOAD(tempOut);
