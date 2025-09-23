@@ -126,6 +126,9 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
     loadPresetsFromDirectory();
 }
 
+int SimdSynthAudioProcessor::getPreferredBufferSize() const {
+    return 512; // Suggest a larger buffer size to reduce underflow risk
+}
 // Destructor: Clean up oversampling
 SimdSynthAudioProcessor::~SimdSynthAudioProcessor() { oversampling.reset(); }
 
@@ -582,7 +585,12 @@ void SimdSynthAudioProcessor::updateEnvelopes(float t) {
 void SimdSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
     filter.sampleRate = static_cast<float>(sampleRate);
     currentTime = 0.0;
+    // Adjust oversampling based on buffer size
+    int oversamplingFactor = (samplesPerBlock < 256) ? 1 : 2; // Use 1x for small buffers, 2x for larger
+    oversampling = std::make_unique<juce::dsp::Oversampling<float>>(
+        2, oversamplingFactor, juce::dsp::Oversampling<float>::FilterType::filterHalfBandPolyphaseIIR, true, true);
     oversampling->initProcessing(samplesPerBlock);
+
     for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
         voices[i].active = false;
         voices[i].released = false;

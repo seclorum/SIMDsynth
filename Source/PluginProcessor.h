@@ -134,6 +134,8 @@ class SimdSynthAudioProcessor : public juce::AudioProcessor {
         SimdSynthAudioProcessor();
         ~SimdSynthAudioProcessor() override;
 
+        int getPreferredBufferSize() const;
+
         void prepareToPlay(double sampleRate, int samplesPerBlock) override;
         void releaseResources() override;
         void processBlock(juce::AudioBuffer<float> &, juce::MidiBuffer &) override;
