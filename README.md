@@ -8,7 +8,7 @@ Some rudimentary factory presets are included in the plugin - they will be creat
 
 ## High-Level Overview
 - Multiple synthesis formats (AU, VST3, Standalone)
-- Up to 8-voice polyphony
+- Up to 12-voice polyphony
 - Multiple waveforms (sine, saw, square) using wavetables
 - Sub-oscillator with keyboard tracking
 - Unison feature with detune
