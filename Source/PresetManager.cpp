@@ -233,7 +233,7 @@ void PresetManager::createDefaultPresets() {
     // New preset: Percussive Drum (short, punchy sound with saw wave)
     makeSimdSynthPatch("Drum",
                        {
-                           {"wavetable", 1.0f}, // Saw wave for sharp, punchy transient
+                           {"wavetable", 0.0f}, // Sine wave for propery boomph
                            {"attack", 0.001f},    {"decay", 0.1f},      {"sustain", 0.0f},
                            {"release", 0.05f}, // Percussive envelope
                            {"cutoff", 8000.0f},   {"resonance", 0.6f},  {"fegAttack", 0.001f},
