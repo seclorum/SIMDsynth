@@ -622,12 +622,18 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juc
             float outputSample = 0.0f;
             const SIMD_TYPE twoPi = SIMD_SET1(2.0f * M_PI);
 
-            for (int group = 0; group < (MAX_VOICE_POLYPHONY + 3) / 4; group++) {
-                int voiceOffset = group * 4;
+            constexpr int SIMD_WIDTH = (sizeof(SIMD_TYPE) / sizeof(float));
+            constexpr int NUM_BATCHES = (MAX_VOICE_POLYPHONY + SIMD_WIDTH - 1) / SIMD_WIDTH;
+
+            for (int batch = 0; batch < NUM_BATCHES; batch++) {
+                const int voiceOffset = batch * SIMD_WIDTH;
+
                 if (voiceOffset >= MAX_VOICE_POLYPHONY) continue;
 
-                float tempAmps[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-                float tempPhases[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                // align datastructures to cache lines
+                alignas(32) float tempAmps[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                alignas(32) float tempPhases[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+
                 float tempIncrements[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 float tempLfoPhases[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 float tempLfoRates[4] = {0.0f, 0.0f, 0.0f, 0.0f};
