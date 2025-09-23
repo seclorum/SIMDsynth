@@ -95,6 +95,7 @@ struct Voice {
     int unison = 1;                  // Number of unison voices (1 to 8)
     float detune = 0.01f;            // Unison detune amount (0 to 0.1)
     float filterStates[4] = {0.0f, 0.0f, 0.0f, 0.0f}; // Filter state array (4 stages)
+    float crossfade = 0.0f;          // Crossfade progress for wavetable changes (0 to 1)
 };
 
 // Structure to hold shared filter parameters for the ladder filter
@@ -105,6 +106,32 @@ struct Filter {
 
 // Main audio processor class for SimdSynth
 class SimdSynthAudioProcessor : public juce::AudioProcessor {
+private:
+    // Structure to hold pending preset parameters for new voices
+    struct PendingVoiceParameters {
+        int wavetableType = 0;
+        float attack = 0.1f;
+        float decay = 0.5f;
+        float sustain = 0.8f;
+        float release = 0.2f;
+        float cutoff = 1000.0f;
+        float fegAttack = 0.1f;
+        float fegDecay = 1.0f;
+        float fegSustain = 0.5f;
+        float fegRelease = 0.2f;
+        float fegAmount = 0.5f;
+        float lfoRate = 1.0f;
+        float lfoDepth = 0.05f;
+        float subTune = -12.0f;
+        float subMix = 0.5f;
+        float subTrack = 1.0f;
+        int unison = 1;
+        float detune = 0.01f;
+    };
+
+    // Pending parameters for new voices
+    PendingVoiceParameters pendingParameters;
+
 public:
     // Constructor and destructor
     SimdSynthAudioProcessor();
@@ -145,7 +172,7 @@ public:
     // Voice management and envelope processing
     int findVoiceToSteal();                    // Select a voice for stealing when polyphony is exceeded
     void updateEnvelopes(float t);             // Update amplitude and filter envelopes for all voices
-    void updateVoiceParameters();              // Update parameters for all active voices
+    void updateVoiceParameters();              // Update parameters for all voices
 
     // Preset management
     void savePreset(const juce::String& presetName, const juce::var& parameters) {
