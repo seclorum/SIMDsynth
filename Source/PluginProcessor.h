@@ -1,13 +1,11 @@
-/*
- * simdsynth - a playground for experimenting with SIMD-based audio
- *             synthesis, with polyphonic main and sub-oscillator,
- *             filter, envelopes, and LFO per voice, up to 8 voices.
- *
- * MIT Licensed, (c) 2025, seclorum
+/*simdsynth - a playground for experimenting with SIMD-based audio
+        synthesis, with polyphonic main and sub-oscillator,
+        filter, envelopes, and LFO per voice, up to 8 voices.
+
+MIT Licensed, (c) 2025, seclorum
  */
 
 #pragma once
-
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_dsp/juce_dsp.h>
 #include <vector>
@@ -32,7 +30,6 @@
 #define SIMD_CMP_EQ(a, b) _mm_cmpeq_ps((a), (b))
 #define SIMD_MIN _mm_min_ps
 #define SIMD_MAX _mm_max_ps
-
 #elif defined(__aarch64__) || defined(__arm64__)
 #include <arm_neon.h>
 #define SIMD_TYPE float32x4_t
@@ -60,7 +57,6 @@ inline float32x4_t my_divq_f32(float32x4_t a, float32x4_t b) {
     recip = vmulq_f32(recip, vrecpsq_f32(b, recip));
     return vmulq_f32(a, recip);
 }
-
 inline float32x4_t my_floorq_f32(float32x4_t x) {
     int32x4_t i = vcvtq_s32_f32(x);
     float32x4_t trunc = vcvtq_f32_s32(i);
@@ -74,11 +70,13 @@ inline float32x4_t my_floorq_f32(float32x4_t x) {
 #endif
 
 #define WAVETABLE_SIZE 2048
+
 #define MAX_VOICE_POLYPHONY 12
 
 struct Voice {
         bool active = false;
         bool released = false;
+        bool isHeld = false;
         float frequency = 0.0f;
         float phase = 0.0f;
         float phaseIncrement = 0.0f;
@@ -94,17 +92,18 @@ struct Voice {
         float subPhaseIncrement = 0.0f;
         int wavetableType = 0;
         float voiceAge = 0.0f;
-        bool isHeld = false;
-        float releaseStart = 0.0;
+        float releaseStartAmplitude = 0.0f; // Store amplitude at note-off
+        float releaseStartFilterEnv = 0.0f; // Store filter envelope at note-off
         float attack = 0.1f;
         float decay = 0.5f;
         float sustain = 0.8f;
         float release = 0.2f;
-        float attackCurve = 2.0f;    // Shape of attack curve (1.0 = linear, >1 = more exponential)
-        float releaseCurve = 3.0f;   // Shape of release curve
-        float releaseStartAmplitude = 0.0f; // Store amplitude at note-off
-        float timeScale = 0.7f;      // Time scaling factor for envelope stages
+        float attackCurve = 2.0f;  // Shape of attack curve (1.0 = linear, >1 = more exponential)
+        float releaseCurve = 3.0f; // Shape of release curve
+        float timeScale = 0.7f;    // Time scaling factor for envelope stages
         float cutoff = 1000.0f;
+        float resonance = 0.7f;
+        float sampleRate = 48000.0f;
         float fegAttack = 0.1f;
         float fegDecay = 1.0f;
         float fegSustain = 0.5f;
@@ -123,17 +122,10 @@ struct Voice {
         float filterStates[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 #endif
 };
-
-struct Filter {
-        float resonance = 0.7f;
-        float sampleRate = 48000.0f;
-};
-
 class SimdSynthAudioProcessor : public juce::AudioProcessor {
     public:
         SimdSynthAudioProcessor();
         ~SimdSynthAudioProcessor() override;
-
         int getPreferredBufferSize() const;
 
         void prepareToPlay(double sampleRate, int samplesPerBlock) override;
@@ -192,7 +184,6 @@ class SimdSynthAudioProcessor : public juce::AudioProcessor {
         std::atomic<float> *gainParam = nullptr;
         std::atomic<float> *unisonParam = nullptr;
         std::atomic<float> *detuneParam = nullptr;
-
         double currentTime;
 
         alignas(16) float sineTable[WAVETABLE_SIZE];
@@ -203,7 +194,6 @@ class SimdSynthAudioProcessor : public juce::AudioProcessor {
         juce::dsp::LookupTableTransform<float> squareTableTransform;
 
         Voice voices[MAX_VOICE_POLYPHONY];
-        Filter filter;
         std::unique_ptr<juce::dsp::Oversampling<float>> oversampling;
 
         void initWavetables();
@@ -217,7 +207,7 @@ class SimdSynthAudioProcessor : public juce::AudioProcessor {
 #endif
 
         SIMD_TYPE wavetable_lookup_ps(SIMD_TYPE phase, int wavetableType);
-        void applyLadderFilter(Voice *voices, int voiceOffset, SIMD_TYPE input, Filter &filter, SIMD_TYPE &output);
+        void applyLadderFilter(Voice *voices, int voiceOffset, SIMD_TYPE input, SIMD_TYPE &output);
 
         PresetManager presetManager;
         juce::StringArray presetNames;
@@ -226,5 +216,4 @@ class SimdSynthAudioProcessor : public juce::AudioProcessor {
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimdSynthAudioProcessor)
 };
-
 juce::AudioProcessor *createPluginFilter();

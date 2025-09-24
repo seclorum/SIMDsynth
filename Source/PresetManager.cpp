@@ -45,356 +45,255 @@ void PresetManager::createDefaultPresets() {
         manager.writePresetFile(name, juce::var(root.get()));
     };
 
-    // Updated existing presets with new parameters (sustain, release,
-    // fegAmount, gain, unison, detune, oversampling)
+    // Updated existing presets: Removed oversampling, ensured all parameters are set
     makeSimdSynthPatch("Clavichord",
-                       {
-                           {"wavetable", 2.0f}, // Modified: Use square wave (2) for brighter
-                                                // tone
-                           {"attack", 0.01f},
-                           {"decay", 0.3f},
-                           {"sustain", 0.0f},
-                           {"release", 0.05f}, // Added sustain/release
-                           {"cutoff", 4000.0f},
-                           {"resonance", 0.4f},
-                           {"fegAttack", 0.01f},
-                           {"fegDecay", 0.2f},
-                           {"fegSustain", 0.0f},
-                           {"fegRelease", 0.05f},
-                           {"fegAmount", 0.3f}, // Added fegAmount
-                           {"lfoRate", 0.0f},
-                           {"lfoDepth", 0.0f},
-                           {"subTune", -12.0f},
-                           {"subMix", 0.2f},
-                           {"subTrack", 1.0f},
-                           {"gain", 1.0f}, // Added gain
-                           {"unison", 2.0f},
-                           {"detune", 0.02f},     // Added unison/detune for slight chorus
-                           {"oversampling", 0.0f} // Added oversampling (off for performance)
-                       },
+                       {{"wavetable", 2.0f}, // Square wave for bright tone
+                        {"attack", 0.01f},    {"decay", 0.3f},       {"sustain", 0.0f},    {"release", 0.05f},
+                        {"cutoff", 4000.0f},  {"resonance", 0.4f},   {"fegAttack", 0.01f}, {"fegDecay", 0.2f},
+                        {"fegSustain", 0.0f}, {"fegRelease", 0.05f}, {"fegAmount", 0.3f},  {"lfoRate", 0.0f},
+                        {"lfoDepth", 0.0f},   {"subTune", -12.0f},   {"subMix", 0.2f},     {"subTrack", 1.0f},
+                        {"gain", 1.0f},       {"unison", 2.0f},      {"detune", 0.02f}},
                        *this);
 
-    makeSimdSynthPatch("Bass",
-                       {
-                           {"wavetable", 1.0f}, // Modified: Use saw wave for punchy bass
-                           {"attack", 0.01f},     {"decay", 0.5f},      {"sustain", 0.8f},
-                           {"release", 0.2f}, // Added sustain/release
-                           {"cutoff", 800.0f},    {"resonance", 0.6f},  {"fegAttack", 0.01f},
-                           {"fegDecay", 0.4f},    {"fegSustain", 0.2f}, {"fegRelease", 0.1f},
-                           {"fegAmount", 0.5f}, // Added fegAmount
-                           {"lfoRate", 0.0f},     {"lfoDepth", 0.0f},   {"subTune", -24.0f},
-                           {"subMix", 0.8f},      {"subTrack", 1.0f},   {"gain", 1.2f}, // Added gain (slightly boosted)
-                           {"unison", 1.0f},      {"detune", 0.0f}, // Added unison/detune (single voice)
-                           {"oversampling", 0.0f}                   // Added oversampling (off)
-                       },
+    makeSimdSynthPatch("Bass", {{"wavetable", 1.0f}, // Saw wave for punchy bass
+                                {"attack", 0.01f},    {"decay", 0.5f},      {"sustain", 0.8f},    {"release", 0.2f},
+                                {"cutoff", 800.0f},   {"resonance", 0.6f},  {"fegAttack", 0.01f}, {"fegDecay", 0.4f},
+                                {"fegSustain", 0.2f}, {"fegRelease", 0.1f}, {"fegAmount", 0.5f},  {"lfoRate", 0.0f},
+                                {"lfoDepth", 0.0f},   {"subTune", -24.0f},  {"subMix", 0.8f},     {"subTrack", 1.0f},
+                                {"gain", 1.2f},       {"unison", 1.0f},     {"detune", 0.0f}},
                        *this);
 
-    makeSimdSynthPatch(
-        "Pad",
-        {
-            {"wavetable", 0.0f}, // Modified: Use sine wave for smooth pad
-            {"attack", 1.5f},      {"decay", 3.0f},     {"sustain", 0.9f},   {"release", 2.0f}, // Added sustain/release
-            {"cutoff", 2000.0f},   {"resonance", 0.3f}, {"fegAttack", 1.0f}, {"fegDecay", 2.0f}, {"fegSustain", 0.8f},
-            {"fegRelease", 1.5f},  {"fegAmount", 0.4f}, // Added fegAmount
-            {"lfoRate", 0.5f},     {"lfoDepth", 0.05f}, {"subTune", -12.0f}, {"subMix", 0.4f},   {"subTrack", 1.0f},
-            {"gain", 0.8f},                           // Added gain (softer)
-            {"unison", 3.0f},      {"detune", 0.03f}, // Added unison/detune for lush sound
-            {"oversampling", 1.0f}                    // Added oversampling (on for quality)
-        },
-        *this);
+    makeSimdSynthPatch("Pad", {{"wavetable", 0.0f}, // Sine wave for smooth pad
+                               {"attack", 1.5f},     {"decay", 3.0f},      {"sustain", 0.9f},   {"release", 2.0f},
+                               {"cutoff", 2000.0f},  {"resonance", 0.3f},  {"fegAttack", 1.0f}, {"fegDecay", 2.0f},
+                               {"fegSustain", 0.8f}, {"fegRelease", 1.5f}, {"fegAmount", 0.4f}, {"lfoRate", 0.5f},
+                               {"lfoDepth", 0.05f},  {"subTune", -12.0f},  {"subMix", 0.4f},    {"subTrack", 1.0f},
+                               {"gain", 0.8f},       {"unison", 3.0f},     {"detune", 0.03f}},
+                       *this);
 
-    makeSimdSynthPatch(
-        "Strings1",
-        {
-            {"wavetable", 1.0f}, // Modified: Saw wave for string-like texture
-            {"attack", 1.0f},      {"decay", 2.0f},     {"sustain", 0.9f},   {"release", 1.0f}, // Added sustain/release
-            {"cutoff", 1500.0f},   {"resonance", 0.2f}, {"fegAttack", 0.8f}, {"fegDecay", 1.5f}, {"fegSustain", 0.9f},
-            {"fegRelease", 1.0f},  {"fegAmount", 0.3f}, // Added fegAmount
-            {"lfoRate", 0.3f},     {"lfoDepth", 0.03f}, {"subTune", -12.0f}, {"subMix", 0.3f},   {"subTrack", 1.0f},
-            {"gain", 0.9f},                           // Added gain
-            {"unison", 2.0f},      {"detune", 0.02f}, // Added unison/detune for warmth
-            {"oversampling", 1.0f}                    // Added oversampling (on)
-        },
-        *this);
+    makeSimdSynthPatch("Strings1", {{"wavetable", 1.0f}, // Saw wave for string-like texture
+                                    {"attack", 1.0f},     {"decay", 2.0f},      {"sustain", 0.9f},   {"release", 1.0f},
+                                    {"cutoff", 1500.0f},  {"resonance", 0.2f},  {"fegAttack", 0.8f}, {"fegDecay", 1.5f},
+                                    {"fegSustain", 0.9f}, {"fegRelease", 1.0f}, {"fegAmount", 0.3f}, {"lfoRate", 0.3f},
+                                    {"lfoDepth", 0.03f},  {"subTune", -12.0f},  {"subMix", 0.3f},    {"subTrack", 1.0f},
+                                    {"gain", 0.9f},       {"unison", 2.0f},     {"detune", 0.02f}},
+                       *this);
 
-    makeSimdSynthPatch(
-        "Strings2",
-        {
-            {"wavetable", 2.0f}, // Modified: Square wave for brighter strings
-            {"attack", 0.8f},      {"decay", 1.5f},     {"sustain", 0.8f},   {"release", 0.8f}, // Added sustain/release
-            {"cutoff", 3000.0f},   {"resonance", 0.5f}, {"fegAttack", 0.6f}, {"fegDecay", 1.0f}, {"fegSustain", 0.7f},
-            {"fegRelease", 0.8f},  {"fegAmount", 0.4f}, // Added fegAmount
-            {"lfoRate", 0.4f},     {"lfoDepth", 0.04f}, {"subTune", -12.0f}, {"subMix", 0.2f},   {"subTrack", 1.0f},
-            {"gain", 0.9f},                            // Added gain
-            {"unison", 2.0f},      {"detune", 0.025f}, // Added unison/detune
-            {"oversampling", 1.0f}                     // Added oversampling (on)
-        },
-        *this);
+    makeSimdSynthPatch("Strings2", {{"wavetable", 2.0f}, // Square wave for brighter strings
+                                    {"attack", 0.8f},     {"decay", 1.5f},      {"sustain", 0.8f},   {"release", 0.8f},
+                                    {"cutoff", 3000.0f},  {"resonance", 0.5f},  {"fegAttack", 0.6f}, {"fegDecay", 1.0f},
+                                    {"fegSustain", 0.7f}, {"fegRelease", 0.8f}, {"fegAmount", 0.4f}, {"lfoRate", 0.4f},
+                                    {"lfoDepth", 0.04f},  {"subTune", -12.0f},  {"subMix", 0.2f},    {"subTrack", 1.0f},
+                                    {"gain", 0.9f},       {"unison", 2.0f},     {"detune", 0.025f}},
+                       *this);
 
     makeSimdSynthPatch("SciFiSweep",
-                       {
-                           {"wavetable", 1.0f},   {"attack", 0.2f},     {"decay", 1.0f},     {"sustain", 0.5f},
-                           {"release", 0.3f}, // Added sustain/release
-                           {"cutoff", 5000.0f},   {"resonance", 0.8f},  {"fegAttack", 0.1f}, {"fegDecay", 0.5f},
-                           {"fegSustain", 0.3f},  {"fegRelease", 0.3f}, {"fegAmount", 0.7f}, // Added fegAmount
-                           {"lfoRate", 5.0f},     {"lfoDepth", 0.08f},  {"subTune", -24.0f}, {"subMix", 0.5f},
-                           {"subTrack", 0.0f},    {"gain", 1.0f},   // Added gain
-                           {"unison", 1.0f},      {"detune", 0.0f}, // Added unison/detune (single voice)
-                           {"oversampling", 0.0f}                   // Added oversampling (off)
-                       },
+                       {{"wavetable", 1.0f}, {"attack", 0.2f},     {"decay", 1.0f},      {"sustain", 0.5f},
+                        {"release", 0.3f},   {"cutoff", 5000.0f},  {"resonance", 0.8f},  {"fegAttack", 0.1f},
+                        {"fegDecay", 0.5f},  {"fegSustain", 0.3f}, {"fegRelease", 0.3f}, {"fegAmount", 0.7f},
+                        {"lfoRate", 5.0f},   {"lfoDepth", 0.08f},  {"subTune", -24.0f},  {"subMix", 0.5f},
+                        {"subTrack", 0.0f},  {"gain", 1.0f},       {"unison", 1.0f},     {"detune", 0.0f}},
                        *this);
 
-    makeSimdSynthPatch(
-        "MetallicDrone",
-        {
-            {"wavetable", 2.0f}, // Modified: Square wave for metallic timbre
-            {"attack", 1.0f},      {"decay", 4.0f},     {"sustain", 1.0f},   {"release", 1.5f}, // Added sustain/release
-            {"cutoff", 1000.0f},   {"resonance", 0.9f}, {"fegAttack", 1.0f}, {"fegDecay", 3.0f}, {"fegSustain", 0.8f},
-            {"fegRelease", 1.5f},  {"fegAmount", 0.6f}, // Added fegAmount
-            {"lfoRate", 0.2f},     {"lfoDepth", 0.06f}, {"subTune", -24.0f}, {"subMix", 0.6f},   {"subTrack", 0.0f},
-            {"gain", 0.8f},                           // Added gain
-            {"unison", 3.0f},      {"detune", 0.04f}, // Added unison/detune for depth
-            {"oversampling", 1.0f}                    // Added oversampling (on)
-        },
-        *this);
+    makeSimdSynthPatch("MetallicDrone",
+                       {{"wavetable", 2.0f}, {"attack", 1.0f},     {"decay", 4.0f},      {"sustain", 1.0f},
+                        {"release", 1.5f},   {"cutoff", 1000.0f},  {"resonance", 0.9f},  {"fegAttack", 1.0f},
+                        {"fegDecay", 3.0f},  {"fegSustain", 0.8f}, {"fegRelease", 1.5f}, {"fegAmount", 0.6f},
+                        {"lfoRate", 0.2f},   {"lfoDepth", 0.06f},  {"subTune", -24.0f},  {"subMix", 0.6f},
+                        {"subTrack", 0.0f},  {"gain", 0.8f},       {"unison", 3.0f},     {"detune", 0.04f}},
+                       *this);
 
     makeSimdSynthPatch("GlitchPulse",
-                       {
-                           {"wavetable", 2.0f}, // Modified: Square wave for sharp pulse
-                           {"attack", 0.01f},     {"decay", 0.2f},      {"sustain", 0.0f},
-                           {"release", 0.05f}, // Added sustain/release
-                           {"cutoff", 6000.0f},   {"resonance", 0.7f},  {"fegAttack", 0.01f},
-                           {"fegDecay", 0.1f},    {"fegSustain", 0.0f}, {"fegRelease", 0.05f},
-                           {"fegAmount", 0.5f}, // Added fegAmount
-                           {"lfoRate", 10.0f},    {"lfoDepth", 0.1f},   {"subTune", -12.0f},
-                           {"subMix", 0.3f},      {"subTrack", 1.0f},   {"gain", 1.0f}, // Added gain
-                           {"unison", 1.0f},      {"detune", 0.0f}, // Added unison/detune (single voice)
-                           {"oversampling", 0.0f}                   // Added oversampling (off)
-                       },
+                       {{"wavetable", 2.0f}, {"attack", 0.01f},    {"decay", 0.2f},       {"sustain", 0.0f},
+                        {"release", 0.05f},  {"cutoff", 6000.0f},  {"resonance", 0.7f},   {"fegAttack", 0.01f},
+                        {"fegDecay", 0.1f},  {"fegSustain", 0.0f}, {"fegRelease", 0.05f}, {"fegAmount", 0.5f},
+                        {"lfoRate", 10.0f},  {"lfoDepth", 0.1f},   {"subTune", -12.0f},   {"subMix", 0.3f},
+                        {"subTrack", 1.0f},  {"gain", 1.0f},       {"unison", 1.0f},      {"detune", 0.0f}},
                        *this);
 
-    makeSimdSynthPatch(
-        "SpaceAmbience",
-        {
-            {"wavetable", 0.0f}, // Modified: Sine wave for ambient texture
-            {"attack", 2.0f},      {"decay", 5.0f},     {"sustain", 1.0f},   {"release", 2.0f}, // Added sustain/release
-            {"cutoff", 800.0f},    {"resonance", 0.3f}, {"fegAttack", 1.5f}, {"fegDecay", 4.0f}, {"fegSustain", 0.9f},
-            {"fegRelease", 2.0f},  {"fegAmount", 0.2f}, // Added fegAmount
-            {"lfoRate", 0.1f},     {"lfoDepth", 0.07f}, {"subTune", -24.0f}, {"subMix", 0.5f},   {"subTrack", 0.0f},
-            {"gain", 0.7f},                           // Added gain
-            {"unison", 4.0f},      {"detune", 0.05f}, // Added unison/detune for lush sound
-            {"oversampling", 1.0f}                    // Added oversampling (on)
-        },
-        *this);
+    makeSimdSynthPatch("SpaceAmbience",
+                       {{"wavetable", 0.0f}, {"attack", 2.0f},     {"decay", 5.0f},      {"sustain", 1.0f},
+                        {"release", 2.0f},   {"cutoff", 800.0f},   {"resonance", 0.3f},  {"fegAttack", 1.5f},
+                        {"fegDecay", 4.0f},  {"fegSustain", 0.9f}, {"fegRelease", 2.0f}, {"fegAmount", 0.2f},
+                        {"lfoRate", 0.1f},   {"lfoDepth", 0.07f},  {"subTune", -24.0f},  {"subMix", 0.5f},
+                        {"subTrack", 0.0f},  {"gain", 0.7f},       {"unison", 4.0f},     {"detune", 0.05f}},
+                       *this);
 
     makeSimdSynthPatch("LaserZap",
-                       {
-                           {"wavetable", 1.0f},   {"attack", 0.01f},    {"decay", 0.3f},      {"sustain", 0.0f},
-                           {"release", 0.1f}, // Added sustain/release
-                           {"cutoff", 7000.0f},   {"resonance", 0.8f},  {"fegAttack", 0.01f}, {"fegDecay", 0.2f},
-                           {"fegSustain", 0.0f},  {"fegRelease", 0.1f}, {"fegAmount", 0.6f}, // Added fegAmount
-                           {"lfoRate", 15.0f},    {"lfoDepth", 0.09f},  {"subTune", -12.0f},  {"subMix", 0.2f},
-                           {"subTrack", 1.0f},    {"gain", 1.0f},   // Added gain
-                           {"unison", 1.0f},      {"detune", 0.0f}, // Added unison/detune (single voice)
-                           {"oversampling", 0.0f}                   // Added oversampling (off)
-                       },
+                       {{"wavetable", 1.0f}, {"attack", 0.01f},    {"decay", 0.3f},      {"sustain", 0.0f},
+                        {"release", 0.1f},   {"cutoff", 7000.0f},  {"resonance", 0.8f},  {"fegAttack", 0.01f},
+                        {"fegDecay", 0.2f},  {"fegSustain", 0.0f}, {"fegRelease", 0.1f}, {"fegAmount", 0.6f},
+                        {"lfoRate", 15.0f},  {"lfoDepth", 0.09f},  {"subTune", -12.0f},  {"subMix", 0.2f},
+                        {"subTrack", 1.0f},  {"gain", 1.0f},       {"unison", 1.0f},     {"detune", 0.0f}},
                        *this);
 
-    // New preset: Organ (bright, sustained tone with unison for richness)
-    makeSimdSynthPatch("Organ",
-                       {
-                           {"wavetable", 2.0f}, // Square wave for classic organ tone
-                           {"attack", 0.02f},     {"decay", 0.1f},      {"sustain", 1.0f},
-                           {"release", 0.05f}, // Fast attack, full sustain
-                           {"cutoff", 5000.0f},   {"resonance", 0.3f},  {"fegAttack", 0.02f},
-                           {"fegDecay", 0.1f},    {"fegSustain", 0.8f}, {"fegRelease", 0.05f},
-                           {"fegAmount", 0.2f},   {"lfoRate", 6.0f},    {"lfoDepth", 0.05f}, // Vibrato-like LFO
-                           {"subTune", -12.0f},   {"subMix", 0.3f},     {"subTrack", 1.0f},
-                           {"gain", 0.9f},        {"unison", 3.0f},     {"detune", 0.03f}, // Unison for fullness
-                           {"oversampling", 1.0f}                                          // On for clarity
-                       },
+    // Existing presets from previous addition
+    makeSimdSynthPatch("Organ", {{"wavetable", 2.0f}, {"attack", 0.02f},    {"decay", 0.1f},       {"sustain", 1.0f},
+                                 {"release", 0.05f},  {"cutoff", 5000.0f},  {"resonance", 0.3f},   {"fegAttack", 0.02f},
+                                 {"fegDecay", 0.1f},  {"fegSustain", 0.8f}, {"fegRelease", 0.05f}, {"fegAmount", 0.2f},
+                                 {"lfoRate", 6.0f},   {"lfoDepth", 0.05f},  {"subTune", -12.0f},   {"subMix", 0.3f},
+                                 {"subTrack", 1.0f},  {"gain", 0.9f},       {"unison", 3.0f},      {"detune", 0.03f}},
                        *this);
 
-    // New preset: Piano-like (bright attack, quick decay, square wave)
-    makeSimdSynthPatch("Piano",
-                       {
-                           {"wavetable", 2.0f}, // Square wave for piano-like brightness
-                           {"attack", 0.01f},     {"decay", 0.8f},      {"sustain", 0.2f},
-                           {"release", 0.3f}, // Piano-like envelope
-                           {"cutoff", 3000.0f},   {"resonance", 0.4f},  {"fegAttack", 0.01f},
-                           {"fegDecay", 0.5f},    {"fegSustain", 0.3f}, {"fegRelease", 0.2f},
-                           {"fegAmount", 0.4f},   {"lfoRate", 0.0f},    {"lfoDepth", 0.0f}, // No LFO for clean sound
-                           {"subTune", -12.0f},   {"subMix", 0.2f},     {"subTrack", 1.0f},
-                           {"gain", 1.1f},        {"unison", 2.0f},     {"detune", 0.02f}, // Slight unison for richness
-                           {"oversampling", 0.0f}                                          // Off for performance
-                       },
+    makeSimdSynthPatch("Piano", {{"wavetable", 2.0f}, {"attack", 0.01f},    {"decay", 0.8f},      {"sustain", 0.2f},
+                                 {"release", 0.3f},   {"cutoff", 3000.0f},  {"resonance", 0.4f},  {"fegAttack", 0.01f},
+                                 {"fegDecay", 0.5f},  {"fegSustain", 0.3f}, {"fegRelease", 0.2f}, {"fegAmount", 0.4f},
+                                 {"lfoRate", 0.0f},   {"lfoDepth", 0.0f},   {"subTune", -12.0f},  {"subMix", 0.2f},
+                                 {"subTrack", 1.0f},  {"gain", 1.1f},       {"unison", 2.0f},     {"detune", 0.02f}},
                        *this);
 
-    // New preset: Percussive Drum (short, punchy sound with saw wave)
-    makeSimdSynthPatch("Drum",
-                       {
-                           {"wavetable", 0.0f}, // Sine wave for propery boomph
-                           {"attack", 0.001f},    {"decay", 0.1f},      {"sustain", 0.0f},
-                           {"release", 0.05f}, // Percussive envelope
-                           {"cutoff", 8000.0f},   {"resonance", 0.6f},  {"fegAttack", 0.001f},
-                           {"fegDecay", 0.05f},   {"fegSustain", 0.0f}, {"fegRelease", 0.05f},
-                           {"fegAmount", 0.8f},                       // Strong filter sweep
-                           {"lfoRate", 0.0f},     {"lfoDepth", 0.0f}, // No LFO
-                           {"subTune", -24.0f},   {"subMix", 0.5f},     {"subTrack", 1.0f},
-                           {"gain", 1.3f},        {"unison", 1.0f},     {"detune", 0.0f}, // Single voice for clarity
-                           {"oversampling", 0.0f}                                         // Off for performance
-                       },
+    makeSimdSynthPatch("Drum", {{"wavetable", 0.0f}, {"attack", 0.001f},   {"decay", 0.1f},       {"sustain", 0.0f},
+                                {"release", 0.05f},  {"cutoff", 8000.0f},  {"resonance", 0.6f},   {"fegAttack", 0.001f},
+                                {"fegDecay", 0.05f}, {"fegSustain", 0.0f}, {"fegRelease", 0.05f}, {"fegAmount", 0.8f},
+                                {"lfoRate", 0.0f},   {"lfoDepth", 0.0f},   {"subTune", -24.0f},   {"subMix", 0.5f},
+                                {"subTrack", 1.0f},  {"gain", 1.3f},       {"unison", 1.0f},      {"detune", 0.0f}},
                        *this);
 
-    // New preset: Flute (soft sine wave with breathy attack)
-    makeSimdSynthPatch(
-        "Flute",
-        {
-            {"wavetable", 0.0f}, // Sine wave for pure, airy tone
-            {"attack", 0.1f},      {"decay", 0.5f},      {"sustain", 0.9f},   {"release", 0.2f}, // Smooth envelope
-            {"cutoff", 2000.0f},   {"resonance", 0.2f},  {"fegAttack", 0.1f}, {"fegDecay", 0.3f},
-            {"fegSustain", 0.7f},  {"fegRelease", 0.2f}, {"fegAmount", 0.1f}, // Subtle filter mod
-            {"lfoRate", 4.0f},     {"lfoDepth", 0.03f},                       // Gentle vibrato
-            {"subTune", -12.0f},   {"subMix", 0.1f},     {"subTrack", 1.0f},  {"gain", 0.8f},
-            {"unison", 1.0f},      {"detune", 0.0f}, // Single voice for purity
-            {"oversampling", 1.0f}                   // On for clean highs
-        },
-        *this);
+    makeSimdSynthPatch("Flute", {{"wavetable", 0.0f}, {"attack", 0.1f},     {"decay", 0.5f},      {"sustain", 0.9f},
+                                 {"release", 0.2f},   {"cutoff", 2000.0f},  {"resonance", 0.2f},  {"fegAttack", 0.1f},
+                                 {"fegDecay", 0.3f},  {"fegSustain", 0.7f}, {"fegRelease", 0.2f}, {"fegAmount", 0.1f},
+                                 {"lfoRate", 4.0f},   {"lfoDepth", 0.03f},  {"subTune", -12.0f},  {"subMix", 0.1f},
+                                 {"subTrack", 1.0f},  {"gain", 0.8f},       {"unison", 1.0f},     {"detune", 0.0f}},
+                       *this);
 
-    // New preset: Funky Bass (punchy saw with strong filter and unison)
-    makeSimdSynthPatch(
-        "FunkyBass",
-        {
-            {"wavetable", 1.0f}, // Saw wave for aggressive bass
-            {"attack", 0.01f},     {"decay", 0.3f},      {"sustain", 0.7f},    {"release", 0.1f}, // Punchy envelope
-            {"cutoff", 1200.0f},   {"resonance", 0.7f},  {"fegAttack", 0.01f}, {"fegDecay", 0.2f},
-            {"fegSustain", 0.4f},  {"fegRelease", 0.1f}, {"fegAmount", 0.6f}, // Strong filter mod
-            {"lfoRate", 2.0f},     {"lfoDepth", 0.06f},                       // Subtle funk modulation
-            {"subTune", -24.0f},   {"subMix", 0.7f},     {"subTrack", 1.0f},   {"gain", 1.2f},
-            {"unison", 2.0f},      {"detune", 0.03f}, // Unison for thickness
-            {"oversampling", 0.0f}                    // Off for performance
-        },
-        *this);
+    makeSimdSynthPatch("FunkyBass",
+                       {{"wavetable", 1.0f}, {"attack", 0.01f},    {"decay", 0.3f},      {"sustain", 0.7f},
+                        {"release", 0.1f},   {"cutoff", 1200.0f},  {"resonance", 0.7f},  {"fegAttack", 0.01f},
+                        {"fegDecay", 0.2f},  {"fegSustain", 0.4f}, {"fegRelease", 0.1f}, {"fegAmount", 0.6f},
+                        {"lfoRate", 2.0f},   {"lfoDepth", 0.06f},  {"subTune", -24.0f},  {"subMix", 0.7f},
+                        {"subTrack", 1.0f},  {"gain", 1.2f},       {"unison", 2.0f},     {"detune", 0.03f}},
+                       *this);
 
-    // 303 Bass: Emulates a classic acid bass sound with a resonant filter sweep
-    makeSimdSynthPatch(
-        "303bass",
-        {{"wavetable", 1.0f}, // Saw wave for punchy bass
-         {"attack", 0.01f},     {"decay", 0.5f},     {"sustain", 0.7f},    {"release", 0.1f}, // Short, snappy envelope
-         {"cutoff", 800.0f},    {"resonance", 0.9f}, {"fegAttack", 0.01f}, {"fegDecay", 0.3f}, {"fegSustain", 0.5f},
-         {"fegRelease", 0.1f},  {"fegAmount", 0.8f}, {"lfoRate", 0.0f},    {"lfoDepth", 0.0f}, // No LFO
-         {"subTune", -12.0f},   {"subMix", 0.3f},    {"subTrack", 1.0f},   {"gain", 1.0f},     {"unison", 1.0f},
-         {"detune", 0.0f}, // Mono bass
-         {"oversampling", 1.0f}},
-        *this);
+    makeSimdSynthPatch("303bass",
+                       {{"wavetable", 1.0f}, {"attack", 0.01f},    {"decay", 0.5f},      {"sustain", 0.7f},
+                        {"release", 0.1f},   {"cutoff", 800.0f},   {"resonance", 0.9f},  {"fegAttack", 0.01f},
+                        {"fegDecay", 0.3f},  {"fegSustain", 0.5f}, {"fegRelease", 0.1f}, {"fegAmount", 0.8f},
+                        {"lfoRate", 0.0f},   {"lfoDepth", 0.0f},   {"subTune", -12.0f},  {"subMix", 0.3f},
+                        {"subTrack", 1.0f},  {"gain", 1.0f},       {"unison", 1.0f},     {"detune", 0.0f}},
+                       *this);
 
-    // Thin Pads: Light, airy pad with slow attack and subtle LFO
-    makeSimdSynthPatch(
-        "thinPads",
-        {{"wavetable", 0.0f}, // Sine wave for smooth, warm pads
-         {"attack", 2.0f},      {"decay", 2.0f},     {"sustain", 0.8f},   {"release", 2.5f}, // Long, evolving envelope
-         {"cutoff", 4000.0f},   {"resonance", 0.3f}, {"fegAttack", 2.0f}, {"fegDecay", 2.0f}, {"fegSustain", 0.7f},
-         {"fegRelease", 2.0f},  {"fegAmount", 0.3f}, {"lfoRate", 0.5f},   {"lfoDepth", 0.1f}, // Subtle vibrato
-         {"subTune", -12.0f},   {"subMix", 0.1f},    {"subTrack", 1.0f},  {"gain", 0.8f},     {"unison", 3.0f},
-         {"detune", 0.03f}, // Wide, airy spread
-         {"oversampling", 1.0f}},
-        *this);
+    makeSimdSynthPatch("thinPads",
+                       {{"wavetable", 0.0f}, {"attack", 2.0f},     {"decay", 2.0f},      {"sustain", 0.8f},
+                        {"release", 2.5f},   {"cutoff", 4000.0f},  {"resonance", 0.3f},  {"fegAttack", 2.0f},
+                        {"fegDecay", 2.0f},  {"fegSustain", 0.7f}, {"fegRelease", 2.0f}, {"fegAmount", 0.3f},
+                        {"lfoRate", 0.5f},   {"lfoDepth", 0.1f},   {"subTune", -12.0f},  {"subMix", 0.1f},
+                        {"subTrack", 1.0f},  {"gain", 0.8f},       {"unison", 3.0f},     {"detune", 0.03f}},
+                       *this);
 
-    // Fat Pads: Thick, lush pad with heavy unison and slow filter sweep
-    makeSimdSynthPatch(
-        "fatPads",
-        {{"wavetable", 1.0f}, // Saw wave for rich texture
-         {"attack", 3.0f},      {"decay", 3.0f},     {"sustain", 0.9f},   {"release", 4.0f}, // Very long envelope
-         {"cutoff", 2000.0f},   {"resonance", 0.5f}, {"fegAttack", 3.0f}, {"fegDecay", 3.0f},  {"fegSustain", 0.8f},
-         {"fegRelease", 3.5f},  {"fegAmount", 0.6f}, {"lfoRate", 0.3f},   {"lfoDepth", 0.15f}, // Gentle modulation
-         {"subTune", -24.0f},   {"subMix", 0.4f},    {"subTrack", 1.0f},  {"gain", 0.9f},      {"unison", 5.0f},
-         {"detune", 0.05f}, // Thick unison
-         {"oversampling", 1.0f}},
-        *this);
+    makeSimdSynthPatch("fatPads", {{"wavetable", 1.0f}, {"attack", 3.0f},     {"decay", 3.0f},      {"sustain", 0.9f},
+                                   {"release", 4.0f},   {"cutoff", 2000.0f},  {"resonance", 0.5f},  {"fegAttack", 3.0f},
+                                   {"fegDecay", 3.0f},  {"fegSustain", 0.8f}, {"fegRelease", 3.5f}, {"fegAmount", 0.6f},
+                                   {"lfoRate", 0.3f},   {"lfoDepth", 0.15f},  {"subTune", -24.0f},  {"subMix", 0.4f},
+                                   {"subTrack", 1.0f},  {"gain", 0.9f},       {"unison", 5.0f},     {"detune", 0.05f}},
+                       *this);
 
-    // Brass Stab: Punchy, short brass-like sound with sharp attack
-    makeSimdSynthPatch(
-        "BrassStab",
-        {{"wavetable", 2.0f}, // Square wave for brassy tone
-         {"attack", 0.01f},     {"decay", 0.4f},     {"sustain", 0.3f},    {"release", 0.2f}, // Quick envelope for stab
-         {"cutoff", 5000.0f},   {"resonance", 0.6f}, {"fegAttack", 0.01f}, {"fegDecay", 0.3f}, {"fegSustain", 0.4f},
-         {"fegRelease", 0.15f}, {"fegAmount", 0.5f}, {"lfoRate", 0.0f},    {"lfoDepth", 0.0f}, // No LFO
-         {"subTune", -12.0f},   {"subMix", 0.2f},    {"subTrack", 1.0f},   {"gain", 1.2f},     {"unison", 3.0f},
-         {"detune", 0.02f}, // Slight detune for richness
-         {"oversampling", 1.0f}},
-        *this);
+    makeSimdSynthPatch("BrassStab",
+                       {{"wavetable", 2.0f}, {"attack", 0.01f},    {"decay", 0.4f},       {"sustain", 0.3f},
+                        {"release", 0.2f},   {"cutoff", 5000.0f},  {"resonance", 0.6f},   {"fegAttack", 0.01f},
+                        {"fegDecay", 0.3f},  {"fegSustain", 0.4f}, {"fegRelease", 0.15f}, {"fegAmount", 0.5f},
+                        {"lfoRate", 0.0f},   {"lfoDepth", 0.0f},   {"subTune", -12.0f},   {"subMix", 0.2f},
+                        {"subTrack", 1.0f},  {"gain", 1.2f},       {"unison", 3.0f},      {"detune", 0.02f}},
+                       *this);
 
-    // Electro Piano: Bright, bell-like electric piano with medium decay
-    makeSimdSynthPatch(
-        "electroPiano",
-        {{"wavetable", 0.0f}, // Sine wave for bell-like quality
-         {"attack", 0.02f},     {"decay", 1.0f},     {"sustain", 0.3f},    {"release", 0.4f}, // Medium envelope
-         {"cutoff", 3500.0f},   {"resonance", 0.4f}, {"fegAttack", 0.02f}, {"fegDecay", 0.7f}, {"fegSustain", 0.3f},
-         {"fegRelease", 0.3f},  {"fegAmount", 0.3f}, {"lfoRate", 0.0f},    {"lfoDepth", 0.0f}, // No LFO
-         {"subTune", -12.0f},   {"subMix", 0.15f},   {"subTrack", 1.0f},   {"gain", 1.0f},     {"unison", 2.0f},
-         {"detune", 0.015f}, // Subtle detune
-         {"oversampling", 0.0f}},
-        *this);
+    makeSimdSynthPatch("electroPiano",
+                       {{"wavetable", 0.0f}, {"attack", 0.02f},    {"decay", 1.0f},      {"sustain", 0.3f},
+                        {"release", 0.4f},   {"cutoff", 3500.0f},  {"resonance", 0.4f},  {"fegAttack", 0.02f},
+                        {"fegDecay", 0.7f},  {"fegSustain", 0.3f}, {"fegRelease", 0.3f}, {"fegAmount", 0.3f},
+                        {"lfoRate", 0.0f},   {"lfoDepth", 0.0f},   {"subTune", -12.0f},  {"subMix", 0.15f},
+                        {"subTrack", 1.0f},  {"gain", 1.0f},       {"unison", 2.0f},     {"detune", 0.015f}},
+                       *this);
 
-    // Moroder Sweep: Classic arpeggiated synth sweep with slow filter modulation
-    makeSimdSynthPatch(
-        "MoroderSweep",
-        {{"wavetable", 1.0f}, // Saw wave for classic synth sound
-         {"attack", 0.05f},     {"decay", 1.5f},     {"sustain", 0.6f},   {"release", 1.0f}, // Smooth envelope
-         {"cutoff", 1000.0f},   {"resonance", 0.8f}, {"fegAttack", 2.0f}, {"fegDecay", 2.0f}, {"fegSustain", 0.5f},
-         {"fegRelease", 1.5f},  {"fegAmount", 0.7f}, {"lfoRate", 0.2f},   {"lfoDepth", 0.2f}, // Slow sweep
-         {"subTune", -12.0f},   {"subMix", 0.3f},    {"subTrack", 1.0f},  {"gain", 0.9f},     {"unison", 2.0f},
-         {"detune", 0.03f}, // Light detune
-         {"oversampling", 1.0f}},
-        *this);
+    makeSimdSynthPatch("MoroderSweep",
+                       {{"wavetable", 1.0f}, {"attack", 0.05f},    {"decay", 1.5f},      {"sustain", 0.6f},
+                        {"release", 1.0f},   {"cutoff", 1000.0f},  {"resonance", 0.8f},  {"fegAttack", 2.0f},
+                        {"fegDecay", 2.0f},  {"fegSustain", 0.5f}, {"fegRelease", 1.5f}, {"fegAmount", 0.7f},
+                        {"lfoRate", 0.2f},   {"lfoDepth", 0.2f},   {"subTune", -12.0f},  {"subMix", 0.3f},
+                        {"subTrack", 1.0f},  {"gain", 0.9f},       {"unison", 2.0f},     {"detune", 0.03f}},
+                       *this);
 
-    // Long Reso FX: Resonant, evolving effect sound with long release
     makeSimdSynthPatch("longResoFX",
-                       {{"wavetable", 2.0f}, // Square wave for sharp resonance
-                        {"attack", 1.0f},      {"decay", 2.0f},      {"sustain", 0.7f},
-                        {"release", 5.0f}, // Very long release for FX
-                        {"cutoff", 1500.0f},   {"resonance", 0.9f},  {"fegAttack", 1.5f},
-                        {"fegDecay", 2.0f},    {"fegSustain", 0.6f}, {"fegRelease", 4.0f},
-                        {"fegAmount", 0.8f},   {"lfoRate", 0.1f},    {"lfoDepth", 0.25f}, // Slow, dramatic modulation
-                        {"subTune", -24.0f},   {"subMix", 0.4f},     {"subTrack", 1.0f},
-                        {"gain", 0.8f},        {"unison", 4.0f},     {"detune", 0.04f}, // Wide effect
-                        {"oversampling", 1.0f}},
+                       {{"wavetable", 2.0f}, {"attack", 1.0f},     {"decay", 2.0f},      {"sustain", 0.7f},
+                        {"release", 5.0f},   {"cutoff", 1500.0f},  {"resonance", 0.9f},  {"fegAttack", 1.5f},
+                        {"fegDecay", 2.0f},  {"fegSustain", 0.6f}, {"fegRelease", 4.0f}, {"fegAmount", 0.8f},
+                        {"lfoRate", 0.1f},   {"lfoDepth", 0.25f},  {"subTune", -24.0f},  {"subMix", 0.4f},
+                        {"subTrack", 1.0f},  {"gain", 0.8f},       {"unison", 4.0f},     {"detune", 0.04f}},
                        *this);
 
-    // Robot Fart: Quirky, modulated bass sound with heavy LFO
-    makeSimdSynthPatch(
-        "robotFart",
-        {{"wavetable", 1.0f}, // Saw wave for gritty texture
-         {"attack", 0.01f},     {"decay", 0.3f},     {"sustain", 0.2f},    {"release", 0.2f}, // Short, punchy envelope
-         {"cutoff", 600.0f},    {"resonance", 0.7f}, {"fegAttack", 0.01f}, {"fegDecay", 0.2f}, {"fegSustain", 0.3f},
-         {"fegRelease", 0.15f}, {"fegAmount", 0.6f}, {"lfoRate", 5.0f},    {"lfoDepth", 0.3f}, // Fast, wobbly LFO
-         {"subTune", -12.0f},   {"subMix", 0.5f},    {"subTrack", 1.0f},   {"gain", 1.0f},     {"unison", 1.0f},
-         {"detune", 0.0f}, // Mono for focus
-         {"oversampling", 1.0f}},
-        *this);
+    makeSimdSynthPatch("robotFart",
+                       {{"wavetable", 1.0f}, {"attack", 0.01f},    {"decay", 0.3f},       {"sustain", 0.2f},
+                        {"release", 0.2f},   {"cutoff", 600.0f},   {"resonance", 0.7f},   {"fegAttack", 0.01f},
+                        {"fegDecay", 0.2f},  {"fegSustain", 0.3f}, {"fegRelease", 0.15f}, {"fegAmount", 0.6f},
+                        {"lfoRate", 5.0f},   {"lfoDepth", 0.3f},   {"subTune", -12.0f},   {"subMix", 0.5f},
+                        {"subTrack", 1.0f},  {"gain", 1.0f},       {"unison", 1.0f},      {"detune", 0.0f}},
+                       *this);
 
-    // Jelly Band: Bouncy, elastic sound with moderate LFO and unison
-    makeSimdSynthPatch(
-        "jellyBand",
-        {{"wavetable", 0.0f}, // Sine wave for smooth, rubbery tone
-         {"attack", 0.1f},      {"decay", 0.7f},     {"sustain", 0.5f},   {"release", 0.6f}, // Bouncy envelope
-         {"cutoff", 2500.0f},   {"resonance", 0.5f}, {"fegAttack", 0.1f}, {"fegDecay", 0.6f}, {"fegSustain", 0.4f},
-         {"fegRelease", 0.5f},  {"fegAmount", 0.4f}, {"lfoRate", 2.0f},   {"lfoDepth", 0.2f}, // Bouncing modulation
-         {"subTune", -12.0f},   {"subMix", 0.3f},    {"subTrack", 1.0f},  {"gain", 1.0f},     {"unison", 3.0f},
-         {"detune", 0.03f}, // Elastic spread
-         {"oversampling", 1.0f}},
-        *this);
+    makeSimdSynthPatch("jellyBand",
+                       {{"wavetable", 0.0f}, {"attack", 0.1f},     {"decay", 0.7f},      {"sustain", 0.5f},
+                        {"release", 0.6f},   {"cutoff", 2500.0f},  {"resonance", 0.5f},  {"fegAttack", 0.1f},
+                        {"fegDecay", 0.6f},  {"fegSustain", 0.4f}, {"fegRelease", 0.5f}, {"fegAmount", 0.4f},
+                        {"lfoRate", 2.0f},   {"lfoDepth", 0.2f},   {"subTune", -12.0f},  {"subMix", 0.3f},
+                        {"subTrack", 1.0f},  {"gain", 1.0f},       {"unison", 3.0f},     {"detune", 0.03f}},
+                       *this);
 
-    // Grok Grok Grok: Playful, vocal-like sound with heavy modulation
     makeSimdSynthPatch("grokGrokGrok",
-                       {{"wavetable", 2.0f}, // Square wave for vocal-like formants
-                        {"attack", 0.05f},     {"decay", 0.5f},      {"sustain", 0.4f},
-                        {"release", 0.4f}, // Quick, expressive envelope
-                        {"cutoff", 2000.0f},   {"resonance", 0.8f},  {"fegAttack", 0.05f},
-                        {"fegDecay", 0.4f},    {"fegSustain", 0.5f}, {"fegRelease", 0.3f},
-                        {"fegAmount", 0.7f},   {"lfoRate", 3.0f},    {"lfoDepth", 0.25f}, // Fast, vocal modulation
-                        {"subTune", -12.0f},   {"subMix", 0.2f},     {"subTrack", 1.0f},
-                        {"gain", 1.1f},        {"unison", 2.0f},     {"detune", 0.02f}, // Slight detune for character
-                        {"oversampling", 1.0f}},
+                       {{"wavetable", 2.0f}, {"attack", 0.05f},    {"decay", 0.5f},      {"sustain", 0.4f},
+                        {"release", 0.4f},   {"cutoff", 2000.0f},  {"resonance", 0.8f},  {"fegAttack", 0.05f},
+                        {"fegDecay", 0.4f},  {"fegSustain", 0.5f}, {"fegRelease", 0.3f}, {"fegAmount", 0.7f},
+                        {"lfoRate", 3.0f},   {"lfoDepth", 0.25f},  {"subTune", -12.0f},  {"subMix", 0.2f},
+                        {"subTrack", 1.0f},  {"gain", 1.1f},       {"unison", 2.0f},     {"detune", 0.02f}},
+                       *this);
+
+    // New presets for variety
+    makeSimdSynthPatch("BrightLead",
+                       {
+                           {"wavetable", 1.0f}, // Saw wave for sharp, cutting lead
+                           {"attack", 0.01f},    {"decay", 0.5f},      {"sustain", 0.8f},    {"release", 0.2f},
+                           {"cutoff", 8000.0f},  {"resonance", 0.5f},  {"fegAttack", 0.01f}, {"fegDecay", 0.3f},
+                           {"fegSustain", 0.6f}, {"fegRelease", 0.2f}, {"fegAmount", 0.4f},  {"lfoRate", 5.0f},
+                           {"lfoDepth", 0.05f},  {"subTune", -12.0f},  {"subMix", 0.2f},     {"subTrack", 1.0f},
+                           {"gain", 1.0f},       {"unison", 1.0f},     {"detune", 0.0f} // Monophonic lead
+                       },
+                       *this);
+
+    makeSimdSynthPatch(
+        "DeepArp",
+        {{"wavetable", 2.0f}, // Square wave for punchy arpeggio
+         {"attack", 0.05f},    {"decay", 0.3f},      {"sustain", 0.5f},    {"release", 0.1f},
+         {"cutoff", 3000.0f},  {"resonance", 0.7f},  {"fegAttack", 0.05f}, {"fegDecay", 0.2f},
+         {"fegSustain", 0.4f}, {"fegRelease", 0.1f}, {"fegAmount", 0.6f},  {"lfoRate", 0.0f},
+         {"lfoDepth", 0.0f},   {"subTune", -24.0f},  {"subMix", 0.4f},     {"subTrack", 0.0f}, // Fixed sub-oscillator
+         {"gain", 1.0f},       {"unison", 2.0f},     {"detune", 0.02f}},
+        *this);
+
+    makeSimdSynthPatch(
+        "AmbientWash",
+        {
+            {"wavetable", 0.0f}, // Sine wave for lush, ambient texture
+            {"attack", 3.0f},     {"decay", 4.0f},      {"sustain", 1.0f},   {"release", 5.0f},
+            {"cutoff", 1000.0f},  {"resonance", 0.3f},  {"fegAttack", 2.0f}, {"fegDecay", 3.0f},
+            {"fegSustain", 0.9f}, {"fegRelease", 4.0f}, {"fegAmount", 0.5f}, {"lfoRate", 0.2f},
+            {"lfoDepth", 0.1f},   {"subTune", -24.0f},  {"subMix", 0.6f},    {"subTrack", 0.0f}, // Fixed sub for drone
+            {"gain", 0.7f},       {"unison", 5.0f},     {"detune", 0.06f} // Wide unison for depth
+        },
+        *this);
+
+    makeSimdSynthPatch("PluckySynth",
+                       {{"wavetable", 0.0f}, // Sine wave for bell-like pluck
+                        {"attack", 0.01f},    {"decay", 0.4f},      {"sustain", 0.0f},    {"release", 0.1f},
+                        {"cutoff", 6000.0f},  {"resonance", 0.4f},  {"fegAttack", 0.01f}, {"fegDecay", 0.2f},
+                        {"fegSustain", 0.0f}, {"fegRelease", 0.1f}, {"fegAmount", 0.7f},  {"lfoRate", 0.0f},
+                        {"lfoDepth", 0.0f},   {"subTune", -12.0f},  {"subMix", 0.3f},     {"subTrack", 1.0f},
+                        {"gain", 1.1f},       {"unison", 2.0f},     {"detune", 0.02f}},
+                       *this);
+
+    makeSimdSynthPatch("GrittyBass",
+                       {
+                           {"wavetable", 1.0f}, // Saw wave for aggressive bass
+                           {"attack", 0.01f},    {"decay", 0.3f},      {"sustain", 0.6f},    {"release", 0.2f},
+                           {"cutoff", 1000.0f},  {"resonance", 0.9f},  {"fegAttack", 0.01f}, {"fegDecay", 0.3f},
+                           {"fegSustain", 0.5f}, {"fegRelease", 0.2f}, {"fegAmount", 0.8f},  {"lfoRate", 3.0f},
+                           {"lfoDepth", 0.07f},  {"subTune", -24.0f},  {"subMix", 0.5f},     {"subTrack", 1.0f},
+                           {"gain", 1.3f},       {"unison", 3.0f},     {"detune", 0.04f} // Thick unison
+                       },
                        *this);
 }
