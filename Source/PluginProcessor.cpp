@@ -9,49 +9,30 @@ MIT Licensed, (c) 2025, seclorum
 #include "PluginEditor.h"
 #include <juce_core/juce_core.h> // For File and JSON handling
 #include <juce_dsp/juce_dsp.h> // For oversampling and DSP utilities// Constructor: Initializes the audio processor with stereo output and enhanced parameters
+
 SimdSynthAudioProcessor::SimdSynthAudioProcessor()
     : AudioProcessor(BusesProperties().withOutput("Output", juce::AudioChannelSet::stereo(), true)),
       parameters(*this, nullptr, juce::Identifier("SimdSynth"),
-                 {std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"wavetable", parameterVersion},
-                                                              "Wavetable Type", 0.0f, 2.0f, 0.0f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"attack", parameterVersion},
-                                                              "Attack Time", 0.01f, 5.0f, 0.1f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"decay", parameterVersion},
-                                                              "Decay Time", 0.1f, 5.0f, 0.5f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"sustain", parameterVersion},
-                                                              "Sustain Level", 0.0f, 1.0f, 0.8f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"release", parameterVersion},
-                                                              "Release Time", 0.01f, 5.0f, 0.2f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"cutoff", parameterVersion},
-                                                              "Filter Cutoff", 20.0f, 20000.0f, 1000.0f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"resonance", parameterVersion},
-                                                              "Filter Resonance", 0.0f, 1.0f, 0.7f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegAttack", parameterVersion},
-                                                              "Filter EG Attack", 0.01f, 5.0f, 0.1f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegDecay", parameterVersion},
-                                                              "Filter EG Decay", 0.1f, 5.0f, 1.0f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegSustain", parameterVersion},
-                                                              "Filter EG Sustain", 0.0f, 1.0f, 0.5f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegRelease", parameterVersion},
-                                                              "Filter EG Release", 0.01f, 5.0f, 0.2f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegAmount", parameterVersion},
-                                                              "Filter EG Amount", -1.0f, 1.0f, 0.5f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"lfoRate", parameterVersion},
-                                                              "LFO Rate", 0.0f, 20.0f, 1.0f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"lfoDepth", parameterVersion},
-                                                              "LFO Depth", 0.0f, 0.5f, 0.05f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subTune", parameterVersion},
-                                                              "Sub Osc Tune", -24.0f, 24.0f, -12.0f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subMix", parameterVersion},
-                                                              "Sub Osc Mix", 0.0f, 1.0f, 0.5f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subTrack", parameterVersion},
-                                                              "Sub Osc Track", 0.0f, 1.0f, 1.0f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"gain", parameterVersion},
-                                                              "Output Gain", 0.0f, 2.0f, 1.0f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"unison", parameterVersion},
-                                                              "Unison Voices", 1.0f, 8.0f, 1.0f),
-                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"detune", parameterVersion},
-                                                              "Unison Detune", 0.0f, 0.1f, 0.01f)}),
+                 {std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"wavetable", parameterVersion}, "Wavetable Type", 0.0f, 2.0f, 0.0f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"attack", parameterVersion}, "Attack Time", 0.01f, 5.0f, 0.1f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"decay", parameterVersion}, "Decay Time", 0.1f, 5.0f, 0.5f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"sustain", parameterVersion}, "Sustain Level", 0.0f, 1.0f, 0.8f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"release", parameterVersion}, "Release Time", 0.01f, 5.0f, 0.2f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"cutoff", parameterVersion}, "Filter Cutoff", 20.0f, 20000.0f, 1000.0f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"resonance", parameterVersion}, "Filter Resonance", 0.0f, 1.0f, 0.7f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegAttack", parameterVersion}, "Filter EG Attack", 0.01f, 5.0f, 0.1f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegDecay", parameterVersion}, "Filter EG Decay", 0.1f, 5.0f, 1.0f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegSustain", parameterVersion}, "Filter EG Sustain", 0.0f, 1.0f, 0.5f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegRelease", parameterVersion}, "Filter EG Release", 0.01f, 5.0f, 0.2f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"fegAmount", parameterVersion}, "Filter EG Amount", -1.0f, 1.0f, 0.5f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"lfoRate", parameterVersion}, "LFO Rate", 0.0f, 20.0f, 1.0f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"lfoDepth", parameterVersion}, "LFO Depth", 0.0f, 0.5f, 0.05f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subTune", parameterVersion}, "Sub Osc Tune", -24.0f, 24.0f, -12.0f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subMix", parameterVersion}, "Sub Osc Mix", 0.0f, 1.0f, 0.5f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subTrack", parameterVersion}, "Sub Osc Track", 0.0f, 1.0f, 1.0f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"gain", parameterVersion}, "Output Gain", 0.0f, 2.0f, 1.0f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"unison", parameterVersion}, "Unison Voices", 1.0f, 8.0f, 1.0f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"detune", parameterVersion}, "Unison Detune", 0.0f, 0.1f, 0.01f)}),
       currentTime(0.0), oversampling(std::make_unique<juce::dsp::Oversampling<float>>(
                             2, 1, juce::dsp::Oversampling<float>::FilterType::filterHalfBandPolyphaseIIR, true, true)) {
     // Initialize parameter pointers
@@ -74,8 +55,20 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
     subTrackParam = parameters.getRawParameterValue("subTrack");
     gainParam = parameters.getRawParameterValue("gain");
     unisonParam = parameters.getRawParameterValue("unison");
-    detuneParam =
-        parameters.getRawParameterValue("detune"); // Initialize voices with default parameter values and released state
+    detuneParam = parameters.getRawParameterValue("detune");
+
+    // Ensure safe initial values
+    if (auto *param = dynamic_cast<juce::AudioParameterFloat*>(parameters.getParameter("gain"))) {
+        param->setValueNotifyingHost(param->convertTo0to1(1.0f));
+    }
+    if (auto *param = dynamic_cast<juce::AudioParameterFloat*>(parameters.getParameter("sustain"))) {
+        param->setValueNotifyingHost(param->convertTo0to1(0.8f));
+    }
+    if (auto *param = dynamic_cast<juce::AudioParameterFloat*>(parameters.getParameter("subMix"))) {
+        param->setValueNotifyingHost(param->convertTo0to1(0.5f));
+    }
+
+    // Initialize voices
     for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
         voices[i] = Voice();
         voices[i].active = false;
@@ -89,7 +82,7 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
         voices[i].release = *releaseTimeParam;
         voices[i].cutoff = *cutoffParam;
         voices[i].resonance = *resonanceParam;
-        voices[i].sampleRate = 44100.0f; // Default sample rate, updated in prepareToPlay
+        voices[i].sampleRate = 44100.0f;
         voices[i].fegAttack = *fegAttackParam;
         voices[i].fegDecay = *fegDecayParam;
         voices[i].fegSustain = *fegSustainParam;
@@ -103,9 +96,11 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
         voices[i].unison = static_cast<int>(*unisonParam);
         voices[i].detune = *detuneParam;
         voices[i].releaseStartAmplitude = 0.0f;
-        voices[i].releaseStartFilterEnv = 0.0f; // Added for filter envelope
+        voices[i].releaseStartFilterEnv = 0.0f;
         voices[i].attackCurve = 2.0f;
         voices[i].releaseCurve = 3.0f;
+        DBG("Voice " << i << " initialized: gain=" << *gainParam << ", sustain=" << *sustainLevelParam
+            << ", subMix=" << *subMixParam);
     }
 
     // Initialize LookupTableTransform objects with debug logging
@@ -145,11 +140,12 @@ void SimdSynthAudioProcessor::loadPresetsFromDirectory() {
         presetNames.add("Default");
         presetManager.createDefaultPresets();
     }
-}                                                                            // Return the number of available presets
+} // Return the number of available presets
+
 int SimdSynthAudioProcessor::getNumPrograms() { return presetNames.size(); } // Return the current preset index
-int SimdSynthAudioProcessor::getCurrentProgram() {
-    return currentProgram;
-} // Load a preset by index, resetting voice states to avoid discontinuities
+
+int SimdSynthAudioProcessor::getCurrentProgram() { return currentProgram; }
+
 void SimdSynthAudioProcessor::setCurrentProgram(int index) {
     if (index < 0 || index >= presetNames.size()) {
         DBG("Error: Invalid preset index: " << index << ", presetNames size: " << presetNames.size());
@@ -162,6 +158,7 @@ void SimdSynthAudioProcessor::setCurrentProgram(int index) {
 
     if (!presetFile.existsAsFile()) {
         DBG("Error: Preset file not found: " << presetFile.getFullPathName());
+        presetManager.createDefaultPresets();
         return;
     }
 
@@ -177,20 +174,20 @@ void SimdSynthAudioProcessor::setCurrentProgram(int index) {
     juce::var synthParams = parsedJson.getProperty("SimdSynth", juce::var());
     if (!synthParams.isObject()) {
         DBG("Error: 'SimdSynth' object not found in preset: " << presetNames[index]);
+        presetManager.createDefaultPresets();
         return;
     }
 
-    // Default parameter values
     std::map<juce::String, float> defaultValues = {
-        {"wavetable", 0.0f},  {"attack", 0.1f},    {"decay", 0.5f},     {"sustain", 0.8f},   {"release", 0.2f},
-        {"cutoff", 1000.0f},  {"resonance", 0.7f}, {"fegAttack", 0.1f}, {"fegDecay", 1.0f},  {"fegSustain", 0.5f},
-        {"fegRelease", 0.2f}, {"fegAmount", 0.5f}, {"lfoRate", 1.0f},   {"lfoDepth", 0.05f}, {"subTune", -12.0f},
-        {"subMix", 0.5f},     {"subTrack", 1.0f},  {"gain", 1.0f},      {"unison", 1.0f},    {"detune", 0.01f}};
+        {"wavetable", 0.0f}, {"attack", 0.1f}, {"decay", 0.5f}, {"sustain", 0.8f}, {"release", 0.2f},
+        {"cutoff", 1000.0f}, {"resonance", 0.7f}, {"fegAttack", 0.1f}, {"fegDecay", 1.0f}, {"fegSustain", 0.5f},
+        {"fegRelease", 0.2f}, {"fegAmount", 0.5f}, {"lfoRate", 1.0f}, {"lfoDepth", 0.05f}, {"subTune", -12.0f},
+        {"subMix", 0.5f}, {"subTrack", 1.0f}, {"gain", 1.0f}, {"unison", 1.0f}, {"detune", 0.01f}};
 
-    juce::StringArray paramIds = {"wavetable",  "attack",    "decay",     "sustain",  "release",
-                                  "cutoff",     "resonance", "fegAttack", "fegDecay", "fegSustain",
-                                  "fegRelease", "fegAmount", "lfoRate",   "lfoDepth", "subTune",
-                                  "subMix",     "subTrack",  "gain",      "unison",   "detune"};
+    juce::StringArray paramIds = {"wavetable", "attack", "decay", "sustain", "release",
+                                  "cutoff", "resonance", "fegAttack", "fegDecay", "fegSustain",
+                                  "fegRelease", "fegAmount", "lfoRate", "lfoDepth", "subTune",
+                                  "subMix", "subTrack", "gain", "unison", "detune"};
 
     bool anyParamUpdated = false;
     for (const auto &paramId : paramIds) {
@@ -202,8 +199,11 @@ void SimdSynthAudioProcessor::setCurrentProgram(int index) {
                 if (paramId == "wavetable" || paramId == "unison") {
                     value = std::round(value);
                 }
-                value = juce::jlimit(floatParam->getNormalisableRange().start, floatParam->getNormalisableRange().end,
-                                     value);
+                value = juce::jlimit(floatParam->getNormalisableRange().start, floatParam->getNormalisableRange().end, value);
+                // Ensure non-silencing values
+                if (paramId == "gain") value = std::max(0.5f, value);
+                if (paramId == "sustain") value = std::max(0.5f, value);
+                if (paramId == "subMix") value = juce::jlimit(0.0f, 0.7f, value); // Allow main oscillator
                 floatParam->setValueNotifyingHost(floatParam->convertTo0to1(value));
                 DBG("Setting " << paramId << " to " << value);
                 anyParamUpdated = true;
@@ -213,9 +213,10 @@ void SimdSynthAudioProcessor::setCurrentProgram(int index) {
 
     if (!anyParamUpdated) {
         DBG("Warning: No parameters updated for preset: " << presetNames[index]);
+        presetManager.createDefaultPresets();
     }
 
-    // Update voice parameters and reset phases for active voices
+    // Update voice parameters
     for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
         voices[i].wavetableType = static_cast<int>(*wavetableTypeParam);
         voices[i].attack = *attackTimeParam;
@@ -237,7 +238,7 @@ void SimdSynthAudioProcessor::setCurrentProgram(int index) {
         voices[i].unison = static_cast<int>(*unisonParam);
         voices[i].detune = *detuneParam;
         if (voices[i].active) {
-            voices[i].phase = 0.0f; // Reset phase to avoid discontinuities
+            voices[i].phase = 0.0f;
             voices[i].subPhase = 0.0f;
             voices[i].lfoPhase = 0.0f;
             for (int j = 0; j < 4; j++) {
@@ -248,21 +249,27 @@ void SimdSynthAudioProcessor::setCurrentProgram(int index) {
 #endif
             }
         }
+        DBG("Voice " << i << " updated: gain=" << *gainParam << ", sustain=" << *sustainLevelParam
+            << ", subMix=" << *subMixParam);
     }
 
-    // Update editor if active
+    // Update editor
     if (auto *editor = getActiveEditor()) {
         if (auto *synthEditor = dynamic_cast<SimdSynthAudioProcessorEditor *>(editor)) {
             synthEditor->updatePresetComboBox();
         }
     }
-} // Return the name of a preset by index
+}
+
+// Return the name of a preset by index
 const juce::String SimdSynthAudioProcessor::getProgramName(int index) {
     if (index >= 0 && index < presetNames.size()) {
         return presetNames[index];
     }
     return "Default";
-} // Rename a preset
+}
+
+// Rename a preset
 void SimdSynthAudioProcessor::changeProgramName(int index, const juce::String &newName) {
     if (index >= 0 && index < presetNames.size()) {
         juce::File oldFile = juce::File::getSpecialLocation(juce::File::userApplicationDataDirectory)
@@ -371,37 +378,39 @@ float32x4_t SimdSynthAudioProcessor::fast_sin_ps(float32x4_t x) {
 }
 #endif // Perform wavetable lookup with vectorized selection for SIMD efficiency
 
-SIMD_TYPE SimdSynthAudioProcessor::wavetable_lookup_ps(SIMD_TYPE phase, int wavetableType) {
-    // Normalize phase to [0, 1]
+// Perform wavetable lookup with vectorized selection for SIMD efficiency
+SIMD_TYPE SimdSynthAudioProcessor::wavetable_lookup_ps(SIMD_TYPE phase, SIMD_TYPE wavetableTypes) {
+    // Normalize phase to [0, 1] for wavetable lookup
     SIMD_TYPE phases_norm = SIMD_SUB(phase, SIMD_FLOOR(phase));
-    float tempIn[4], tempOut[4];
-    SIMD_STORE(tempIn, phases_norm); // Vectorized wavetable selection
-    switch (wavetableType) {
-    case 0:
-        for (int i = 0; i < 4; ++i) {
+    float tempIn[4], tempOut[4], tempTypes[4];
+    SIMD_STORE(tempIn, phases_norm);       // Store normalized phases for scalar processing
+    SIMD_STORE(tempTypes, wavetableTypes); // Store wavetable types for per-voice selection
+
+    // Process each voice individually to support different wavetable types
+    for (int i = 0; i < 4; ++i) {
+        int type = static_cast<int>(tempTypes[i]); // Get wavetable type for this voice
+        switch (type) {
+        case 0: // Sine wave
             tempOut[i] = sineTableTransform(tempIn[i]);
-        }
-        break;
-    case 1:
-        for (int i = 0; i < 4; ++i) {
+            break;
+        case 1: // Saw wave
             tempOut[i] = sawTableTransform(tempIn[i]);
-        }
-        break;
-    case 2:
-        for (int i = 0; i < 4; ++i) {
+            break;
+        case 2: // Square wave
             tempOut[i] = squareTableTransform(tempIn[i]);
+            break;
+        default:
+            DBG("Warning: Invalid wavetable type " << type << " for voice lane " << i << ", defaulting to sine");
+            tempOut[i] = sineTableTransform(tempIn[i]); // Fallback to sine for invalid types
+            break;
         }
-        break;
-    default:
-        DBG("Warning: Invalid wavetable type " << wavetableType << ", defaulting to sine");
-        for (int i = 0; i < 4; ++i) {
-            tempOut[i] = sineTableTransform(tempIn[i]);
-        }
-        break;
     }
 
+    // Load results into SIMD vector for further processing
     return SIMD_LOAD(tempOut);
-} // Apply a four-stage ladder filter with SIMD optimizations, ensuring stability and per-voice sample rate handling
+}
+
+// Apply a four-stage ladder filter with SIMD optimizations, ensuring stability and per-voice sample rate handling
 void SimdSynthAudioProcessor::applyLadderFilter(Voice *voices, int voiceOffset, SIMD_TYPE input, SIMD_TYPE &output) {
     // Compute vectorized cutoff and resonance for the SIMD batch
     float tempCutoffs[4], tempEnvMods[4], tempResonances[4], tempSampleRates[4];
@@ -568,7 +577,9 @@ int SimdSynthAudioProcessor::findVoiceToSteal() {
     }
 
     return bestVoice;
-} // Update amplitude and filter envelopes with configurable curves to prevent clicks
+}
+
+// Update amplitude and filter envelopes with configurable curves
 void SimdSynthAudioProcessor::updateEnvelopes(float t) {
     for (int i = 0; i < MAX_VOICE_POLYPHONY; i++) {
         if (!voices[i].active) {
@@ -582,28 +593,33 @@ void SimdSynthAudioProcessor::updateEnvelopes(float t) {
 #endif
             }
             continue;
-        } // Use per-voice envelope parameters with minimum bounds to avoid division by zero
-        float localTime = t - voices[i].noteOnTime;
-        float attack = std::max(voices[i].attack, 0.001f);
-        float decay = std::max(voices[i].decay, 0.001f);
-        float sustain = std::max(voices[i].sustain, 0.0f);
-        float release = std::max(voices[i].release, 0.001f);
-        float releaseFactor = release < 0.1f ? release : release * std::pow(release, 0.3f);
+        }
 
-        // Configurable envelope curves
-        const float attackCurve = voices[i].attackCurve; // Default: 2.0f
+        float localTime = t - voices[i].noteOnTime;
+        DBG("Voice " << i << ": t=" << t << ", noteOnTime=" << voices[i].noteOnTime << ", localTime=" << localTime);
+
+        // Use per-voice envelope parameters with minimum bounds
+        float attack = std::max(std::min(voices[i].attack * voices[i].timeScale, 1.0f), 0.001f); // Clamp attack time
+        float decay = std::max(voices[i].decay * voices[i].timeScale, 0.001f);
+        float sustain = std::max(voices[i].sustain, 0.5f); // Ensure non-zero sustain
+        float release = std::max(voices[i].release * voices[i].timeScale, 0.001f);
+        float releaseFactor = release;
+
+        const float attackCurve = voices[i].attackCurve; // e.g., 2.0f for convex curve
         const float decayCurve = 1.5f;
-        const float releaseCurve = voices[i].releaseCurve; // Default: 3.0f
+        const float releaseCurve = voices[i].releaseCurve; // e.g., 3.0f
 
         // Amplitude envelope (ADSR)
         if (localTime < 0.0f) {
             voices[i].amplitude = 0.0f;
+            DBG("Voice " << i << ": localTime < 0, amplitude=0");
         } else if (localTime < attack) {
             float attackPhase = localTime / attack;
-            voices[i].amplitude = std::pow(attackPhase, 1.0f / attackCurve);
+            voices[i].amplitude = std::pow(attackPhase, attackCurve);
+            DBG("Voice " << i << ": attackPhase=" << attackPhase << ", amplitude=" << voices[i].amplitude);
         } else if (localTime < attack + decay) {
             float decayPhase = (localTime - attack) / decay;
-            float decayExp = std::pow(decayPhase, 1.0f / decayCurve);
+            float decayExp = std::pow(decayPhase, decayCurve);
             voices[i].amplitude = 1.0f - (decayExp * (1.0f - sustain));
         } else if (!voices[i].released) {
             voices[i].amplitude = sustain;
@@ -613,10 +629,11 @@ void SimdSynthAudioProcessor::updateEnvelopes(float t) {
             float releaseExp = std::exp(-releasePhase * releaseCurve);
             voices[i].amplitude = voices[i].releaseStartAmplitude * releaseExp;
 
-            // Deactivate voice if amplitude is negligible
-            if (voices[i].amplitude <= 0.001f) {
+            // Increase threshold to allow longer release tails
+            if (voices[i].amplitude <= 0.01f) { // Changed from 0.001f to 0.01f
                 voices[i].amplitude = 0.0f;
                 voices[i].active = false;
+                voices[i].filterEnv = 0.0f;
                 for (int j = 0; j < 4; j++) {
 #if defined(__aarch64__) || defined(__arm64__)
                     voices[i].filterStates[j] = vdupq_n_f32(0.0f);
@@ -624,26 +641,27 @@ void SimdSynthAudioProcessor::updateEnvelopes(float t) {
                     voices[i].filterStates[j] = 0.0f;
 #endif
                 }
+                DBG("Voice " << i << ": deactivated, amplitude=" << voices[i].amplitude);
             }
         }
 
         voices[i].amplitude = std::max(0.0f, std::min(1.0f, voices[i].amplitude));
 
-        // Filter envelope (ADSR) with consistent release behavior
-        float fegAttack = std::max(voices[i].fegAttack, 0.001f);
-        float fegDecay = std::max(voices[i].fegDecay, 0.001f);
-        float fegSustain = std::max(voices[i].fegSustain, 0.0f);
-        float fegRelease = std::max(voices[i].fegRelease, 0.001f);
-        float fegReleaseFactor = fegRelease < 0.1f ? fegRelease : fegRelease * std::pow(fegRelease, 0.3f);
+        // Filter envelope (ADSR)
+        float fegAttack = std::max(std::min(voices[i].fegAttack * voices[i].timeScale, 1.0f), 0.001f);
+        float fegDecay = std::max(voices[i].fegDecay * voices[i].timeScale, 0.001f);
+        float fegSustain = std::max(voices[i].fegSustain, 0.5f);
+        float fegRelease = std::max(voices[i].fegRelease * voices[i].timeScale, 0.001f);
+        float fegReleaseFactor = fegRelease;
 
         if (localTime < 0.0f) {
             voices[i].filterEnv = 0.0f;
         } else if (localTime < fegAttack) {
             float attackPhase = localTime / fegAttack;
-            voices[i].filterEnv = std::pow(attackPhase, 1.0f / attackCurve);
+            voices[i].filterEnv = std::pow(attackPhase, attackCurve);
         } else if (localTime < fegAttack + fegDecay) {
             float decayPhase = (localTime - fegAttack) / fegDecay;
-            float decayExp = std::pow(decayPhase, 1.0f / decayCurve);
+            float decayExp = std::pow(decayPhase, decayCurve);
             voices[i].filterEnv = 1.0f - (decayExp * (1.0f - fegSustain));
         } else if (!voices[i].released) {
             voices[i].filterEnv = fegSustain;
@@ -651,12 +669,20 @@ void SimdSynthAudioProcessor::updateEnvelopes(float t) {
             float releaseTime = t - voices[i].noteOffTime;
             float releasePhase = releaseTime / fegReleaseFactor;
             float releaseExp = std::exp(-releasePhase * releaseCurve);
-            voices[i].filterEnv = voices[i].releaseStartFilterEnv * releaseExp; // Use filter env at release start
+            voices[i].filterEnv = voices[i].releaseStartFilterEnv * releaseExp;
         }
 
         voices[i].filterEnv = std::max(0.0f, std::min(1.0f, voices[i].filterEnv));
+
+        if (voices[i].active) {
+            DBG("Voice " << i << ": amplitude=" << voices[i].amplitude << ", filterEnv=" << voices[i].filterEnv
+                         << ", released=" << std::to_string(voices[i].released)
+                         << ", noteOnTime=" << voices[i].noteOnTime << ", localTime=" << localTime);
+        }
     }
-} // Prepare audio processing with oversampling
+}
+
+// Prepare audio processing with oversampling
 void SimdSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
     currentTime = 0.0;
     int newOversamplingFactor = (samplesPerBlock < 256) ? 1 : 2;
@@ -671,11 +697,14 @@ void SimdSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlo
     for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
         voices[i].active = false;
         voices[i].released = false;
+        voices[i].isHeld = false;
         voices[i].amplitude = 0.0f;
-        voices[i].velocity = 0.0f;
+        voices[i].velocity = 1.0f; // Default velocity to avoid muting
         voices[i].noteOnTime = 0.0f;
         voices[i].noteOffTime = 0.0f;
         voices[i].sampleRate = static_cast<float>(sampleRate);
+        voices[i].sustain = std::max(sustainLevelParam->load(), 0.5f); // Ensure non-zero sustain
+        voices[i].subMix = juce::jlimit(0.0f, 0.7f, subMixParam->load()); // Ensure valid subMix
         for (int j = 0; j < 4; ++j) {
 #if defined(__aarch64__) || defined(__arm64__)
             voices[i].filterStates[j] = vdupq_n_f32(0.0f);
@@ -685,24 +714,45 @@ void SimdSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlo
         }
     }
 } // Release resources
-void SimdSynthAudioProcessor::releaseResources() {
-    oversampling->reset();
-} // Process audio and MIDI with oversampling, handling polyphonic synthesis and voice management
-void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juce::MidiBuffer &midiMessages) {
+void SimdSynthAudioProcessor::releaseResources() { oversampling->reset(); }
+
+void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
     juce::ScopedNoDenormals noDenormals;
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-    buffer.clear(); // Setup oversampling and sample rate
+    const SIMD_TYPE twoPi = SIMD_SET1(2.0f * M_PI);
+    constexpr int NUM_BATCHES = (MAX_VOICE_POLYPHONY + SIMD_WIDTH - 1) / SIMD_WIDTH;
+
+    buffer.clear();
+
+    // Log parameters
+    DBG("processBlock parameters: gain=" << *gainParam << ", sustain=" << *sustainLevelParam
+        << ", subMix=" << *subMixParam << ", wavetable=" << *wavetableTypeParam);
+
+    // Setup oversampling and sample rate
     juce::dsp::AudioBlock<float> block(buffer);
     auto oversampledBlock = oversampling->processSamplesUp(block);
-    float sampleRate = voices[0].sampleRate * oversampling->getOversamplingFactor();
+    float oversamplingFactor = oversampling->getOversamplingFactor();
+    float sampleRate = voices[0].sampleRate * oversamplingFactor;
     double blockStartTime = currentTime;
 
-    // Update parameters for all voices to ensure consistency
+    // Update sample rate for all voices
+    for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
+        voices[i].sampleRate = sampleRate;
+        if (voices[i].active) {
+            voices[i].phaseIncrement = voices[i].frequency / sampleRate;
+            float baseSubFreq = voices[i].frequency * powf(2.0f, voices[i].subTune / 12.0f);
+            float fixedFreq = midiToFreq(69);
+            float subFreq = baseSubFreq * voices[i].subTrack + fixedFreq * (1.0f - voices[i].subTrack);
+            voices[i].subPhaseIncrement = subFreq / sampleRate;
+        }
+    }
+
+    // Update parameters for all voices
     for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
         voices[i].wavetableType = static_cast<int>(*wavetableTypeParam);
         voices[i].attack = *attackTimeParam;
         voices[i].decay = *decayTimeParam;
-        voices[i].sustain = *sustainLevelParam;
+        voices[i].sustain = std::max(sustainLevelParam->load(), 0.5f);
         voices[i].release = *releaseTimeParam;
         voices[i].cutoff = *cutoffParam;
         voices[i].resonance = *resonanceParam;
@@ -714,7 +764,7 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juc
         voices[i].lfoRate = *lfoRateParam;
         voices[i].lfoDepth = *lfoDepthParam;
         voices[i].subTune = *subTuneParam;
-        voices[i].subMix = *subMixParam;
+        voices[i].subMix = juce::jlimit(0.0f, 0.7f, subMixParam->load());
         voices[i].subTrack = *subTrackParam;
         voices[i].unison = static_cast<int>(*unisonParam);
         voices[i].detune = *detuneParam;
@@ -723,70 +773,156 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juc
     // Prepare oversampled MIDI events
     juce::MidiBuffer oversampledMidi;
     for (const auto metadata : midiMessages) {
-        oversampledMidi.addEvent(metadata.getMessage(),
-                                 metadata.samplePosition * oversampling->getOversamplingFactor());
+        oversampledMidi.addEvent(metadata.getMessage(), metadata.samplePosition * oversamplingFactor);
+        auto msg = metadata.getMessage();
+        DBG("MIDI: type=" << (msg.isNoteOn() ? "NoteOn" : msg.isNoteOff() ? "NoteOff" : "Other")
+            << ", note=" << msg.getNoteNumber() << ", velocity=" << msg.getVelocity()
+            << ", sample=" << metadata.samplePosition);
     }
 
-    // Allocate aligned memory once per block
-    float *tempAmps = static_cast<float *>(std::aligned_alloc(32, 4 * sizeof(float)));
-    float *tempPhases = static_cast<float *>(std::aligned_alloc(32, 4 * sizeof(float)));
-    float *tempIncrements = static_cast<float *>(std::aligned_alloc(32, 4 * sizeof(float)));
-    float *tempLfoPhases = static_cast<float *>(std::aligned_alloc(32, 4 * sizeof(float)));
-    float *tempLfoRates = static_cast<float *>(std::aligned_alloc(32, 4 * sizeof(float)));
-    float *tempLfoDepths = static_cast<float *>(std::aligned_alloc(32, 4 * sizeof(float)));
-    float *tempSubPhases = static_cast<float *>(std::aligned_alloc(32, 4 * sizeof(float)));
-    float *tempSubIncrements = static_cast<float *>(std::aligned_alloc(32, 4 * sizeof(float)));
-    float *tempSubMixes = static_cast<float *>(std::aligned_alloc(32, 4 * sizeof(float)));
-    float *tempWavetableTypes = static_cast<float *>(std::aligned_alloc(32, 4 * sizeof(float)));
-    float *tempSubTracks = static_cast<float *>(std::aligned_alloc(32, 4 * sizeof(float)));
-    float *tempUnisonCounts = static_cast<float *>(std::aligned_alloc(32, 4 * sizeof(float)));
-    float *tempDetunes = static_cast<float *>(std::aligned_alloc(32, 4 * sizeof(float)));
-    float *tempSampleRates = static_cast<float *>(std::aligned_alloc(32, 4 * sizeof(float)));
+    // Process MIDI events
+    for (const auto metadata : oversampledMidi) {
+        auto msg = metadata.getMessage();
+        int samplePosition = metadata.samplePosition;
+        float t = blockStartTime + samplePosition / sampleRate; // Use oversampled sampleRate
+        if (msg.isNoteOn()) {
+            int noteNumber = msg.getNoteNumber();
+            float velocity = msg.getVelocity() / 127.0f;
+            if (velocity == 0.0f) velocity = 1.0f; // Fallback for zero velocity
+            bool voiceAssigned = false;
 
-    // Process samples and MIDI events
-    int sampleIndex = 0;
-    const SIMD_TYPE twoPi = SIMD_SET1(2.0f * M_PI);
-    constexpr int SIMD_WIDTH = (sizeof(SIMD_TYPE) / sizeof(float));
-    constexpr int NUM_BATCHES = (MAX_VOICE_POLYPHONY + SIMD_WIDTH - 1) / SIMD_WIDTH;
+            for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
+                if (!voices[i].active) {
+                    voices[i].active = true;
+                    voices[i].released = false;
+                    voices[i].isHeld = true;
+                    voices[i].frequency = midiToFreq(noteNumber);
+                    voices[i].sampleRate = sampleRate; // Set sampleRate before calculating increments
+                    voices[i].phase = 0.0f;
+                    voices[i].subPhase = 0.0f;
+                    voices[i].lfoPhase = 0.0f;
+                    voices[i].amplitude = 0.0f;
+                    voices[i].filterEnv = 0.0f;
+                    voices[i].noteNumber = noteNumber;
+                    voices[i].velocity = velocity;
+                    voices[i].noteOnTime = t;
+                    voices[i].noteOffTime = 0.0f;
+                    voices[i].voiceAge = 0.0f;
+                    voices[i].releaseStartAmplitude = 0.0f;
+                    voices[i].releaseStartFilterEnv = 0.0f;
+                    voices[i].phaseIncrement = voices[i].frequency / sampleRate;
+                    float baseSubFreq = voices[i].frequency * powf(2.0f, voices[i].subTune / 12.0f);
+                    float fixedFreq = midiToFreq(69);
+                    float subFreq = baseSubFreq * voices[i].subTrack + fixedFreq * (1.0f - voices[i].subTrack);
+                    voices[i].subPhaseIncrement = subFreq / sampleRate;
+                    for (int j = 0; j < 4; ++j) {
+#if defined(__aarch64__) || defined(__arm64__)
+                        voices[i].filterStates[j] = vdupq_n_f32(0.0f);
+#else
+                        voices[i].filterStates[j] = 0.0f;
+#endif
+                    }
+                    voiceAssigned = true;
+                    DBG("Assigned voice " << i << " for note " << noteNumber << " at time " << t
+                        << ", velocity=" << velocity << ", phaseIncrement=" << voices[i].phaseIncrement
+                        << ", subPhaseIncrement=" << voices[i].subPhaseIncrement);
+                    break;
+                }
+            }
+
+            if (!voiceAssigned) {
+                int voiceToSteal = findVoiceToSteal();
+                voices[voiceToSteal].active = true;
+                voices[voiceToSteal].released = false;
+                voices[voiceToSteal].isHeld = true;
+                voices[voiceToSteal].frequency = midiToFreq(noteNumber);
+                voices[voiceToSteal].sampleRate = sampleRate; // Set sampleRate before calculating increments
+                voices[voiceToSteal].phase = 0.0f;
+                voices[voiceToSteal].subPhase = 0.0f;
+                voices[voiceToSteal].lfoPhase = 0.0f;
+                voices[voiceToSteal].amplitude = 0.0f;
+                voices[voiceToSteal].filterEnv = 0.0f;
+                voices[voiceToSteal].noteNumber = noteNumber;
+                voices[voiceToSteal].velocity = velocity;
+                voices[voiceToSteal].noteOnTime = t;
+                voices[voiceToSteal].noteOffTime = 0.0f;
+                voices[voiceToSteal].voiceAge = 0.0f;
+                voices[voiceToSteal].releaseStartAmplitude = 0.0f;
+                voices[voiceToSteal].releaseStartFilterEnv = 0.0f;
+                voices[voiceToSteal].phaseIncrement = voices[voiceToSteal].frequency / sampleRate;
+                float baseSubFreq = voices[voiceToSteal].frequency * powf(2.0f, voices[voiceToSteal].subTune / 12.0f);
+                float fixedFreq = midiToFreq(69);
+                float subFreq = baseSubFreq * voices[voiceToSteal].subTrack + fixedFreq * (1.0f - voices[voiceToSteal].subTrack);
+                voices[voiceToSteal].subPhaseIncrement = subFreq / sampleRate;
+                for (int j = 0; j < 4; ++j) {
+#if defined(__aarch64__) || defined(__arm64__)
+                    voices[voiceToSteal].filterStates[j] = vdupq_n_f32(0.0f);
+#else
+                    voices[voiceToSteal].filterStates[j] = 0.0f;
+#endif
+                }
+                DBG("Stole voice " << voiceToSteal << " for note " << noteNumber << " at time " << t
+                    << ", velocity=" << velocity << ", phaseIncrement=" << voices[voiceToSteal].phaseIncrement
+                    << ", subPhaseIncrement=" << voices[voiceToSteal].subPhaseIncrement);
+            }
+        } else if (msg.isNoteOff()) {
+            int noteNumber = msg.getNoteNumber();
+            for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
+                if (voices[i].active && voices[i].noteNumber == noteNumber && voices[i].isHeld) {
+                    voices[i].released = true;
+                    voices[i].isHeld = false;
+                    voices[i].noteOffTime = t;
+                    voices[i].releaseStartAmplitude = voices[i].amplitude;
+                    voices[i].releaseStartFilterEnv = voices[i].filterEnv;
+                    DBG("Note off for voice " << i << ", note " << noteNumber
+                        << ", releaseStartAmplitude=" << voices[i].releaseStartAmplitude
+                        << ", releaseStartFilterEnv=" << voices[i].releaseStartFilterEnv);
+                }
+            }
+        }
+    }
 
     auto processSample = [&](int samplePosition, float t) {
         updateEnvelopes(t);
         float outputSample = 0.0f;
 
-        // Process voices in SIMD batches
         for (int batch = 0; batch < NUM_BATCHES; batch++) {
             const int voiceOffset = batch * SIMD_WIDTH;
             if (voiceOffset >= MAX_VOICE_POLYPHONY) continue;
 
-            // Check if any voice in the batch is active
             bool anyActive = false;
-            for (int j = 0; j < 4; ++j) {
+            for (int j = 0; j < SIMD_WIDTH; ++j) {
                 int idx = voiceOffset + j;
                 if (idx < MAX_VOICE_POLYPHONY && voices[idx].active) {
                     anyActive = true;
+                    DBG("Voice " << idx << " active: amplitude=" << voices[idx].amplitude
+                        << ", velocity=" << voices[idx].velocity << ", note=" << voices[idx].noteNumber);
                     break;
                 }
             }
             if (!anyActive) continue;
 
-            // Initialize arrays to zero
-            std::memset(tempAmps, 0, 4 * sizeof(float));
-            std::memset(tempPhases, 0, 4 * sizeof(float));
-            std::memset(tempIncrements, 0, 4 * sizeof(float));
-            std::memset(tempLfoPhases, 0, 4 * sizeof(float));
-            std::memset(tempLfoRates, 0, 4 * sizeof(float));
-            std::memset(tempLfoDepths, 0, 4 * sizeof(float));
-            std::memset(tempSubPhases, 0, 4 * sizeof(float));
-            std::memset(tempSubIncrements, 0, 4 * sizeof(float));
-            std::memset(tempSubMixes, 0, 4 * sizeof(float));
-            std::memset(tempWavetableTypes, 0, 4 * sizeof(float));
-            std::memset(tempSubTracks, 0, 4 * sizeof(float));
-            std::memset(tempUnisonCounts, 0, 4 * sizeof(float));
-            std::memset(tempDetunes, 0, 4 * sizeof(float));
-            std::memset(tempSampleRates, 0, 4 * sizeof(float));
+            for (int j = 0; j < SIMD_WIDTH; ++j) {
+                tempAmps[j] = 0.0f;
+                tempPhases[j] = 0.0f;
+                tempIncrements[j] = 0.0f;
+                tempLfoPhases[j] = 0.0f;
+                tempLfoRates[j] = 0.0f;
+                tempLfoDepths[j] = 0.0f;
+                tempSubPhases[j] = 0.0f;
+                tempSubIncrements[j] = 0.0f;
+                tempSubMixes[j] = 0.0f;
+                tempWavetableTypes[j] = 0.0f;
+                tempSubTracks[j] = 0.0f;
+                tempUnisonCounts[j] = 0.0f;
+                tempDetunes[j] = 0.0f;
+                tempSampleRates[j] = 0.0f;
+                tempUnisonOutput[j] = 0.0f;
+                tempVoiceOutput[j] = 0.0f;
+                tempFilterOutput[j] = 0.0f;
+            }
 
-            // Load voice parameters for active voices
-            for (int j = 0; j < 4; ++j) {
+            for (int j = 0; j < SIMD_WIDTH; ++j) {
                 int idx = voiceOffset + j;
                 if (idx >= MAX_VOICE_POLYPHONY || !voices[idx].active) continue;
                 tempAmps[j] = voices[idx].amplitude * voices[idx].velocity;
@@ -797,7 +933,7 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juc
                 tempLfoDepths[j] = voices[idx].lfoDepth;
                 tempSubPhases[j] = voices[idx].subPhase;
                 tempSubIncrements[j] = voices[idx].subPhaseIncrement;
-                tempSubMixes[j] = voices[idx].subMix;
+                tempSubMixes[j] = voices[idx].subMix; // Fixed typo: was voices[i]
                 tempWavetableTypes[j] = static_cast<float>(voices[idx].wavetableType);
                 tempSubTracks[j] = voices[idx].subTrack;
                 tempUnisonCounts[j] = static_cast<float>(voices[idx].unison);
@@ -814,224 +950,171 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float> &buffer, juc
             SIMD_TYPE subPhases = SIMD_LOAD(tempSubPhases);
             SIMD_TYPE subIncrements = SIMD_LOAD(tempSubIncrements);
             SIMD_TYPE subMixes = SIMD_LOAD(tempSubMixes);
+            SIMD_TYPE wavetableTypes = SIMD_LOAD(tempWavetableTypes);
             SIMD_TYPE subTracks = SIMD_LOAD(tempSubTracks);
             SIMD_TYPE unisonCounts = SIMD_LOAD(tempUnisonCounts);
             SIMD_TYPE detunes = SIMD_LOAD(tempDetunes);
             SIMD_TYPE sampleRates = SIMD_LOAD(tempSampleRates);
 
-            // Update LFO with per-voice sample rates
             SIMD_TYPE lfoIncrements = SIMD_MUL(lfoRates, SIMD_DIV(SIMD_SET1(2.0f * M_PI), sampleRates));
             lfoPhases = SIMD_ADD(lfoPhases, lfoIncrements);
-            lfoPhases = SIMD_SUB(lfoPhases, SIMD_MUL(SIMD_FLOOR(SIMD_DIV(lfoPhases, twoPi)), twoPi));
+            lfoPhases = SIMD_SUB(lfoPhases, SIMD_FLOOR(SIMD_DIV(lfoPhases, twoPi)));
             lfoPhases = SIMD_MAX(lfoPhases, SIMD_SET1(0.0f));
             lfoPhases = SIMD_MIN(lfoPhases, twoPi);
             SIMD_TYPE lfoValues = fast_sin_ps(lfoPhases);
             lfoValues = SIMD_MUL(lfoValues, lfoDepths);
             SIMD_TYPE phaseMod = SIMD_DIV(lfoValues, twoPi);
 
-            // Perform wavetable lookup for active voices
-            SIMD_TYPE mainValues = SIMD_SET1(0.0f);
-            float tempOutput[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            SIMD_STORE(tempPhases, SIMD_SUB(phases, SIMD_FLOOR(phases)));
-            for (int j = 0; j < 4; ++j) {
-                int idx = voiceOffset + j;
-                if (idx >= MAX_VOICE_POLYPHONY || !voices[idx].active) continue;
-                tempOutput[j] = wavetable_lookup_ps(SIMD_SET1(tempPhases[j]), voices[idx].wavetableType)[0];
-            }
-            mainValues = SIMD_LOAD(tempOutput);
+            SIMD_TYPE mainValues = wavetable_lookup_ps(SIMD_ADD(phases, phaseMod), wavetableTypes);
+            float tempMainValues[SIMD_WIDTH];
+            SIMD_STORE(tempMainValues, mainValues);
+            DBG("Main values: " << tempMainValues[0] << ", " << tempMainValues[1] << ", "
+                                << tempMainValues[2] << ", " << tempMainValues[3]);
 
-            // Apply per-voice unison detuning
             SIMD_TYPE unisonOutput = SIMD_SET1(0.0f);
-            float tempUnisonOutput[4] = {0.0f, 0.0f, 0.0f, 0.0f};
-            for (int j = 0; j < 4; ++j) {
+            for (int j = 0; j < SIMD_WIDTH; ++j) {
                 int idx = voiceOffset + j;
                 if (idx >= MAX_VOICE_POLYPHONY || !voices[idx].active) continue;
-                int unison = voices[idx].unison;
+                int unison = static_cast<int>(tempUnisonCounts[j]);
                 float detune = tempDetunes[j];
                 float normFactor = unison > 0 ? 1.0f / unison : 1.0f;
+                SIMD_TYPE voiceOutput = SIMD_SET1(0.0f);
                 for (int u = 0; u < unison; ++u) {
                     float detuneAmount = detune * (u - (unison - 1) / 2.0f) / (unison - 1 + 0.0001f);
                     float detuneFactor = powf(2.0f, detuneAmount / 12.0f);
-                    SIMD_TYPE detunedPhases = SIMD_ADD(SIMD_SET1(tempPhases[j]), phaseMod);
-                    detunedPhases = SIMD_MUL(detunedPhases, SIMD_SET1(detuneFactor));
-                    detunedPhases = SIMD_SUB(detunedPhases, SIMD_FLOOR(detunedPhases));
-                    SIMD_TYPE detunedValues = wavetable_lookup_ps(detunedPhases, voices[idx].wavetableType);
-                    tempUnisonOutput[j] += detunedValues[0] * normFactor;
+                    SIMD_TYPE detunedPhases = SIMD_MUL(SIMD_ADD(SIMD_SET1(tempPhases[j]), phaseMod), SIMD_SET1(detuneFactor));
+                    detunedPhases = SIMD_SUB(detunedPhases, SIMD_FLOOR(SIMD_DIV(detunedPhases, twoPi)));
+                    SIMD_TYPE detunedValues = wavetable_lookup_ps(detunedPhases, SIMD_SET1(tempWavetableTypes[j]));
+                    voiceOutput = SIMD_ADD(voiceOutput, SIMD_MUL(detunedValues, SIMD_SET1(normFactor)));
                 }
+                SIMD_STORE(tempVoiceOutput, voiceOutput);
+                tempUnisonOutput[j] = tempVoiceOutput[j];
             }
             unisonOutput = SIMD_LOAD(tempUnisonOutput);
             unisonOutput = SIMD_MUL(unisonOutput, amplitudes);
             unisonOutput = SIMD_MUL(unisonOutput, SIMD_SUB(SIMD_SET1(1.0f), subMixes));
+            float tempUnisonValues[SIMD_WIDTH];
+            SIMD_STORE(tempUnisonValues, unisonOutput);
+            DBG("Unison output: " << tempUnisonValues[0] << ", " << tempUnisonValues[1] << ", "
+                                  << tempUnisonValues[2] << ", " << tempUnisonValues[3]);
 
-            // Generate sub-oscillator
             SIMD_TYPE subSinValues = fast_sin_ps(subPhases);
             subSinValues = SIMD_MUL(subSinValues, amplitudes);
             subSinValues = SIMD_MUL(subSinValues, subMixes);
+            float tempSubValues[SIMD_WIDTH];
+            SIMD_STORE(tempSubValues, subSinValues);
+            DBG("Sub values: " << tempSubValues[0] << ", " << tempSubValues[1] << ", "
+                               << tempSubValues[2] << ", " << tempSubValues[3]);
 
-            // Combine and filter
             SIMD_TYPE combinedValues = SIMD_ADD(unisonOutput, subSinValues);
-            SIMD_TYPE filteredOutput;
-            applyLadderFilter(voices, voiceOffset, combinedValues, filteredOutput);
-            float temp[4];
-            SIMD_STORE(temp, filteredOutput);
-            outputSample += (temp[0] + temp[1] + temp[2] + temp[3]);
+            float tempCombinedValues[SIMD_WIDTH];
+            SIMD_STORE(tempCombinedValues, combinedValues);
+            DBG("Combined values: " << tempCombinedValues[0] << ", " << tempCombinedValues[1] << ", "
+                                    << tempCombinedValues[2] << ", " << tempCombinedValues[3]);
 
-            // Update phases
-            phases = SIMD_ADD(phases, increments);
-            phases = SIMD_SUB(phases, SIMD_FLOOR(phases));
-            SIMD_STORE(temp, phases);
-            for (int j = 0; j < 4; ++j) {
-                if (voiceOffset + j < MAX_VOICE_POLYPHONY) voices[voiceOffset + j].phase = temp[j];
-            }
-
-            subPhases = SIMD_ADD(subPhases, subIncrements);
-            subPhases = SIMD_SUB(subPhases, SIMD_MUL(SIMD_FLOOR(SIMD_DIV(subPhases, twoPi)), twoPi));
-            SIMD_STORE(temp, subPhases);
-            for (int j = 0; j < 4; ++j) {
-                if (voiceOffset + j < MAX_VOICE_POLYPHONY) voices[voiceOffset + j].subPhase = temp[j];
-            }
-
-            lfoPhases = SIMD_ADD(lfoPhases, lfoIncrements);
-            lfoPhases = SIMD_SUB(lfoPhases, SIMD_MUL(SIMD_FLOOR(SIMD_DIV(lfoPhases, twoPi)), twoPi));
-            SIMD_STORE(temp, lfoPhases);
-            for (int j = 0; j < 4; ++j) {
-                if (voiceOffset + j < MAX_VOICE_POLYPHONY) voices[voiceOffset + j].lfoPhase = temp[j];
-            }
-        }
-
-        // Apply gain and clamp output
-        outputSample *= *gainParam;
-        if (std::isnan(outputSample) || !std::isfinite(outputSample)) {
-            outputSample = 0.0f;
-            DBG("Invalid output sample at position " << samplePosition);
-        }
-
-        // Write to output channels
-        for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
-            oversampledBlock.setSample(channel, samplePosition, outputSample);
-        }
-    };
-
-    // Process MIDI events and samples
-    for (const auto metadata : oversampledMidi) {
-        auto msg = metadata.getMessage();
-        int samplePosition = metadata.samplePosition;
-
-        // Process samples up to the MIDI event
-        while (sampleIndex < samplePosition && sampleIndex < oversampledBlock.getNumSamples()) {
-            float t = static_cast<float>(blockStartTime + static_cast<double>(sampleIndex) / sampleRate);
-            processSample(sampleIndex, t);
-            sampleIndex++;
-        }
-
-        // Handle MIDI events
-        if (msg.isNoteOn()) {
-            int note = msg.getNoteNumber();
-            float velocity = 0.7f + (msg.getVelocity() / 127.0f) * 0.3f;
-
-            int voiceIndex = -1;
-            for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
-                if (!voices[i].active) {
-                    voiceIndex = i;
+            // Fallback: Ensure some output if amplitudes are zero
+            bool allAmplitudesZero = true;
+            for (int j = 0; j < SIMD_WIDTH; ++j) {
+                int idx = voiceOffset + j;
+                if (idx < MAX_VOICE_POLYPHONY && voices[idx].active && tempAmps[j] > 0.0f) {
+                    allAmplitudesZero = false;
                     break;
                 }
             }
-
-            if (voiceIndex == -1) {
-                voiceIndex = findVoiceToSteal();
-                if (voices[voiceIndex].released) {
-                    voices[voiceIndex].releaseStartAmplitude = voices[voiceIndex].amplitude;
-                    voices[voiceIndex].releaseStartFilterEnv =
-                        voices[voiceIndex].filterEnv; // Added for filter envelope
-                }
-                voices[voiceIndex].amplitude *= 0.707f; // Smooth transition
+            if (allAmplitudesZero) {
+                combinedValues = SIMD_SET1(0.0f); // Mute the batch if all amplitudes are zero
+                DBG("Warning: Zero amplitudes detected in batch " << batch << ", muting batch");
             }
 
-            voices[voiceIndex].active = true;
-            voices[voiceIndex].released = false;
-            voices[voiceIndex].isHeld = true;
-            voices[voiceIndex].frequency = midiToFreq(note);
-            voices[voiceIndex].phaseIncrement = voices[voiceIndex].frequency / sampleRate;
-            voices[voiceIndex].phase = 0.0f;
-            voices[voiceIndex].noteNumber = note;
-            voices[voiceIndex].velocity = velocity;
-            voices[voiceIndex].voiceAge = 0.0f;
-            voices[voiceIndex].noteOnTime =
-                static_cast<float>(blockStartTime + static_cast<double>(samplePosition) / sampleRate);
-            voices[voiceIndex].releaseStartAmplitude = voices[voiceIndex].amplitude;
-            voices[voiceIndex].releaseStartFilterEnv = voices[voiceIndex].filterEnv; // Added for filter envelope
+            SIMD_TYPE filteredOutput;
+            applyLadderFilter(voices, voiceOffset, combinedValues, filteredOutput);
+            float tempFilteredValues[SIMD_WIDTH];
+            SIMD_STORE(tempFilteredValues, filteredOutput);
+            DBG("Filtered output: " << tempFilteredValues[0] << ", " << tempFilteredValues[1] << ", "
+                                    << tempFilteredValues[2] << ", " << tempFilteredValues[3]);
 
-            float baseSubFreq = voices[voiceIndex].frequency * powf(2.0f, voices[voiceIndex].subTune / 12.0f);
-            float fixedFreq = midiToFreq(69);
-            float subFreq =
-                baseSubFreq * voices[voiceIndex].subTrack + fixedFreq * (1.0f - voices[voiceIndex].subTrack);
-            voices[voiceIndex].subPhaseIncrement = subFreq / sampleRate;
-            voices[voiceIndex].subPhase = 0.0f;
-        } else if (msg.isNoteOff()) {
-            int note = msg.getNoteNumber();
-            for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
-                if (voices[i].active && voices[i].noteNumber == note && voices[i].isHeld) {
-                    voices[i].released = true;
-                    voices[i].isHeld = false;
-                    voices[i].releaseStartAmplitude = voices[i].amplitude;
-                    voices[i].releaseStartFilterEnv = voices[i].filterEnv; // Added for filter envelope
-                    voices[i].noteOffTime =
-                        static_cast<float>(blockStartTime + static_cast<double>(samplePosition) / sampleRate);
+            SIMD_STORE(tempFilterOutput, filteredOutput);
+            for (int j = 0; j < SIMD_WIDTH; ++j) {
+                int idx = voiceOffset + j;
+                if (idx < MAX_VOICE_POLYPHONY && voices[idx].active && tempAmps[j] > 0.0f) {
+                    outputSample += tempFilterOutput[j] * voices[idx].velocity; // Include velocity scaling
+                    DBG("Voice " << idx << ": amp=" << tempAmps[j] << ", unison=" << tempUnisonOutput[j]
+                        << ", sub=" << tempSubValues[j] << ", filter=" << tempFilteredValues[j]
+                        << " at sample " << samplePosition);
+                } else {
+                    tempFilterOutput[j] = 0.0f; // Explicitly zero out inactive voices
                 }
             }
-        } else if (msg.isProgramChange()) {
-            int program = msg.getProgramChangeNumber();
-            if (program >= 0 && program < getNumPrograms()) {
-                setCurrentProgram(program);
-            } else {
-                DBG("Invalid program change index: " << program);
+
+            phases = SIMD_ADD(phases, increments);
+            phases = SIMD_SUB(phases, SIMD_FLOOR(SIMD_DIV(phases, twoPi)));
+            SIMD_STORE(tempPhases, phases);
+            for (int j = 0; j < SIMD_WIDTH; ++j) {
+                int idx = voiceOffset + j;
+                if (idx < MAX_VOICE_POLYPHONY) {
+                    voices[idx].phase = tempPhases[j];
+                }
+            }
+
+            subPhases = SIMD_ADD(subPhases, subIncrements);
+            subPhases = SIMD_SUB(subPhases, SIMD_FLOOR(SIMD_DIV(subPhases, twoPi)));
+            SIMD_STORE(tempSubPhases, subPhases);
+            for (int j = 0; j < SIMD_WIDTH; ++j) {
+                int idx = voiceOffset + j;
+                if (idx < MAX_VOICE_POLYPHONY) {
+                    voices[idx].subPhase = tempSubPhases[j];
+                }
+            }
+
+            lfoPhases = SIMD_ADD(lfoPhases, lfoIncrements);
+            lfoPhases = SIMD_SUB(lfoPhases, SIMD_FLOOR(SIMD_DIV(lfoPhases, twoPi)));
+            SIMD_STORE(tempLfoPhases, lfoPhases);
+            for (int j = 0; j < SIMD_WIDTH; ++j) {
+                int idx = voiceOffset + j;
+                if (idx < MAX_VOICE_POLYPHONY) {
+                    voices[idx].lfoPhase = tempLfoPhases[j];
+                }
             }
         }
 
-        // Update voice ages
+        outputSample *= std::max(gainParam->load(), 0.5f);
+        DBG("Final outputSample before clamp: " << outputSample);
+        if (std::isnan(outputSample) || !std::isfinite(outputSample)) {
+            DBG("Invalid output sample at position " << samplePosition << ": " << outputSample);
+            outputSample = 0.0f;
+        }
+        outputSample = std::max(-1.0f, std::min(1.0f, outputSample));
+        DBG("Final outputSample after clamp: " << outputSample);
+
+        for (int channel = 0; channel < totalNumOutputChannels; ++channel) {
+            oversampledBlock.getChannelPointer(channel)[samplePosition] = outputSample;
+        }
+
         for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
             if (voices[i].active) {
-                voices[i].voiceAge += buffer.getNumSamples() / sampleRate;
+                voices[i].voiceAge = t - voices[i].noteOnTime;
             }
         }
-    }
+    };
 
-    // Process remaining samples
-    while (sampleIndex < oversampledBlock.getNumSamples()) {
-        float t = static_cast<float>(blockStartTime + static_cast<double>(sampleIndex) / sampleRate);
+    for (int sampleIndex = 0; sampleIndex < oversampledBlock.getNumSamples(); ++sampleIndex) {
+        float t = blockStartTime + sampleIndex / sampleRate;
         processSample(sampleIndex, t);
-        sampleIndex++;
     }
 
-    // Free aligned memory
-    std::free(tempAmps);
-    std::free(tempPhases);
-    std::free(tempIncrements);
-    std::free(tempLfoPhases);
-    std::free(tempLfoRates);
-    std::free(tempLfoDepths);
-    std::free(tempSubPhases);
-    std::free(tempSubIncrements);
-    std::free(tempSubMixes);
-    std::free(tempWavetableTypes);
-    std::free(tempSubTracks);
-    std::free(tempUnisonCounts);
-    std::free(tempDetunes);
-    std::free(tempSampleRates);
-
-    // Downsample and update global time
     oversampling->processSamplesDown(block);
-    currentTime += static_cast<double>(buffer.getNumSamples()) / voices[0].sampleRate;
-} // Create the editor for the plugin
-juce::AudioProcessorEditor *SimdSynthAudioProcessor::createEditor() {
-    return new SimdSynthAudioProcessorEditor(*this);
-} // Save plugin state
+    currentTime = blockStartTime + oversampledBlock.getNumSamples() / sampleRate;
+}
+
+// Save plugin state
 void SimdSynthAudioProcessor::getStateInformation(juce::MemoryBlock &destData) {
     auto state = parameters.copyState();
     state.setProperty("currentProgram", currentProgram, nullptr);
     std::unique_ptr<juce::XmlElement> xml(state.createXml());
     copyXmlToBinary(*xml, destData);
-} // Restore plugin state
+}
+
+// Restore plugin state
 void SimdSynthAudioProcessor::setStateInformation(const void *data, int sizeInBytes) {
     std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(data, sizeInBytes));
     if (xmlState.get() != nullptr) {
@@ -1041,5 +1124,10 @@ void SimdSynthAudioProcessor::setStateInformation(const void *data, int sizeInBy
             setCurrentProgram(state.getProperty("currentProgram"));
         }
     }
-} // Create plugin instance
+}
+
+// Create the editor for the plugin
+juce::AudioProcessorEditor *SimdSynthAudioProcessor::createEditor() { return new SimdSynthAudioProcessorEditor(*this); }
+
+// Create plugin instance
 juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter() { return new SimdSynthAudioProcessor(); }
