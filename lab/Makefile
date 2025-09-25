@@ -22,5 +22,9 @@ demo: simdsynth
 	./simdsynth sine | sox -t raw -r 48000 -e floating-point -b 32 -c 1 - demo_sine.mp3
 	./simdsynth saw | sox -t raw -r 48000 -e floating-point -b 32 -c 1 - demo_saw.mp3
 
+
+dfm1: dfm1_single.cpp
+	$(CXX) dfm1_single.cpp -o dfm1
+
 clean:
-	rm -rf *.o *~ simdsynth
+	rm -rf *.o *~ simdsynth dfm1
