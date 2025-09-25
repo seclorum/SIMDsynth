@@ -73,6 +73,7 @@ struct Voice {
     float subPhaseIncrement = 0.0f;  // Sub-oscillator phase increment per sample
     float osc2Phase = 0.0f; // New oscillator phase
     float osc2PhaseIncrement = 0.0f; // New oscillator phase increment
+    float osc2PhaseOffset = 0.0f;
     float lfoPhase = 0.0f;           // LFO phase (radians)
     float filterEnv = 0.0f;          // Filter envelope value (0 to 1)
     float attackCurve = 2.0f;        // Attack curve exponent
@@ -188,6 +189,8 @@ public:
     juce::StringArray getPresetNames() const { return presetNames; }
 
 private:
+    juce::Random random; // Add random generator
+
     // Parameter management
     juce::AudioProcessorValueTreeState parameters;
     std::atomic<float> *wavetableTypeParam, *attackTimeParam, *decayTimeParam, *sustainLevelParam,

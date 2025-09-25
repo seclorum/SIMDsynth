@@ -45,14 +45,14 @@ void PresetManager::createDefaultPresets() {
         manager.writePresetFile(name, juce::var(root.get()));
     };
 
-    // Updated presets with osc2Tune, osc2Mix, osc2Track
+    // Updated presets with enhanced osc2 parameters
     makeSimdSynthPatch("Clavichord",
                        {{"wavetable", 2.0f}, // Square wave for bright tone
                         {"attack", 0.01f},    {"decay", 0.3f},       {"sustain", 0.0f},    {"release", 0.05f},
                         {"cutoff", 4000.0f},  {"resonance", 0.4f},   {"fegAttack", 0.01f}, {"fegDecay", 0.2f},
                         {"fegSustain", 0.0f}, {"fegRelease", 0.05f}, {"fegAmount", 0.3f},  {"lfoRate", 0.0f},
                         {"lfoDepth", 0.0f},   {"subTune", -12.0f},   {"subMix", 0.2f},     {"subTrack", 1.0f},
-                        {"osc2Tune", -24.0f}, {"osc2Mix", 0.1f},     {"osc2Track", 1.0f},  {"gain", 1.0f},
+                        {"osc2Tune", 0.1f},   {"osc2Mix", 0.5f},     {"osc2Track", 1.0f},  {"gain", 1.0f},
                         {"unison", 2.0f},     {"detune", 0.02f}},
                        *this);
 
@@ -62,7 +62,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 800.0f},   {"resonance", 0.6f},  {"fegAttack", 0.01f}, {"fegDecay", 0.4f},
                         {"fegSustain", 0.2f}, {"fegRelease", 0.1f}, {"fegAmount", 0.5f},  {"lfoRate", 0.0f},
                         {"lfoDepth", 0.0f},   {"subTune", -24.0f},  {"subMix", 0.8f},     {"subTrack", 1.0f},
-                        {"osc2Tune", -12.0f}, {"osc2Mix", 0.3f},    {"osc2Track", 1.0f},  {"gain", 1.2f},
+                        {"osc2Tune", -0.1f},  {"osc2Mix", 0.6f},    {"osc2Track", 1.0f},  {"gain", 1.2f},
                         {"unison", 1.0f},     {"detune", 0.0f}},
                        *this);
 
@@ -72,7 +72,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 2000.0f},  {"resonance", 0.3f},  {"fegAttack", 1.0f}, {"fegDecay", 2.0f},
                         {"fegSustain", 0.8f}, {"fegRelease", 1.5f}, {"fegAmount", 0.4f}, {"lfoRate", 0.5f},
                         {"lfoDepth", 0.05f},  {"subTune", -12.0f},  {"subMix", 0.4f},    {"subTrack", 1.0f},
-                        {"osc2Tune", -12.0f}, {"osc2Mix", 0.2f},    {"osc2Track", 1.0f}, {"gain", 0.8f},
+                        {"osc2Tune", 7.0f},   {"osc2Mix", 0.5f},    {"osc2Track", 1.0f}, {"gain", 0.8f},
                         {"unison", 3.0f},     {"detune", 0.03f}},
                        *this);
 
@@ -82,7 +82,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 1500.0f},  {"resonance", 0.2f},  {"fegAttack", 0.8f}, {"fegDecay", 1.5f},
                         {"fegSustain", 0.9f}, {"fegRelease", 1.0f}, {"fegAmount", 0.3f}, {"lfoRate", 0.3f},
                         {"lfoDepth", 0.03f},  {"subTune", -12.0f},  {"subMix", 0.3f},    {"subTrack", 1.0f},
-                        {"osc2Tune", -24.0f}, {"osc2Mix", 0.2f},    {"osc2Track", 1.0f}, {"gain", 0.9f},
+                        {"osc2Tune", 12.0f},  {"osc2Mix", 0.5f},    {"osc2Track", 1.0f}, {"gain", 0.9f},
                         {"unison", 2.0f},     {"detune", 0.02f}},
                        *this);
 
@@ -92,17 +92,17 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 3000.0f},  {"resonance", 0.5f},  {"fegAttack", 0.6f}, {"fegDecay", 1.0f},
                         {"fegSustain", 0.7f}, {"fegRelease", 0.8f}, {"fegAmount", 0.4f}, {"lfoRate", 0.4f},
                         {"lfoDepth", 0.04f},  {"subTune", -12.0f},  {"subMix", 0.2f},    {"subTrack", 1.0f},
-                        {"osc2Tune", -12.0f}, {"osc2Mix", 0.3f},    {"osc2Track", 1.0f}, {"gain", 0.9f},
+                        {"osc2Tune", 7.0f},   {"osc2Mix", 0.6f},    {"osc2Track", 1.0f}, {"gain", 0.9f},
                         {"unison", 2.0f},     {"detune", 0.025f}},
                        *this);
 
     makeSimdSynthPatch("SciFiSweep",
                        {{"wavetable", 1.0f}, {"attack", 0.2f},     {"decay", 1.0f},      {"sustain", 0.5f},
-                        {"release", 0.3f},   {"cutoff", 5000.0f},  {"resonance", 0.8f},  {"fegAttack", 0.1f},
-                        {"fegDecay", 0.5f},  {"fegSustain", 0.3f}, {"fegRelease", 0.3f}, {"fegAmount", 0.7f},
-                        {"lfoRate", 5.0f},   {"lfoDepth", 0.08f},  {"subTune", -24.0f},  {"subMix", 0.5f},
-                        {"osc2Tune", -12.0f}, {"osc2Mix", 0.2f},    {"osc2Track", 0.0f}, {"gain", 1.0f},
-                        {"unison", 1.0f},    {"detune", 0.0f}},
+                        {"cutoff", 5000.0f},  {"resonance", 0.8f},  {"fegAttack", 0.1f}, {"fegDecay", 0.5f},
+                        {"fegSustain", 0.3f}, {"fegRelease", 0.3f}, {"fegAmount", 0.7f}, {"lfoRate", 5.0f},
+                        {"lfoDepth", 0.08f},  {"subTune", -24.0f},  {"subMix", 0.5f},    {"subTrack", 0.0f},
+                        {"osc2Tune", 0.0f},   {"osc2Mix", 0.5f},    {"osc2Track", 0.0f}, {"gain", 1.0f},
+                        {"unison", 1.0f},     {"detune", 0.0f}},
                        *this);
 
     makeSimdSynthPatch("MetallicDrone",
@@ -110,17 +110,17 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 1000.0f},  {"resonance", 0.9f},  {"fegAttack", 1.0f}, {"fegDecay", 3.0f},
                         {"fegSustain", 0.8f}, {"fegRelease", 1.5f}, {"fegAmount", 0.6f}, {"lfoRate", 0.2f},
                         {"lfoDepth", 0.06f},  {"subTune", -24.0f},  {"subMix", 0.6f},    {"subTrack", 0.0f},
-                        {"osc2Tune", -36.0f}, {"osc2Mix", 0.4f},    {"osc2Track", 0.0f}, {"gain", 0.8f},
+                        {"osc2Tune", -12.0f}, {"osc2Mix", 0.6f},    {"osc2Track", 0.0f}, {"gain", 0.8f},
                         {"unison", 3.0f},     {"detune", 0.04f}},
                        *this);
 
     makeSimdSynthPatch("GlitchPulse",
                        {{"wavetable", 2.0f}, {"attack", 0.01f},    {"decay", 0.2f},       {"sustain", 0.0f},
-                        {"release", 0.05f},  {"cutoff", 6000.0f},  {"resonance", 0.7f},   {"fegAttack", 0.01f},
-                        {"fegDecay", 0.1f},  {"fegSustain", 0.0f}, {"fegRelease", 0.05f}, {"fegAmount", 0.5f},
-                        {"lfoRate", 10.0f},  {"lfoDepth", 0.1f},   {"subTune", -12.0f},   {"subMix", 0.3f},
-                        {"osc2Tune", -24.0f}, {"osc2Mix", 0.2f},    {"osc2Track", 1.0f},  {"gain", 1.0f},
-                        {"unison", 1.0f},    {"detune", 0.0f}},
+                        {"cutoff", 6000.0f},  {"resonance", 0.7f},  {"fegAttack", 0.01f}, {"fegDecay", 0.1f},
+                        {"fegSustain", 0.0f}, {"fegRelease", 0.05f}, {"fegAmount", 0.5f}, {"lfoRate", 10.0f},
+                        {"lfoDepth", 0.1f},   {"subTune", -12.0f},  {"subMix", 0.3f},     {"subTrack", 1.0f},
+                        {"osc2Tune", 0.1f},   {"osc2Mix", 0.6f},    {"osc2Track", 1.0f},  {"gain", 1.0f},
+                        {"unison", 1.0f},     {"detune", 0.0f}},
                        *this);
 
     makeSimdSynthPatch("SpaceAmbience",
@@ -128,17 +128,17 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 800.0f},   {"resonance", 0.3f},  {"fegAttack", 1.5f}, {"fegDecay", 4.0f},
                         {"fegSustain", 0.9f}, {"fegRelease", 2.0f}, {"fegAmount", 0.2f}, {"lfoRate", 0.1f},
                         {"lfoDepth", 0.07f},  {"subTune", -24.0f},  {"subMix", 0.5f},    {"subTrack", 0.0f},
-                        {"osc2Tune", -12.0f}, {"osc2Mix", 0.3f},    {"osc2Track", 0.0f}, {"gain", 0.7f},
+                        {"osc2Tune", 12.0f},  {"osc2Mix", 0.6f},    {"osc2Track", 0.0f}, {"gain", 0.7f},
                         {"unison", 4.0f},     {"detune", 0.05f}},
                        *this);
 
     makeSimdSynthPatch("LaserZap",
                        {{"wavetable", 1.0f}, {"attack", 0.01f},    {"decay", 0.3f},      {"sustain", 0.0f},
-                        {"release", 0.1f},   {"cutoff", 7000.0f},  {"resonance", 0.8f},  {"fegAttack", 0.01f},
-                        {"fegDecay", 0.2f},  {"fegSustain", 0.0f}, {"fegRelease", 0.1f}, {"fegAmount", 0.6f},
-                        {"lfoRate", 15.0f},  {"lfoDepth", 0.09f},  {"subTune", -12.0f},  {"subMix", 0.2f},
-                        {"osc2Tune", -24.0f}, {"osc2Mix", 0.1f},    {"osc2Track", 1.0f}, {"gain", 1.0f},
-                        {"unison", 1.0f},    {"detune", 0.0f}},
+                        {"cutoff", 7000.0f},  {"resonance", 0.8f},  {"fegAttack", 0.01f}, {"fegDecay", 0.2f},
+                        {"fegSustain", 0.0f}, {"fegRelease", 0.1f}, {"fegAmount", 0.6f}, {"lfoRate", 15.0f},
+                        {"lfoDepth", 0.09f},  {"subTune", -12.0f},  {"subMix", 0.2f},    {"subTrack", 1.0f},
+                        {"osc2Tune", 0.2f},   {"osc2Mix", 0.5f},    {"osc2Track", 1.0f}, {"gain", 1.0f},
+                        {"unison", 1.0f},     {"detune", 0.0f}},
                        *this);
 
     makeSimdSynthPatch("Organ",
@@ -146,7 +146,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 5000.0f},  {"resonance", 0.3f},  {"fegAttack", 0.02f}, {"fegDecay", 0.1f},
                         {"fegSustain", 0.8f}, {"fegRelease", 0.05f}, {"fegAmount", 0.2f}, {"lfoRate", 6.0f},
                         {"lfoDepth", 0.05f},  {"subTune", -12.0f},  {"subMix", 0.3f},     {"subTrack", 1.0f},
-                        {"osc2Tune", -24.0f}, {"osc2Mix", 0.2f},    {"osc2Track", 1.0f},  {"gain", 0.9f},
+                        {"osc2Tune", 7.0f},   {"osc2Mix", 0.5f},    {"osc2Track", 1.0f},  {"gain", 0.9f},
                         {"unison", 3.0f},     {"detune", 0.03f}},
                        *this);
 
@@ -155,7 +155,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 3000.0f},  {"resonance", 0.4f},  {"fegAttack", 0.01f}, {"fegDecay", 0.5f},
                         {"fegSustain", 0.3f}, {"fegRelease", 0.2f}, {"fegAmount", 0.4f}, {"lfoRate", 0.0f},
                         {"lfoDepth", 0.0f},   {"subTune", -12.0f},  {"subMix", 0.2f},    {"subTrack", 1.0f},
-                        {"osc2Tune", -24.0f}, {"osc2Mix", 0.15f},   {"osc2Track", 1.0f}, {"gain", 1.1f},
+                        {"osc2Tune", 0.1f},   {"osc2Mix", 0.5f},    {"osc2Track", 1.0f}, {"gain", 1.1f},
                         {"unison", 2.0f},     {"detune", 0.02f}},
                        *this);
 
@@ -164,7 +164,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 8000.0f},  {"resonance", 0.6f},  {"fegAttack", 0.001f}, {"fegDecay", 0.05f},
                         {"fegSustain", 0.0f}, {"fegRelease", 0.05f}, {"fegAmount", 0.8f}, {"lfoRate", 0.0f},
                         {"lfoDepth", 0.0f},   {"subTune", -24.0f},  {"subMix", 0.5f},     {"subTrack", 1.0f},
-                        {"osc2Tune", -12.0f}, {"osc2Mix", 0.2f},    {"osc2Track", 1.0f},  {"gain", 1.3f},
+                        {"osc2Tune", -0.1f},  {"osc2Mix", 0.5f},    {"osc2Track", 1.0f},  {"gain", 1.3f},
                         {"unison", 1.0f},     {"detune", 0.0f}},
                        *this);
 
@@ -173,7 +173,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 2000.0f},  {"resonance", 0.2f},  {"fegAttack", 0.1f}, {"fegDecay", 0.3f},
                         {"fegSustain", 0.7f}, {"fegRelease", 0.2f}, {"fegAmount", 0.1f}, {"lfoRate", 4.0f},
                         {"lfoDepth", 0.03f},  {"subTune", -12.0f},  {"subMix", 0.1f},    {"subTrack", 1.0f},
-                        {"osc2Tune", -12.0f}, {"osc2Mix", 0.1f},    {"osc2Track", 1.0f}, {"gain", 0.8f},
+                        {"osc2Tune", 0.05f},  {"osc2Mix", 0.5f},    {"osc2Track", 1.0f}, {"gain", 0.8f},
                         {"unison", 1.0f},     {"detune", 0.0f}},
                        *this);
 
@@ -182,7 +182,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 1200.0f},  {"resonance", 0.7f},  {"fegAttack", 0.01f}, {"fegDecay", 0.2f},
                         {"fegSustain", 0.4f}, {"fegRelease", 0.1f}, {"fegAmount", 0.6f}, {"lfoRate", 2.0f},
                         {"lfoDepth", 0.06f},  {"subTune", -24.0f},  {"subMix", 0.7f},    {"subTrack", 1.0f},
-                        {"osc2Tune", -12.0f}, {"osc2Mix", 0.3f},    {"osc2Track", 1.0f}, {"gain", 1.2f},
+                        {"osc2Tune", -0.1f},  {"osc2Mix", 0.6f},    {"osc2Track", 1.0f}, {"gain", 1.2f},
                         {"unison", 2.0f},     {"detune", 0.03f}},
                        *this);
 
@@ -191,7 +191,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 800.0f},   {"resonance", 0.9f},  {"fegAttack", 0.01f}, {"fegDecay", 0.3f},
                         {"fegSustain", 0.5f}, {"fegRelease", 0.1f}, {"fegAmount", 0.8f}, {"lfoRate", 0.0f},
                         {"lfoDepth", 0.0f},   {"subTune", -12.0f},  {"subMix", 0.3f},    {"subTrack", 1.0f},
-                        {"osc2Tune", -24.0f}, {"osc2Mix", 0.2f},    {"osc2Track", 1.0f}, {"gain", 1.0f},
+                        {"osc2Tune", -0.1f},  {"osc2Mix", 0.6f},    {"osc2Track", 1.0f}, {"gain", 1.0f},
                         {"unison", 1.0f},     {"detune", 0.0f}},
                        *this);
 
@@ -200,7 +200,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 4000.0f},  {"resonance", 0.3f},  {"fegAttack", 2.0f}, {"fegDecay", 2.0f},
                         {"fegSustain", 0.7f}, {"fegRelease", 2.0f}, {"fegAmount", 0.3f}, {"lfoRate", 0.5f},
                         {"lfoDepth", 0.1f},   {"subTune", -12.0f},  {"subMix", 0.1f},    {"subTrack", 1.0f},
-                        {"osc2Tune", -12.0f}, {"osc2Mix", 0.2f},    {"osc2Track", 1.0f}, {"gain", 0.8f},
+                        {"osc2Tune", 7.0f},   {"osc2Mix", 0.5f},    {"osc2Track", 1.0f}, {"gain", 0.8f},
                         {"unison", 3.0f},     {"detune", 0.03f}},
                        *this);
 
@@ -209,7 +209,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 2000.0f},  {"resonance", 0.5f},  {"fegAttack", 3.0f}, {"fegDecay", 3.0f},
                         {"fegSustain", 0.8f}, {"fegRelease", 3.5f}, {"fegAmount", 0.6f}, {"lfoRate", 0.3f},
                         {"lfoDepth", 0.15f},  {"subTune", -24.0f},  {"subMix", 0.4f},    {"subTrack", 1.0f},
-                        {"osc2Tune", -12.0f}, {"osc2Mix", 0.3f},    {"osc2Track", 1.0f}, {"gain", 0.9f},
+                        {"osc2Tune", 12.0f},  {"osc2Mix", 0.6f},    {"osc2Track", 1.0f}, {"gain", 0.9f},
                         {"unison", 5.0f},     {"detune", 0.05f}},
                        *this);
 
@@ -218,7 +218,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 5000.0f},  {"resonance", 0.6f},  {"fegAttack", 0.01f}, {"fegDecay", 0.3f},
                         {"fegSustain", 0.4f}, {"fegRelease", 0.15f}, {"fegAmount", 0.5f}, {"lfoRate", 0.0f},
                         {"lfoDepth", 0.0f},   {"subTune", -12.0f},  {"subMix", 0.2f},     {"subTrack", 1.0f},
-                        {"osc2Tune", -24.0f}, {"osc2Mix", 0.2f},    {"osc2Track", 1.0f},  {"gain", 1.2f},
+                        {"osc2Tune", 0.1f},   {"osc2Mix", 0.5f},    {"osc2Track", 1.0f},  {"gain", 1.2f},
                         {"unison", 3.0f},     {"detune", 0.02f}},
                        *this);
 
@@ -227,7 +227,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 3500.0f},  {"resonance", 0.4f},  {"fegAttack", 0.02f}, {"fegDecay", 0.7f},
                         {"fegSustain", 0.3f}, {"fegRelease", 0.3f}, {"fegAmount", 0.3f}, {"lfoRate", 0.0f},
                         {"lfoDepth", 0.0f},   {"subTune", -12.0f},  {"subMix", 0.15f},   {"subTrack", 1.0f},
-                        {"osc2Tune", -24.0f}, {"osc2Mix", 0.1f},    {"osc2Track", 1.0f}, {"gain", 1.0f},
+                        {"osc2Tune", 0.1f},   {"osc2Mix", 0.5f},    {"osc2Track", 1.0f}, {"gain", 1.0f},
                         {"unison", 2.0f},     {"detune", 0.015f}},
                        *this);
 
@@ -236,7 +236,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 1000.0f},  {"resonance", 0.8f},  {"fegAttack", 2.0f}, {"fegDecay", 2.0f},
                         {"fegSustain", 0.5f}, {"fegRelease", 1.5f}, {"fegAmount", 0.7f}, {"lfoRate", 0.2f},
                         {"lfoDepth", 0.2f},   {"subTune", -12.0f},  {"subMix", 0.3f},    {"subTrack", 1.0f},
-                        {"osc2Tune", -24.0f}, {"osc2Mix", 0.2f},    {"osc2Track", 1.0f}, {"gain", 0.9f},
+                        {"osc2Tune", 7.0f},   {"osc2Mix", 0.5f},    {"osc2Track", 1.0f}, {"gain", 0.9f},
                         {"unison", 2.0f},     {"detune", 0.03f}},
                        *this);
 
@@ -245,7 +245,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 1500.0f},  {"resonance", 0.9f},  {"fegAttack", 1.5f}, {"fegDecay", 2.0f},
                         {"fegSustain", 0.6f}, {"fegRelease", 4.0f}, {"fegAmount", 0.8f}, {"lfoRate", 0.1f},
                         {"lfoDepth", 0.25f},  {"subTune", -24.0f},  {"subMix", 0.4f},    {"subTrack", 1.0f},
-                        {"osc2Tune", -12.0f}, {"osc2Mix", 0.3f},    {"osc2Track", 1.0f}, {"gain", 0.8f},
+                        {"osc2Tune", 12.0f},  {"osc2Mix", 0.6f},    {"osc2Track", 1.0f}, {"gain", 0.8f},
                         {"unison", 4.0f},     {"detune", 0.04f}},
                        *this);
 
@@ -254,7 +254,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 600.0f},   {"resonance", 0.7f},  {"fegAttack", 0.01f}, {"fegDecay", 0.2f},
                         {"fegSustain", 0.3f}, {"fegRelease", 0.15f}, {"fegAmount", 0.6f}, {"lfoRate", 5.0f},
                         {"lfoDepth", 0.3f},   {"subTune", -12.0f},  {"subMix", 0.5f},     {"subTrack", 1.0f},
-                        {"osc2Tune", -24.0f}, {"osc2Mix", 0.2f},    {"osc2Track", 1.0f},  {"gain", 1.0f},
+                        {"osc2Tune", 0.2f},   {"osc2Mix", 0.5f},    {"osc2Track", 1.0f},  {"gain", 1.0f},
                         {"unison", 1.0f},     {"detune", 0.0f}},
                        *this);
 
@@ -263,7 +263,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 2500.0f},  {"resonance", 0.5f},  {"fegAttack", 0.1f}, {"fegDecay", 0.6f},
                         {"fegSustain", 0.4f}, {"fegRelease", 0.5f}, {"fegAmount", 0.4f}, {"lfoRate", 2.0f},
                         {"lfoDepth", 0.2f},   {"subTune", -12.0f},  {"subMix", 0.3f},    {"subTrack", 1.0f},
-                        {"osc2Tune", -12.0f}, {"osc2Mix", 0.2f},    {"osc2Track", 1.0f}, {"gain", 1.0f},
+                        {"osc2Tune", 7.0f},   {"osc2Mix", 0.5f},    {"osc2Track", 1.0f}, {"gain", 1.0f},
                         {"unison", 3.0f},     {"detune", 0.03f}},
                        *this);
 
@@ -272,7 +272,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 2000.0f},  {"resonance", 0.8f},  {"fegAttack", 0.05f}, {"fegDecay", 0.4f},
                         {"fegSustain", 0.5f}, {"fegRelease", 0.3f}, {"fegAmount", 0.7f}, {"lfoRate", 3.0f},
                         {"lfoDepth", 0.25f},  {"subTune", -12.0f},  {"subMix", 0.2f},    {"subTrack", 1.0f},
-                        {"osc2Tune", -24.0f}, {"osc2Mix", 0.3f},    {"osc2Track", 1.0f}, {"gain", 1.1f},
+                        {"osc2Tune", 0.1f},   {"osc2Mix", 0.6f},    {"osc2Track", 1.0f}, {"gain", 1.1f},
                         {"unison", 2.0f},     {"detune", 0.02f}},
                        *this);
 
@@ -281,7 +281,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 8000.0f},  {"resonance", 0.5f},  {"fegAttack", 0.01f}, {"fegDecay", 0.3f},
                         {"fegSustain", 0.6f}, {"fegRelease", 0.2f}, {"fegAmount", 0.4f}, {"lfoRate", 5.0f},
                         {"lfoDepth", 0.05f},  {"subTune", -12.0f},  {"subMix", 0.2f},    {"subTrack", 1.0f},
-                        {"osc2Tune", -12.0f}, {"osc2Mix", 0.3f},    {"osc2Track", 1.0f}, {"gain", 1.0f},
+                        {"osc2Tune", 0.1f},   {"osc2Mix", 0.7f},    {"osc2Track", 1.0f}, {"gain", 1.0f},
                         {"unison", 1.0f},     {"detune", 0.0f}},
                        *this);
 
@@ -290,7 +290,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 3000.0f},  {"resonance", 0.7f},  {"fegAttack", 0.05f}, {"fegDecay", 0.2f},
                         {"fegSustain", 0.4f}, {"fegRelease", 0.1f}, {"fegAmount", 0.6f}, {"lfoRate", 0.0f},
                         {"lfoDepth", 0.0f},   {"subTune", -24.0f},  {"subMix", 0.4f},    {"subTrack", 0.0f},
-                        {"osc2Tune", -12.0f}, {"osc2Mix", 0.2f},    {"osc2Track", 0.0f}, {"gain", 1.0f},
+                        {"osc2Tune", 0.0f},   {"osc2Mix", 0.5f},    {"osc2Track", 0.0f}, {"gain", 1.0f},
                         {"unison", 2.0f},     {"detune", 0.02f}},
                        *this);
 
@@ -299,7 +299,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 1000.0f},  {"resonance", 0.3f},  {"fegAttack", 2.0f}, {"fegDecay", 3.0f},
                         {"fegSustain", 0.9f}, {"fegRelease", 4.0f}, {"fegAmount", 0.5f}, {"lfoRate", 0.2f},
                         {"lfoDepth", 0.1f},   {"subTune", -24.0f},  {"subMix", 0.6f},    {"subTrack", 0.0f},
-                        {"osc2Tune", -36.0f}, {"osc2Mix", 0.4f},    {"osc2Track", 0.0f}, {"gain", 0.7f},
+                        {"osc2Tune", 12.0f},  {"osc2Mix", 0.6f},    {"osc2Track", 0.0f}, {"gain", 0.7f},
                         {"unison", 5.0f},     {"detune", 0.06f}},
                        *this);
 
@@ -308,7 +308,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 6000.0f},  {"resonance", 0.4f},  {"fegAttack", 0.01f}, {"fegDecay", 0.2f},
                         {"fegSustain", 0.0f}, {"fegRelease", 0.1f}, {"fegAmount", 0.7f}, {"lfoRate", 0.0f},
                         {"lfoDepth", 0.0f},   {"subTune", -12.0f},  {"subMix", 0.3f},    {"subTrack", 1.0f},
-                        {"osc2Tune", -24.0f}, {"osc2Mix", 0.2f},    {"osc2Track", 1.0f}, {"gain", 1.1f},
+                        {"osc2Tune", 0.1f},   {"osc2Mix", 0.5f},    {"osc2Track", 1.0f}, {"gain", 1.1f},
                         {"unison", 2.0f},     {"detune", 0.02f}},
                        *this);
 
@@ -317,7 +317,7 @@ void PresetManager::createDefaultPresets() {
                         {"cutoff", 1000.0f},  {"resonance", 0.9f},  {"fegAttack", 0.01f}, {"fegDecay", 0.3f},
                         {"fegSustain", 0.5f}, {"fegRelease", 0.2f}, {"fegAmount", 0.8f}, {"lfoRate", 3.0f},
                         {"lfoDepth", 0.07f},  {"subTune", -24.0f},  {"subMix", 0.5f},    {"subTrack", 1.0f},
-                        {"osc2Tune", -12.0f}, {"osc2Mix", 0.4f},    {"osc2Track", 1.0f}, {"gain", 1.3f},
+                        {"osc2Tune", -0.1f},  {"osc2Mix", 0.6f},    {"osc2Track", 1.0f}, {"gain", 1.3f},
                         {"unison", 3.0f},     {"detune", 0.04f}},
                        *this);
 }

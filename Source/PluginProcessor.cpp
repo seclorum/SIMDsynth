@@ -64,6 +64,7 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
       currentTime(0.0),
       oversampling(std::make_unique<juce::dsp::Oversampling<float>>(
           2, 1, juce::dsp::Oversampling<float>::FilterType::filterHalfBandPolyphaseIIR, true, true)),
+      random(juce::Time::getMillisecondCounterHiRes()), // Initialize random generator
       smoothedGain(1.0f),
       smoothedCutoff(1000.0f),
       smoothedResonance(0.7f),
@@ -142,6 +143,7 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
         voices[i].osc2Tune = *osc2TuneParam;
         voices[i].osc2Mix = *osc2MixParam;
         voices[i].osc2Track = *osc2TrackParam;
+        voices[i].osc2PhaseOffset = random.nextFloat() * 0.1f; // Random phase offset (0 to 0.1 cycles)
         voices[i].unison = static_cast<int>(*unisonParam);
         voices[i].detune = *detuneParam;
         voices[i].releaseStartAmplitude = 0.0f;
@@ -756,6 +758,7 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
                     tempSubPhases[j] = voices[idx].subPhase;
                     tempSubIncrements[j] = voices[idx].subPhaseIncrement;
                     tempSubMixes[j] = voices[idx].subMix;
+                    tempOsc2Phases[j] = voices[idx].osc2Phase + voices[idx].osc2PhaseOffset; // Apply phase offset
                     tempOsc2Phases[j] = voices[idx].osc2Phase;
                     tempOsc2Increments[j] = voices[idx].osc2PhaseIncrement;
                     tempOsc2Mixes[j] = voices[idx].osc2Mix;
@@ -799,9 +802,12 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
                     unisonOutput = SIMD_ADD(unisonOutput, mainValues);
                 }
 
-                // Adjust main oscillator mix to account for both sub and osc2
-                SIMD_TYPE mainMix = SIMD_SUB(SIMD_SET1(1.0f), SIMD_ADD(subMixes, osc2Mixes));
-                mainMix = SIMD_MAX(mainMix, SIMD_SET1(0.0f)); // Ensure non-negative mix
+
+                // Normalize mix to maintain consistent loudness
+                SIMD_TYPE totalMix = SIMD_ADD(SIMD_ADD(SIMD_SET1(1.0f), subMixes), osc2Mixes); // Main osc at full amplitude
+                SIMD_TYPE mainMix = SIMD_DIV(SIMD_SET1(1.0f), totalMix); // Normalize main oscillator
+                SIMD_TYPE subMixNorm = SIMD_DIV(subMixes, totalMix);     // Normalize sub oscillator
+                SIMD_TYPE osc2MixNorm = SIMD_DIV(osc2Mixes, totalMix);   // Normalize osc2
                 unisonOutput = SIMD_MUL(unisonOutput, amplitudes);
                 unisonOutput = SIMD_MUL(unisonOutput, mainMix);
 
@@ -810,13 +816,13 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
                 subSinValues = SIMD_MUL(subSinValues, amplitudes);
                 subSinValues = SIMD_MUL(subSinValues, subMixes);
 
-                // 2nd oscillator (osc2)
-                SIMD_TYPE osc2SinValues = SIMD_SIN(osc2Phases);
-                osc2SinValues = SIMD_MUL(osc2SinValues, amplitudes);
-                osc2SinValues = SIMD_MUL(osc2SinValues, osc2Mixes);
+                // 2nd oscillator (use wavetable instead of sine)
+                SIMD_TYPE osc2Values = wavetable_lookup_ps(osc2Phases, wavetableTypePs); // Use main oscillator's wavetable
+                osc2Values = SIMD_MUL(osc2Values, amplitudes);
+                osc2Values = SIMD_MUL(osc2Values, osc2MixNorm);
 
                 // Combine oscillators
-                SIMD_TYPE combinedValues = SIMD_ADD(SIMD_ADD(unisonOutput, subSinValues), osc2SinValues);
+                SIMD_TYPE combinedValues = SIMD_ADD(SIMD_ADD(unisonOutput, subSinValues), osc2Values);
                 SIMD_TYPE filteredOutput;
                 applyLadderFilter(voices, voiceOffset, combinedValues, filter, filteredOutput);
                 float temp[4];
@@ -895,6 +901,7 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
             voices[voiceIndex].phase = 0.0f; // Reset phase for new note
             voices[voiceIndex].subPhase = 0.0f; // Reset sub-oscillator phase
             voices[voiceIndex].osc2Phase = 0.0f; // Reset 2nd oscillator phase
+            voices[voiceIndex].osc2PhaseOffset = random.nextFloat() * 0.1f; // Random phase offset for osc2
             voices[voiceIndex].lfoPhase = 0.0f; // Reset LFO phase
             voices[voiceIndex].noteNumber = note;
             voices[voiceIndex].velocity = velocity;
