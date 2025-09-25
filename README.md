@@ -26,7 +26,7 @@ Some rudimentary factory presets are included in the plugin - they will be creat
 - Implements wavetable synthesis with 2048-point tables
 - Uses modern C++17 features
 
-![screenshot](screenshot1.png "Screenshot")
+![screenshot](screenshot.png "Screenshot")
 
 ## TODO:
 
