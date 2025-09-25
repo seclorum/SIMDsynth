@@ -71,6 +71,8 @@ struct Voice {
     float releaseStartAmplitude = 0.0f; // Amplitude at release start
     float subPhase = 0.0f;           // Sub-oscillator phase (radians)
     float subPhaseIncrement = 0.0f;  // Sub-oscillator phase increment per sample
+    float osc2Phase = 0.0f; // New oscillator phase
+    float osc2PhaseIncrement = 0.0f; // New oscillator phase increment
     float lfoPhase = 0.0f;           // LFO phase (radians)
     float filterEnv = 0.0f;          // Filter envelope value (0 to 1)
     float attackCurve = 2.0f;        // Attack curve exponent
@@ -92,6 +94,9 @@ struct Voice {
     float subTune = -12.0f;          // Sub-oscillator tuning (semitones)
     float subMix = 0.5f;             // Sub-oscillator mix (0 to 1)
     float subTrack = 1.0f;           // Sub-oscillator keyboard tracking (0 to 1)
+    float osc2Tune = -24.0f; // New oscillator tuning (default: -2 octaves)
+    float osc2Mix = 0.3f;   // New oscillator mix (default: 0.3)
+    float osc2Track = 1.0f;  // New oscillator tracking (default: full tracking)
     int unison = 1;                  // Number of unison voices (1 to 8)
     float detune = 0.01f;            // Unison detune amount (0 to 0.1)
     float filterStates[4] = {0.0f, 0.0f, 0.0f, 0.0f}; // Filter state array (4 stages)
@@ -188,7 +193,7 @@ private:
     std::atomic<float> *wavetableTypeParam, *attackTimeParam, *decayTimeParam, *sustainLevelParam,
         *releaseTimeParam, *cutoffParam, *resonanceParam, *fegAttackParam, *fegDecayParam, *fegSustainParam,
         *fegReleaseParam, *fegAmountParam, *lfoRateParam, *lfoDepthParam, *subTuneParam, *subMixParam,
-        *subTrackParam, *gainParam, *unisonParam, *detuneParam;
+        *subTrackParam, *osc2TuneParam, *osc2MixParam, *osc2TrackParam, *gainParam, *unisonParam, *detuneParam;
 
     // Smoothed parameters for reducing zipper noise
     juce::LinearSmoothedValue<float> smoothedGain;       // Smoothed output gain
@@ -200,6 +205,9 @@ private:
     juce::LinearSmoothedValue<float> smoothedSubTune;   // Smoothed sub-oscillator tuning
     juce::LinearSmoothedValue<float> smoothedSubTrack;  // Smoothed sub-oscillator tracking
     juce::LinearSmoothedValue<float> smoothedDetune;    // Smoothed unison detune
+    juce::LinearSmoothedValue<float> smoothedOsc2Mix;    // New smoothed value
+    juce::LinearSmoothedValue<float> smoothedOsc2Tune; // New smoothed value
+    juce::LinearSmoothedValue<float> smoothedOsc2Track;   // New smoothed value
 
     // Voice and filter data
     Voice voices[MAX_VOICE_POLYPHONY];                            // Array of polyphonic voices

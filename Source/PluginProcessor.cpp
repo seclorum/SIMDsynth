@@ -49,6 +49,12 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
                                                               "Sub Osc Mix", 0.0f, 1.0f, 0.5f),
                   std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subTrack", parameterVersion},
                                                               "Sub Osc Track", 0.0f, 1.0f, 1.0f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"osc2Tune", parameterVersion},
+                                                              "Osc 2 Tune", -24.0f, 24.0f, -24.0f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"osc2Mix", parameterVersion},
+                                                              "Osc 2 Mix", 0.0f, 1.0f, 0.3f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"osc2Track", parameterVersion},
+                                                              "Osc 2 Track", 0.0f, 1.0f, 1.0f),
                   std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"gain", parameterVersion},
                                                               "Output Gain", 0.0f, 2.0f, 1.0f),
                   std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"unison", parameterVersion},
@@ -66,7 +72,11 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
       smoothedSubMix(0.5f),
       smoothedSubTune(-12.0f),
       smoothedSubTrack(1.0f),
-      smoothedDetune(0.01f) {
+      smoothedDetune(0.01f),
+      smoothedOsc2Mix(0.3f),    // New smoothed value
+      smoothedOsc2Tune(-24.0f), // New smoothed value
+      smoothedOsc2Track(1.0f)   // New smoothed value
+{
     // Initialize smoothed values with 50ms ramp time to prevent zipper noise
     smoothedGain.reset(44100.0, 0.05);
     smoothedCutoff.reset(44100.0, 0.05);
@@ -77,6 +87,9 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
     smoothedSubTune.reset(44100.0, 0.05);
     smoothedSubTrack.reset(44100.0, 0.05);
     smoothedDetune.reset(44100.0, 0.05);
+    smoothedOsc2Mix.reset(44100.0, 0.05);    // Initialize new smoothed value
+    smoothedOsc2Tune.reset(44100.0, 0.05);   // Initialize new smoothed value
+    smoothedOsc2Track.reset(44100.0, 0.05);  // Initialize new smoothed value
 
     // Initialize parameter pointers
     wavetableTypeParam = parameters.getRawParameterValue("wavetable");
@@ -96,6 +109,9 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
     subTuneParam = parameters.getRawParameterValue("subTune");
     subMixParam = parameters.getRawParameterValue("subMix");
     subTrackParam = parameters.getRawParameterValue("subTrack");
+    osc2TuneParam = parameters.getRawParameterValue("osc2Tune");   // New parameter pointer
+    osc2MixParam = parameters.getRawParameterValue("osc2Mix");     // New parameter pointer
+    osc2TrackParam = parameters.getRawParameterValue("osc2Track"); // New parameter pointer
     gainParam = parameters.getRawParameterValue("gain");
     unisonParam = parameters.getRawParameterValue("unison");
     detuneParam = parameters.getRawParameterValue("detune");
@@ -123,6 +139,9 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
         voices[i].subTune = *subTuneParam;
         voices[i].subMix = *subMixParam;
         voices[i].subTrack = *subTrackParam;
+        voices[i].osc2Tune = *osc2TuneParam;
+        voices[i].osc2Mix = *osc2MixParam;
+        voices[i].osc2Track = *osc2TrackParam;
         voices[i].unison = static_cast<int>(*unisonParam);
         voices[i].detune = *detuneParam;
         voices[i].releaseStartAmplitude = 0.0f;
@@ -224,17 +243,21 @@ void SimdSynthAudioProcessor::setCurrentProgram(int index) {
         return;
     }
 
-    // Default parameter values for robust loading
     std::map<juce::String, float> defaultValues = {
         {"wavetable", 0.0f},  {"attack", 0.1f},    {"decay", 0.5f},     {"sustain", 0.8f},   {"release", 0.2f},
         {"cutoff", 1000.0f},  {"resonance", 0.7f}, {"fegAttack", 0.1f}, {"fegDecay", 1.0f},  {"fegSustain", 0.5f},
         {"fegRelease", 0.2f}, {"fegAmount", 0.5f}, {"lfoRate", 1.0f},   {"lfoDepth", 0.05f}, {"subTune", -12.0f},
-        {"subMix", 0.5f},     {"subTrack", 1.0f},  {"gain", 1.0f},      {"unison", 1.0f},    {"detune", 0.01f}};
+        {"subMix", 0.5f},     {"subTrack", 1.0f},  {"osc2Tune", -24.0f}, {"osc2Mix", 0.3f},   {"osc2Track", 1.0f},
+        {"gain", 1.0f},       {"unison", 1.0f},    {"detune", 0.01f}
+    };
 
-    juce::StringArray paramIds = {"wavetable",  "attack",    "decay",     "sustain",  "release",
-                                  "cutoff",     "resonance", "fegAttack", "fegDecay", "fegSustain",
-                                  "fegRelease", "fegAmount", "lfoRate",   "lfoDepth", "subTune",
-                                  "subMix",     "subTrack",  "gain",      "unison",   "detune"};
+    juce::StringArray paramIds = {
+        "wavetable",  "attack",    "decay",     "sustain",  "release",
+        "cutoff",     "resonance", "fegAttack", "fegDecay", "fegSustain",
+        "fegRelease", "fegAmount", "lfoRate",   "lfoDepth", "subTune",
+        "subMix",     "subTrack",  "osc2Tune",  "osc2Mix",  "osc2Track",
+        "gain",       "unison",    "detune"
+    };
 
     bool anyParamUpdated = false;
     for (const auto& paramId : paramIds) {
@@ -565,7 +588,6 @@ void SimdSynthAudioProcessor::updateEnvelopes(float t) {
 void SimdSynthAudioProcessor::updateVoiceParameters() {
     for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
         if (voices[i].active) {
-            // Update parameters that are safe to change without resetting voice state
             voices[i].attack = *attackTimeParam;
             voices[i].decay = *decayTimeParam;
             voices[i].sustain = *sustainLevelParam;
@@ -581,22 +603,24 @@ void SimdSynthAudioProcessor::updateVoiceParameters() {
             voices[i].subTune = smoothedSubTune.getNextValue();
             voices[i].subMix = smoothedSubMix.getNextValue();
             voices[i].subTrack = smoothedSubTrack.getNextValue();
+            voices[i].osc2Tune = smoothedOsc2Tune.getNextValue();
+            voices[i].osc2Mix = smoothedOsc2Mix.getNextValue();
+            voices[i].osc2Track = smoothedOsc2Track.getNextValue();
             voices[i].detune = smoothedDetune.getNextValue();
 
-            // Update phase increments without resetting phase
+            // Update phase increments
             voices[i].phaseIncrement = voices[i].frequency / filter.sampleRate;
             voices[i].subPhaseIncrement = voices[i].frequency * powf(2.0f, voices[i].subTune / 12.0f) *
                                           voices[i].subTrack / filter.sampleRate;
+            voices[i].osc2PhaseIncrement = voices[i].frequency * powf(2.0f, voices[i].osc2Tune / 12.0f) *
+                                           voices[i].osc2Track / filter.sampleRate; // Added
 
-            // Smooth discrete parameters (wavetableType and unison)
             int newWavetableType = static_cast<int>(*wavetableTypeParam);
             int newUnison = static_cast<int>(*unisonParam);
             if (voices[i].wavetableType != newWavetableType) {
-                // Optional: Implement crossfade or delay to smooth wavetable changes
                 voices[i].wavetableType = newWavetableType;
             }
             if (voices[i].unison != newUnison) {
-                // Optional: Gradually adjust unison to avoid clicks
                 voices[i].unison = newUnison;
             }
         }
@@ -622,6 +646,10 @@ void SimdSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlo
     smoothedSubTune.reset(sampleRate, 0.05);
     smoothedSubTrack.reset(sampleRate, 0.05);
     smoothedDetune.reset(sampleRate, 0.05);
+    smoothedOsc2Mix.reset(sampleRate, 0.05);
+    smoothedOsc2Tune.reset(sampleRate, 0.05);
+    smoothedOsc2Track.reset(sampleRate, 0.05);
+
     // Reset all voices
     for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
         voices[i].active = false;
@@ -632,6 +660,7 @@ void SimdSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlo
         voices[i].noteOffTime = 0.0f;
         voices[i].phase = 0.0f;
         voices[i].subPhase = 0.0f;
+        voices[i].osc2Phase = 0.0f;
         voices[i].lfoPhase = 0.0f;
         for (int j = 0; j < 4; ++j) {
             voices[i].filterStates[j] = 0.0f;
@@ -668,6 +697,9 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
     smoothedSubMix.setTargetValue(*subMixParam);
     smoothedSubTune.setTargetValue(*subTuneParam);
     smoothedSubTrack.setTargetValue(*subTrackParam);
+    smoothedOsc2Mix.setTargetValue(*osc2MixParam);
+    smoothedOsc2Tune.setTargetValue(*osc2TuneParam);
+    smoothedOsc2Track.setTargetValue(*osc2TrackParam);
     smoothedDetune.setTargetValue(*detuneParam);
 
     // Update voice parameters before processing
@@ -707,6 +739,9 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
                 float tempSubPhases[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 float tempSubIncrements[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 float tempSubMixes[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                float tempOsc2Phases[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                float tempOsc2Increments[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+                float tempOsc2Mixes[4] = {0.0f, 0.0f, 0.0f, 0.0f};
                 float tempWavetableTypes[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
                 for (int j = 0; j < 4; ++j) {
@@ -721,6 +756,9 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
                     tempSubPhases[j] = voices[idx].subPhase;
                     tempSubIncrements[j] = voices[idx].subPhaseIncrement;
                     tempSubMixes[j] = voices[idx].subMix;
+                    tempOsc2Phases[j] = voices[idx].osc2Phase;
+                    tempOsc2Increments[j] = voices[idx].osc2PhaseIncrement;
+                    tempOsc2Mixes[j] = voices[idx].osc2Mix;
                     tempWavetableTypes[j] = static_cast<float>(voices[idx].wavetableType);
                 }
 
@@ -733,6 +771,9 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
                 SIMD_TYPE subPhases = SIMD_LOAD(tempSubPhases);
                 SIMD_TYPE subIncrements = SIMD_LOAD(tempSubIncrements);
                 SIMD_TYPE subMixes = SIMD_LOAD(tempSubMixes);
+                SIMD_TYPE osc2Phases = SIMD_LOAD(tempOsc2Phases);
+                SIMD_TYPE osc2Increments = SIMD_LOAD(tempOsc2Increments);
+                SIMD_TYPE osc2Mixes = SIMD_LOAD(tempOsc2Mixes);
                 SIMD_TYPE wavetableTypePs = SIMD_LOAD(tempWavetableTypes);
 
                 // Update LFO with smoothed rate
@@ -758,20 +799,31 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
                     unisonOutput = SIMD_ADD(unisonOutput, mainValues);
                 }
 
+                // Adjust main oscillator mix to account for both sub and osc2
+                SIMD_TYPE mainMix = SIMD_SUB(SIMD_SET1(1.0f), SIMD_ADD(subMixes, osc2Mixes));
+                mainMix = SIMD_MAX(mainMix, SIMD_SET1(0.0f)); // Ensure non-negative mix
                 unisonOutput = SIMD_MUL(unisonOutput, amplitudes);
-                unisonOutput = SIMD_MUL(unisonOutput, SIMD_SUB(SIMD_SET1(1.0f), subMixes));
+                unisonOutput = SIMD_MUL(unisonOutput, mainMix);
 
+                // Sub-oscillator
                 SIMD_TYPE subSinValues = SIMD_SIN(subPhases);
                 subSinValues = SIMD_MUL(subSinValues, amplitudes);
                 subSinValues = SIMD_MUL(subSinValues, subMixes);
 
-                SIMD_TYPE combinedValues = SIMD_ADD(unisonOutput, subSinValues);
+                // 2nd oscillator (osc2)
+                SIMD_TYPE osc2SinValues = SIMD_SIN(osc2Phases);
+                osc2SinValues = SIMD_MUL(osc2SinValues, amplitudes);
+                osc2SinValues = SIMD_MUL(osc2SinValues, osc2Mixes);
+
+                // Combine oscillators
+                SIMD_TYPE combinedValues = SIMD_ADD(SIMD_ADD(unisonOutput, subSinValues), osc2SinValues);
                 SIMD_TYPE filteredOutput;
                 applyLadderFilter(voices, voiceOffset, combinedValues, filter, filteredOutput);
                 float temp[4];
                 SIMD_STORE(temp, filteredOutput);
                 outputSample += (temp[0] + temp[1] + temp[2] + temp[3]);
 
+                // Update phases
                 phases = SIMD_ADD(phases, increments);
                 phases = SIMD_SUB(phases, SIMD_FLOOR(phases));
                 SIMD_STORE(temp, phases);
@@ -787,6 +839,14 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
                 if (voiceOffset + 1 < MAX_VOICE_POLYPHONY) voices[voiceOffset + 1].subPhase = temp[1];
                 if (voiceOffset + 2 < MAX_VOICE_POLYPHONY) voices[voiceOffset + 2].subPhase = temp[2];
                 if (voiceOffset + 3 < MAX_VOICE_POLYPHONY) voices[voiceOffset + 3].subPhase = temp[3];
+
+                osc2Phases = SIMD_ADD(osc2Phases, osc2Increments); // Update new oscillator phase
+                osc2Phases = SIMD_SUB(osc2Phases, SIMD_MUL(SIMD_FLOOR(SIMD_DIV(osc2Phases, twoPi)), twoPi));
+                SIMD_STORE(temp, osc2Phases);
+                if (voiceOffset < MAX_VOICE_POLYPHONY) voices[voiceOffset].osc2Phase = temp[0];
+                if (voiceOffset + 1 < MAX_VOICE_POLYPHONY) voices[voiceOffset + 1].osc2Phase = temp[1];
+                if (voiceOffset + 2 < MAX_VOICE_POLYPHONY) voices[voiceOffset + 2].osc2Phase = temp[2];
+                if (voiceOffset + 3 < MAX_VOICE_POLYPHONY) voices[voiceOffset + 3].osc2Phase = temp[3];
 
                 SIMD_STORE(temp, lfoPhases);
                 if (voiceOffset < MAX_VOICE_POLYPHONY) voices[voiceOffset].lfoPhase = temp[0];
@@ -834,6 +894,7 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
             voices[voiceIndex].phaseIncrement = voices[voiceIndex].frequency / sampleRate;
             voices[voiceIndex].phase = 0.0f; // Reset phase for new note
             voices[voiceIndex].subPhase = 0.0f; // Reset sub-oscillator phase
+            voices[voiceIndex].osc2Phase = 0.0f; // Reset 2nd oscillator phase
             voices[voiceIndex].lfoPhase = 0.0f; // Reset LFO phase
             voices[voiceIndex].noteNumber = note;
             voices[voiceIndex].velocity = velocity;
@@ -842,6 +903,8 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
             voices[voiceIndex].releaseStartAmplitude = 0.0f;
             voices[voiceIndex].subPhaseIncrement = voices[voiceIndex].frequency * powf(2.0f, smoothedSubTune.getNextValue() / 12.0f) *
                                                    smoothedSubTrack.getNextValue() / sampleRate;
+            voices[voiceIndex].osc2PhaseIncrement = voices[voiceIndex].frequency * powf(2.0f, smoothedOsc2Tune.getNextValue() / 12.0f) *
+                                                                smoothedOsc2Track.getNextValue() / sampleRate; // New oscillator increment
             // Update parameters for new voice
             voices[voiceIndex].wavetableType = static_cast<int>(*wavetableTypeParam);
             voices[voiceIndex].attack = *attackTimeParam;
@@ -859,6 +922,9 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
             voices[voiceIndex].subTune = smoothedSubTune.getNextValue();
             voices[voiceIndex].subMix = smoothedSubMix.getNextValue();
             voices[voiceIndex].subTrack = smoothedSubTrack.getNextValue();
+            voices[voiceIndex].osc2Tune = smoothedOsc2Tune.getNextValue();
+            voices[voiceIndex].osc2Mix = smoothedOsc2Mix.getNextValue();
+            voices[voiceIndex].osc2Track = smoothedOsc2Track.getNextValue();
             voices[voiceIndex].unison = static_cast<int>(*unisonParam);
             voices[voiceIndex].detune = smoothedDetune.getNextValue();
             // Reset filter states for new note
@@ -916,6 +982,9 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
             float tempSubPhases[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             float tempSubIncrements[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             float tempSubMixes[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+            float tempOsc2Phases[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+            float tempOsc2Increments[4] = {0.0f, 0.0f, 0.0f, 0.0f};
+            float tempOsc2Mixes[4] = {0.0f, 0.0f, 0.0f, 0.0f};
             float tempWavetableTypes[4] = {0.0f, 0.0f, 0.0f, 0.0f};
 
             for (int j = 0; j < 4; ++j) {
@@ -930,6 +999,9 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
                 tempSubPhases[j] = voices[idx].subPhase;
                 tempSubIncrements[j] = voices[idx].subPhaseIncrement;
                 tempSubMixes[j] = voices[idx].subMix;
+                tempOsc2Phases[j] = voices[idx].osc2Phase;
+                tempOsc2Increments[j] = voices[idx].osc2PhaseIncrement;
+                tempOsc2Mixes[j] = voices[idx].osc2Mix;
                 tempWavetableTypes[j] = static_cast<float>(voices[idx].wavetableType);
             }
 
@@ -942,6 +1014,9 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
             SIMD_TYPE subPhases = SIMD_LOAD(tempSubPhases);
             SIMD_TYPE subIncrements = SIMD_LOAD(tempSubIncrements);
             SIMD_TYPE subMixes = SIMD_LOAD(tempSubMixes);
+            SIMD_TYPE osc2Phases = SIMD_LOAD(tempOsc2Phases);
+            SIMD_TYPE osc2Increments = SIMD_LOAD(tempOsc2Increments);
+            SIMD_TYPE osc2Mixes = SIMD_LOAD(tempOsc2Mixes);
             SIMD_TYPE wavetableTypePs = SIMD_LOAD(tempWavetableTypes);
 
             // Update LFO with smoothed rate
@@ -967,20 +1042,31 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
                 unisonOutput = SIMD_ADD(unisonOutput, mainValues);
             }
 
+            // Adjust main oscillator mix to account for both sub and osc2
+            SIMD_TYPE mainMix = SIMD_SUB(SIMD_SET1(1.0f), SIMD_ADD(subMixes, osc2Mixes));
+            mainMix = SIMD_MAX(mainMix, SIMD_SET1(0.0f)); // Ensure non-negative mix
             unisonOutput = SIMD_MUL(unisonOutput, amplitudes);
-            unisonOutput = SIMD_MUL(unisonOutput, SIMD_SUB(SIMD_SET1(1.0f), subMixes));
+            unisonOutput = SIMD_MUL(unisonOutput, mainMix);
 
+            // Sub-oscillator
             SIMD_TYPE subSinValues = SIMD_SIN(subPhases);
             subSinValues = SIMD_MUL(subSinValues, amplitudes);
             subSinValues = SIMD_MUL(subSinValues, subMixes);
 
-            SIMD_TYPE combinedValues = SIMD_ADD(unisonOutput, subSinValues);
+            // New oscillator (osc2)
+            SIMD_TYPE osc2SinValues = SIMD_SIN(osc2Phases);
+            osc2SinValues = SIMD_MUL(osc2SinValues, amplitudes);
+            osc2SinValues = SIMD_MUL(osc2SinValues, osc2Mixes);
+
+            // Combine oscillators
+            SIMD_TYPE combinedValues = SIMD_ADD(SIMD_ADD(unisonOutput, subSinValues), osc2SinValues);
             SIMD_TYPE filteredOutput;
             applyLadderFilter(voices, voiceOffset, combinedValues, filter, filteredOutput);
             float temp[4];
             SIMD_STORE(temp, filteredOutput);
             outputSample += (temp[0] + temp[1] + temp[2] + temp[3]);
 
+            // Update phases
             phases = SIMD_ADD(phases, increments);
             phases = SIMD_SUB(phases, SIMD_FLOOR(phases));
             SIMD_STORE(temp, phases);
@@ -996,6 +1082,14 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
             if (voiceOffset + 1 < MAX_VOICE_POLYPHONY) voices[voiceOffset + 1].subPhase = temp[1];
             if (voiceOffset + 2 < MAX_VOICE_POLYPHONY) voices[voiceOffset + 2].subPhase = temp[2];
             if (voiceOffset + 3 < MAX_VOICE_POLYPHONY) voices[voiceOffset + 3].subPhase = temp[3];
+
+            osc2Phases = SIMD_ADD(osc2Phases, osc2Increments); // Update new oscillator phase
+            osc2Phases = SIMD_SUB(osc2Phases, SIMD_MUL(SIMD_FLOOR(SIMD_DIV(osc2Phases, twoPi)), twoPi));
+            SIMD_STORE(temp, osc2Phases);
+            if (voiceOffset < MAX_VOICE_POLYPHONY) voices[voiceOffset].osc2Phase = temp[0];
+            if (voiceOffset + 1 < MAX_VOICE_POLYPHONY) voices[voiceOffset + 1].osc2Phase = temp[1];
+            if (voiceOffset + 2 < MAX_VOICE_POLYPHONY) voices[voiceOffset + 2].osc2Phase = temp[2];
+            if (voiceOffset + 3 < MAX_VOICE_POLYPHONY) voices[voiceOffset + 3].osc2Phase = temp[3];
 
             SIMD_STORE(temp, lfoPhases);
             if (voiceOffset < MAX_VOICE_POLYPHONY) voices[voiceOffset].lfoPhase = temp[0];

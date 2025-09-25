@@ -75,6 +75,9 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     lfoGroup = std::make_unique<juce::GroupComponent>("lfoGroup", "LFO");
     addAndMakeVisible(lfoGroup.get());
 
+    oscillator2Group = std::make_unique<juce::GroupComponent>("oscillator2Group", "2nd Oscillator");
+    addAndMakeVisible(oscillator2Group.get());
+
     subOscillatorGroup = std::make_unique<juce::GroupComponent>("subOscillatorGroup", "Sub Oscillator");
     addAndMakeVisible(subOscillatorGroup.get());
 
@@ -215,6 +218,31 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     lfoDepthAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
         processor.getParameters(), "lfoDepth", *lfoDepthSlider);
 
+    // Initialize sliders for 2nd Oscillator group
+    osc2TuneSlider = std::make_unique<juce::Slider>("osc2TuneSlider");
+    osc2TuneSlider->setRange(-24.0, 24.0, 1.0);
+    osc2TuneSlider->setSliderStyle(juce::Slider::Rotary);
+    osc2TuneSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
+    oscillator2Group->addAndMakeVisible(osc2TuneSlider.get());
+    osc2TuneAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        processor.getParameters(), "osc2Tune", *osc2TuneSlider);
+
+    osc2MixSlider = std::make_unique<juce::Slider>("osc2MixSlider");
+    osc2MixSlider->setRange(0.0, 1.0, 0.01);
+    osc2MixSlider->setSliderStyle(juce::Slider::Rotary);
+    osc2MixSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
+    oscillator2Group->addAndMakeVisible(osc2MixSlider.get());
+    osc2MixAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.getParameters(),
+                                                                                              "osc2Mix", *osc2MixSlider);
+
+    osc2TrackSlider = std::make_unique<juce::Slider>("osc2TrackSlider");
+    osc2TrackSlider->setRange(0.0, 1.0, 0.01);
+    osc2TrackSlider->setSliderStyle(juce::Slider::Rotary);
+    osc2TrackSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
+    oscillator2Group->addAndMakeVisible(osc2TrackSlider.get());
+    osc2TrackAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
+        processor.getParameters(), "osc2Track", *osc2TrackSlider);
+
     // Initialize sliders for Sub Oscillator group
     subTuneSlider = std::make_unique<juce::Slider>("subTuneSlider");
     subTuneSlider->setRange(-24.0, 24.0, 1.0);
@@ -240,6 +268,7 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     subTrackAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
         processor.getParameters(), "subTrack", *subTrackSlider);
 
+
     // Initialize sliders for Output group
     gainSlider = std::make_unique<juce::Slider>("gainSlider");
     gainSlider->setRange(0.0, 2.0, 0.01);
@@ -260,6 +289,7 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     filterGroup->setVisible(true);
     filterEnvelopeGroup->setVisible(true);
     lfoGroup->setVisible(true);
+    oscillator2Group->setVisible(true);
     subOscillatorGroup->setVisible(true);
     outputGroup->setVisible(true);
     wavetableSlider->setVisible(true);
@@ -278,13 +308,16 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     fegAmountSlider->setVisible(true);
     lfoRateSlider->setVisible(true);
     lfoDepthSlider->setVisible(true);
+    osc2TuneSlider->setVisible(true);
+    osc2MixSlider->setVisible(true);
+    osc2TrackSlider->setVisible(true);
     subTuneSlider->setVisible(true);
     subMixSlider->setVisible(true);
     subTrackSlider->setVisible(true);
     gainSlider->setVisible(true);
 
     // Set size last to avoid premature resized() calls
-    setSize(800, 600);
+    setSize(800, 720);
 
     // Debug component initialization
     DBG("Initialized components:");
@@ -309,7 +342,7 @@ void SimdSynthAudioProcessorEditor::resized() {
     auto bounds = getLocalBounds();
     // Prevent layout with invalid bounds
     if (bounds.getWidth() < 600 || bounds.getHeight() < 400) {
-        // DBG("Window too small: " << bounds.toString());
+        DBG("Window too small: " << bounds.toString());
         return;
     }
 
@@ -329,15 +362,16 @@ void SimdSynthAudioProcessorEditor::resized() {
     // Layout groups using Grid
     juce::Grid grid;
     grid.templateColumns = {juce::Grid::Fr(1), juce::Grid::Fr(1), juce::Grid::Fr(1), juce::Grid::Fr(1),
-                            juce::Grid::Fr(1)};
-    grid.templateRows = {juce::Grid::Fr(2), juce::Grid::Fr(1)}; // Adjusted row heights
+                           juce::Grid::Fr(1)};
+    grid.templateRows = {juce::Grid::Fr(2), juce::Grid::Fr(2)}; // Increased bottom row height to Fr(2)
     grid.items.add(juce::GridItem(oscillatorGroup.get()).withMargin(15));
     grid.items.add(juce::GridItem(ampEnvelopeGroup.get()).withMargin(15));
     grid.items.add(juce::GridItem(filterGroup.get()).withMargin(15));
     grid.items.add(juce::GridItem(filterEnvelopeGroup.get()).withMargin(15));
     grid.items.add(juce::GridItem(lfoGroup.get()).withMargin(15));
-    grid.items.add(juce::GridItem(subOscillatorGroup.get()).withArea(2, 1).withMargin(15));
-    grid.items.add(juce::GridItem(outputGroup.get()).withArea(2, 5).withMargin(15));
+    grid.items.add(juce::GridItem(oscillator2Group.get()).withArea(2, 1).withMargin(15));
+    grid.items.add(juce::GridItem(subOscillatorGroup.get()).withArea(2, 2).withMargin(15));
+    grid.items.add(juce::GridItem(outputGroup.get()).withArea(2, 5).withMargin(15).withHeight(100)); // Fixed height for outputGroup
     grid.performLayout(controlArea);
 
     // Layout sliders within each group
@@ -348,6 +382,7 @@ void SimdSynthAudioProcessorEditor::resized() {
     layoutGroupSliders(filterEnvelopeGroup.get(), {fegAttackSlider.get(), fegDecaySlider.get(), fegSustainSlider.get(),
                                                    fegReleaseSlider.get(), fegAmountSlider.get()});
     layoutGroupSliders(lfoGroup.get(), {lfoRateSlider.get(), lfoDepthSlider.get()});
+    layoutGroupSliders(oscillator2Group.get(), {osc2TuneSlider.get(), osc2MixSlider.get(), osc2TrackSlider.get()});
     layoutGroupSliders(subOscillatorGroup.get(), {subTuneSlider.get(), subMixSlider.get(), subTrackSlider.get()});
     layoutGroupSliders(outputGroup.get(), {gainSlider.get()});
 
@@ -355,15 +390,18 @@ void SimdSynthAudioProcessorEditor::resized() {
     DBG("Window bounds: " << getLocalBounds().toString());
     DBG("presetComboBox bounds: " << presetComboBox->getBounds().toString());
     DBG("oscillatorGroup bounds: " << oscillatorGroup->getBounds().toString());
-    DBG("wavetableSlider bounds: " << wavetableSlider->getBounds().toString());
-    DBG("attackSlider bounds: " << attackSlider->getBounds().toString());
-    DBG("cutoffSlider bounds: " << cutoffSlider->getBounds().toString());
+    DBG("oscillator2Group bounds: " << oscillator2Group->getBounds().toString());
+    DBG("subOscillatorGroup bounds: " << subOscillatorGroup->getBounds().toString());
+    DBG("outputGroup bounds: " << outputGroup->getBounds().toString());
+    DBG("osc2TuneSlider bounds: " << osc2TuneSlider->getBounds().toString());
+    DBG("subTuneSlider bounds: " << subTuneSlider->getBounds().toString());
+    DBG("gainSlider bounds: " << gainSlider->getBounds().toString());
 }
 
 void SimdSynthAudioProcessorEditor::layoutGroupSliders(juce::GroupComponent *group,
                                                        const std::vector<juce::Slider *> &sliders) {
     auto groupBounds = group->getLocalBounds().reduced(15);
-    auto sliderHeight = groupBounds.getHeight() / (sliders.size() + 1); // Extra space for better layout
+    auto sliderHeight = groupBounds.getHeight() / sliders.size(); // Instead of sliders.size() + 1
     for (auto *slider : sliders) {
         slider->setBounds(groupBounds.removeFromTop(sliderHeight).reduced(5));
     }

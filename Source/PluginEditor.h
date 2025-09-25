@@ -70,6 +70,7 @@ class SimdSynthAudioProcessorEditor : public juce::AudioProcessorEditor, public 
         std::unique_ptr<juce::GroupComponent> filterGroup;
         std::unique_ptr<juce::GroupComponent> filterEnvelopeGroup;
         std::unique_ptr<juce::GroupComponent> lfoGroup;
+        std::unique_ptr<juce::GroupComponent> oscillator2Group;
         std::unique_ptr<juce::GroupComponent> subOscillatorGroup;
         std::unique_ptr<juce::GroupComponent> outputGroup;
 
@@ -90,6 +91,11 @@ class SimdSynthAudioProcessorEditor : public juce::AudioProcessorEditor, public 
         std::unique_ptr<juce::Slider> fegAmountSlider;
         std::unique_ptr<juce::Slider> lfoRateSlider;
         std::unique_ptr<juce::Slider> lfoDepthSlider;
+
+        std::unique_ptr<juce::Slider> osc2TuneSlider;
+        std::unique_ptr<juce::Slider> osc2MixSlider;
+        std::unique_ptr<juce::Slider> osc2TrackSlider;
+
         std::unique_ptr<juce::Slider> subTuneSlider;
         std::unique_ptr<juce::Slider> subMixSlider;
         std::unique_ptr<juce::Slider> subTrackSlider;
@@ -112,6 +118,11 @@ class SimdSynthAudioProcessorEditor : public juce::AudioProcessorEditor, public 
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> fegAmountAttachment;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lfoRateAttachment;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lfoDepthAttachment;
+
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> osc2TuneAttachment;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> osc2MixAttachment;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> osc2TrackAttachment;
+
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> subTuneAttachment;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> subMixAttachment;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> subTrackAttachment;
