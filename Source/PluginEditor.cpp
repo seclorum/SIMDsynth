@@ -220,7 +220,7 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
 
     // Initialize sliders for 2nd Oscillator group
     osc2TuneSlider = std::make_unique<juce::Slider>("osc2TuneSlider");
-    osc2TuneSlider->setRange(-24.0, 24.0, 1.0);
+    osc2TuneSlider->setRange(-1.0, 12.0, 0.01); // Allow fine detuning and harmonic intervals
     osc2TuneSlider->setSliderStyle(juce::Slider::Rotary);
     osc2TuneSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
     oscillator2Group->addAndMakeVisible(osc2TuneSlider.get());
