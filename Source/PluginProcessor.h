@@ -72,7 +72,7 @@ struct Voice {
     float subPhase = 0.0f;           // Sub-oscillator phase (radians)
     float subPhaseIncrement = 0.0f;  // Sub-oscillator phase increment per sample
     float osc2Phase = 0.0f; // New oscillator phase
-    float osc2PhaseIncrement = 0.0f; // New oscillator phase increment
+    float osc2PhaseIncrement = 0.0f; // Oscillator phase increment
     float osc2PhaseOffset = 0.0f;
     float lfoPhase = 0.0f;           // LFO phase (radians)
     float filterEnv = 0.0f;          // Filter envelope value (0 to 1)
@@ -102,6 +102,11 @@ struct Voice {
     float detune = 0.01f;            // Unison detune amount (0 to 0.1)
     float filterStates[4] = {0.0f, 0.0f, 0.0f, 0.0f}; // Filter state array (4 stages)
     float crossfade = 0.0f;          // Crossfade progress for wavetable changes (0 to 1)
+    std::vector<float> detuneFactors; // Precomputed detune factors
+    juce::LinearSmoothedValue<float> smoothedFilterEnv;
+    juce::SmoothedValue<float> smoothedAmplitude;
+    juce::SmoothedValue<float> smoothedCutoff;
+    juce::SmoothedValue<float> smoothedFegAmount;
 };
 
 // Structure to hold shared filter parameters for the ladder filter
@@ -178,7 +183,7 @@ public:
     // Voice management and envelope processing
     int findVoiceToSteal();                    // Select a voice for stealing when polyphony is exceeded
     void updateEnvelopes(float t);             // Update amplitude and filter envelopes for all voices
-    void updateVoiceParameters();              // Update parameters for all voices
+    void updateVoiceParameters(float sampleRate);              // Update parameters for all voices
 
     // Preset management
     void savePreset(const juce::String& presetName, const juce::var& parameters) {
@@ -223,9 +228,19 @@ private:
     static constexpr int parameterVersion = 1;                    // Parameter version for state saving
 
     // Lookup tables for oscillator waveforms
-    juce::dsp::LookupTableTransform<float> sineTableTransform;   // Sine wavetable
-    juce::dsp::LookupTableTransform<float> sawTableTransform;    // Sawtooth wavetable
-    juce::dsp::LookupTableTransform<float> squareTableTransform; // Square wavetable
+    std::vector<float> sineTable;
+    std::vector<float> sawTable;
+    std::vector<float> squareTable;
+
+    std::vector<std::vector<std::vector<float>>> dynamicTables;  // [octave][wavetype][size]
+    std::vector<float> blepTable;  // PolyBLEP correction
+    std::array<float, MAX_VOICE_POLYPHONY> lastNoteFreqs;  // For portamento
+    float glideTime = 0.0f;  // Portamento param
+    float velCurve = 0.5f;   // Velocity curve param
+    float lfoToFilter = 0.0f, lfoToAmp = 0.0f;  // LFO targets
+    float egToSubMix = 0.0f;  // EG to sub mix amount
+    int osFactor = 2;  // Adaptive OS
+
 
     // Utility functions
     void loadPresetsFromDirectory();                                   // Load presets from directory
