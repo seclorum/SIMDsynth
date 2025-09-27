@@ -195,6 +195,7 @@ public:
 
 private:
     juce::Random random; // Add random generator
+    std::map<juce::String, float> defaultParamValues;
 
     // Parameter management
     juce::AudioProcessorValueTreeState parameters;
