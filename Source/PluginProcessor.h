@@ -107,6 +107,11 @@ struct Voice {
     juce::SmoothedValue<float> smoothedAmplitude;
     juce::SmoothedValue<float> smoothedCutoff;
     juce::SmoothedValue<float> smoothedFegAmount;
+    float oscLPState = 0.0f;   // New: For dynamic band-limiting IIR state
+    float mainLPState = 0.0f;  // For unison/main
+    float subLPState = 0.0f;
+    float osc2LPState = 0.0f;  // New: For OSC2 band-limiting
+    float dcState = 0.0f;      // New: For per-voice DC blocker state
 };
 
 // Structure to hold shared filter parameters for the ladder filter
@@ -172,6 +177,9 @@ public:
     void changeProgramName(int index, const juce::String& newName) override;
     void getStateInformation(juce::MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
+    void processSingleSample(int sampleIndex, juce::dsp::AudioBlock<float>& oversampledBlock, double blockStartTime, float sampleRate, float voiceScaling, int totalNumOutputChannels, std::function<float(float, float)>
+
+ wavetable_lookup_scalar);
 
     // SIMD floor function declaration
 #if defined(__aarch64__) || defined(__arm64__)
@@ -202,7 +210,8 @@ private:
     std::atomic<float> *wavetableTypeParam, *attackTimeParam, *decayTimeParam, *sustainLevelParam,
         *releaseTimeParam, *cutoffParam, *resonanceParam, *fegAttackParam, *fegDecayParam, *fegSustainParam,
         *fegReleaseParam, *fegAmountParam, *lfoRateParam, *lfoDepthParam, *subTuneParam, *subMixParam,
-        *subTrackParam, *osc2TuneParam, *osc2MixParam, *osc2TrackParam, *gainParam, *unisonParam, *detuneParam;
+        *subTrackParam, *osc2TuneParam, *osc2MixParam, *osc2TrackParam, *gainParam, *unisonParam, *detuneParam,
+        *attackCurveParam, *releaseCurveParam;
 
     // Smoothed parameters for reducing zipper noise
     juce::LinearSmoothedValue<float> smoothedGain;       // Smoothed output gain
@@ -217,6 +226,8 @@ private:
     juce::LinearSmoothedValue<float> smoothedOsc2Mix;    // New smoothed value
     juce::LinearSmoothedValue<float> smoothedOsc2Tune; // New smoothed value
     juce::LinearSmoothedValue<float> smoothedOsc2Track;   // New smoothed value
+    juce::LinearSmoothedValue<float> smoothedAttackCurve;  // New
+    juce::LinearSmoothedValue<float> smoothedReleaseCurve; // New
 
     // Voice and filter data
     Voice voices[MAX_VOICE_POLYPHONY];                            // Array of polyphonic voices
