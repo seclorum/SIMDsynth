@@ -53,7 +53,7 @@ class SimdSynthAudioProcessorEditor : public juce::AudioProcessorEditor, public 
     private:
         CustomLookAndFeel simdSynthLAF;
 
-        void layoutGroupSliders(juce::GroupComponent *group, const std::vector<juce::Slider *> &sliders);
+        void layoutGroupSliders(juce::GroupComponent* group, const std::vector<std::pair<juce::Slider*, juce::Label*>>& slidersAndLabels);
 
         SimdSynthAudioProcessor &processor;
 
@@ -79,6 +79,8 @@ class SimdSynthAudioProcessorEditor : public juce::AudioProcessorEditor, public 
         std::unique_ptr<juce::Slider> unisonSlider;
         std::unique_ptr<juce::Slider> detuneSlider;
         std::unique_ptr<juce::Slider> attackSlider;
+        std::unique_ptr<juce::Slider> attackCurveSlider;
+        std::unique_ptr<juce::Slider> releaseCurveSlider;
         std::unique_ptr<juce::Slider> decaySlider;
         std::unique_ptr<juce::Slider> sustainSlider;
         std::unique_ptr<juce::Slider> releaseSlider;
@@ -91,6 +93,7 @@ class SimdSynthAudioProcessorEditor : public juce::AudioProcessorEditor, public 
         std::unique_ptr<juce::Slider> fegAmountSlider;
         std::unique_ptr<juce::Slider> lfoRateSlider;
         std::unique_ptr<juce::Slider> lfoDepthSlider;
+        std::unique_ptr<juce::Slider> lfoPitchAmtSlider;
 
         std::unique_ptr<juce::Slider> osc2TuneSlider;
         std::unique_ptr<juce::Slider> osc2MixSlider;
@@ -101,6 +104,16 @@ class SimdSynthAudioProcessorEditor : public juce::AudioProcessorEditor, public 
         std::unique_ptr<juce::Slider> subTrackSlider;
         std::unique_ptr<juce::Slider> gainSlider;
 
+        std::unique_ptr<juce::Label> wavetableLabel, unisonLabel, detuneLabel;
+        std::unique_ptr<juce::Label> attackLabel, decayLabel, sustainLabel, releaseLabel;
+        std::unique_ptr<juce::Label> attackCurveLabel, releaseCurveLabel;
+        std::unique_ptr<juce::Label> cutoffLabel, resonanceLabel;
+        std::unique_ptr<juce::Label> fegAttackLabel, fegDecayLabel, fegSustainLabel, fegReleaseLabel, fegAmountLabel;
+        std::unique_ptr<juce::Label> lfoRateLabel, lfoDepthLabel, lfoPitchAmtLabel;
+        std::unique_ptr<juce::Label> osc2TuneLabel, osc2MixLabel, osc2TrackLabel;
+        std::unique_ptr<juce::Label> subTuneLabel, subMixLabel, subTrackLabel;
+        std::unique_ptr<juce::Label> gainLabel;
+
         // Slider attachments
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> wavetableAttachment;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> unisonAttachment;
@@ -109,6 +122,8 @@ class SimdSynthAudioProcessorEditor : public juce::AudioProcessorEditor, public 
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> decayAttachment;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> sustainAttachment;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> releaseAttachment;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> attackCurveAttachment;
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> releaseCurveAttachment;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> cutoffAttachment;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> resonanceAttachment;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> fegAttackAttachment;
@@ -118,11 +133,10 @@ class SimdSynthAudioProcessorEditor : public juce::AudioProcessorEditor, public 
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> fegAmountAttachment;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lfoRateAttachment;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lfoDepthAttachment;
-
+        std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> lfoPitchAmtAttachment;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> osc2TuneAttachment;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> osc2MixAttachment;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> osc2TrackAttachment;
-
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> subTuneAttachment;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> subMixAttachment;
         std::unique_ptr<juce::AudioProcessorValueTreeState::SliderAttachment> subTrackAttachment;

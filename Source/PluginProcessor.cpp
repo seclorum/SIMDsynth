@@ -46,7 +46,9 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
                   std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"lfoRate", parameterVersion},
                                                               "LFO Rate", 0.0f, 20.0f, 5.0f),
                   std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"lfoDepth", parameterVersion},
-                                                              "LFO Depth", 0.0f, 0.5f, 0.08f),
+                                                              "LFO Depth", 0.0f, 1.0f, 0.2f),
+                  std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"lfoPitchAmt", parameterVersion},
+                                                                 "LFO Pitch Amt", 0.0f, 0.2f, 0.05f),
                   std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subTune", parameterVersion},
                                                               "Sub Osc Tune", -24.0f, 24.0f, -12.0f),
                   std::make_unique<juce::AudioParameterFloat>(juce::ParameterID{"subMix", parameterVersion},
@@ -117,6 +119,7 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
     fegAmountParam = parameters.getRawParameterValue("fegAmount");
     lfoRateParam = parameters.getRawParameterValue("lfoRate");
     lfoDepthParam = parameters.getRawParameterValue("lfoDepth");
+    lfoPitchAmtParam = parameters.getRawParameterValue("lfoPitchAmt");
     subTuneParam = parameters.getRawParameterValue("subTune");
     subMixParam = parameters.getRawParameterValue("subMix");
     subTrackParam = parameters.getRawParameterValue("subTrack");
@@ -145,6 +148,7 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
         {"fegAmount", 0.5f},
         {"lfoRate", 5.0f},
         {"lfoDepth", 0.08f},
+        {"lfoPitchAmt", 0.05f},
         {"subTune", -12.0f},
         {"subMix", 0.5f},
         {"subTrack", 1.0f},
@@ -206,6 +210,7 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
         voices[i].fegAmount = *fegAmountParam;
         voices[i].lfoRate = *lfoRateParam;
         voices[i].lfoDepth = *lfoDepthParam;
+        voices[i].lfoPitchAmt = *lfoPitchAmtParam;
         voices[i].subTune = *subTuneParam;
         voices[i].subMix = *subMixParam;
         voices[i].subTrack = *subTrackParam;
@@ -548,7 +553,7 @@ void SimdSynthAudioProcessor::applyLadderFilter(Voice* voices, int voiceOffset, 
         // Resonance gain comp
         float resComp = 1.0f / std::sqrt(1.0f + tempResonances[i] * tempResonances[i]);
         tempResonances[i] *= resComp;  // New
-        tempResonances[i] = std::max(0.0f, std::min(tempResonances[i], 1.0f));  // Clamp to 1.0 post-comp
+        tempResonances[i] = std::max(0.0f, std::min(tempResonances[i], 1.2f));  // Clamp to 1.0 post-comp
     }
 
     SIMD_TYPE modulatedCutoffs = SIMD_LOAD(tempCutoffs);
@@ -594,7 +599,7 @@ void SimdSynthAudioProcessor::applyLadderFilter(Voice* voices, int voiceOffset, 
     float tempOut[4];
     SIMD_STORE(tempOut, output);
     for (int i = 0; i < 4; i++) {
-        float over = std::abs(tempOut[i]) > 1.5f ? (tempOut[i] > 0 ? 1.5f : -1.5f) : tempOut[i];
+        float over = std::abs(tempOut[i]) > 2.0f ? (tempOut[i] > 0 ? 2.0f : -2.0f) : tempOut[i];
         tempOut[i] = over - (over * over * over) / 3.0f;  // Cubic approx
         if (!std::isfinite(tempOut[i])) {
             tempOut[i] = 0.0f;
@@ -751,6 +756,7 @@ void SimdSynthAudioProcessor::updateVoiceParameters(float sampleRate) {
         voices[i].smoothedFegAmount.setTargetValue(*fegAmountParam);
         voices[i].lfoRate = smoothedLfoRate.getCurrentValue();
         voices[i].lfoDepth = smoothedLfoDepth.getCurrentValue();
+        voices[i].lfoPitchAmt = *lfoPitchAmtParam;
         voices[i].subTune = smoothedSubTune.getCurrentValue();
         voices[i].subMix = smoothedSubMix.getCurrentValue();
         voices[i].subTrack = smoothedSubTrack.getCurrentValue();
@@ -819,6 +825,7 @@ void SimdSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlo
         voices[i].subPhase = 0.0f;
         voices[i].osc2Phase = 0.0f;
         voices[i].lfoPhase = 0.0f;
+        voices[i].lfoPitchAmt = 0.05f;
         voices[i].mainLPState = 0.0f;
         voices[i].subLPState = 0.0f;
         voices[i].osc2LPState = 0.0f;
@@ -882,7 +889,7 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
             ++activeCount;
         }
     }
-    float voiceScaling = (activeCount > 0) ? (1.0f / static_cast<float>(activeCount)) : 1.0f;
+    float voiceScaling = (activeCount > 0) ? (1.0f / std::sqrt(static_cast<float>(activeCount))) : 1.0f;
 
     // Scalar wavetable lookup for per-voice processing (unchanged)
     auto wavetable_lookup_scalar = [&](float ph, float wt) -> float {
@@ -979,6 +986,7 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
         voices[voiceIndex].fegAmount = *fegAmountParam;
         voices[voiceIndex].lfoRate = smoothedLfoRate.getCurrentValue();
         voices[voiceIndex].lfoDepth = smoothedLfoDepth.getCurrentValue();
+        voices[voiceIndex].lfoPitchAmt = *lfoPitchAmtParam;
         voices[voiceIndex].subTune = smoothedSubTune.getCurrentValue();
         voices[voiceIndex].subMix = smoothedSubMix.getCurrentValue();
         voices[voiceIndex].subTrack = smoothedSubTrack.getCurrentValue();
@@ -1091,7 +1099,7 @@ void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::Au
             float phaseMod_cycles = lfoVal / twoPiScalar;
 
             // LFO pitch mod (new: vibrato)
-            float lfoPitchMod = lfoVal * 0.05f;  // ±5% freq mod (adjust via new param if desired)
+            float lfoPitchMod = lfoVal * voices[idx].lfoPitchAmt;
             float effectiveIncr = increment * (1.0f + lfoPitchMod);
 
             // Unison processing (with random detune and per-unison pan)
@@ -1103,7 +1111,7 @@ void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::Au
                 float phasesNorm = detunedPhase - std::floor(detunedPhase);
                 float mainVal = wavetable_lookup_scalar(phasesNorm, static_cast<float>(wavetableType));
                 // Dynamic band-limiting (1-pole LP) with separate state
-                float fc = voices[idx].frequency * detuneFactor * 0.25f;  // Per-detune fc
+                float fc = voices[idx].frequency * detuneFactor * 0.45f;  // Per-detune fc
                 float alphaLP = std::exp(-2.0f * juce::MathConstants<float>::pi * fc / sampleRate);
                 float filteredMain = alphaLP * voices[idx].mainLPState + (1.0f - alphaLP) * mainVal;
                 voices[idx].mainLPState = filteredMain;

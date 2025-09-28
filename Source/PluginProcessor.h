@@ -92,6 +92,7 @@ struct Voice {
     float fegAmount = 0.5f;          // Filter envelope modulation amount (-1 to 1)
     float lfoRate = 1.0f;            // LFO rate (Hz)
     float lfoDepth = 0.05f;          // LFO depth (0 to 0.5)
+    float lfoPitchAmt = 0.05;        // LFO Pitch amount
     float subTune = -12.0f;          // Sub-oscillator tuning (semitones)
     float subMix = 0.5f;             // Sub-oscillator mix (0 to 1)
     float subTrack = 1.0f;           // Sub-oscillator keyboard tracking (0 to 1)
@@ -209,7 +210,7 @@ private:
     juce::AudioProcessorValueTreeState parameters;
     std::atomic<float> *wavetableTypeParam, *attackTimeParam, *decayTimeParam, *sustainLevelParam,
         *releaseTimeParam, *cutoffParam, *resonanceParam, *fegAttackParam, *fegDecayParam, *fegSustainParam,
-        *fegReleaseParam, *fegAmountParam, *lfoRateParam, *lfoDepthParam, *subTuneParam, *subMixParam,
+        *fegReleaseParam, *fegAmountParam, *lfoRateParam, *lfoDepthParam, *lfoPitchAmtParam, *subTuneParam, *subMixParam,
         *subTrackParam, *osc2TuneParam, *osc2MixParam, *osc2TrackParam, *gainParam, *unisonParam, *detuneParam,
         *attackCurveParam, *releaseCurveParam;
 
