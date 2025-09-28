@@ -25,6 +25,7 @@ Some rudimentary factory presets are included in the plugin - they will be creat
 - Supports both x86 (SSE/SSE2/SSE4.1) and ARM (NEON) architectures
 - Implements wavetable synthesis with 2048-point tables
 - Uses modern C++17 features
+- Note: An initial attempt at integrating Tony Hardy-Bicks' DFM1 Filter is available in the "dfm1-filter-integration" development branch!
 
 ![screenshot](screenshot.png "Screenshot")
 

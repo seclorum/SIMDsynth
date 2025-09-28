@@ -911,47 +911,42 @@ void SimdSynthAudioProcessor::applyLadderFilter(Voice* voices, int voiceOffset, 
         return;
     }
 
-    // Reset filter states for new voices
     // Initialize filter states for new voices
     for (int i = 0; i < 4; i++) {
         int idx = voiceOffset + i;
         if (idx < MAX_VOICE_POLYPHONY && voices[idx].active && voices[idx].noteOnTime == currentTime) {
-            float inputValue;
-            SIMD_GET_LANE(inputValue, input, i); // Extract i-th lane
             for (int j = 0; j < 4; j++) {
-                voices[idx].filterStates[j] = inputValue * 0.25f; // Smooth transition
+                voices[idx].filterStates[j] = 0.0f; // Zero initialization
             }
         }
     }
 
-    // Vectorized cutoff computation (log EG mod)
+    // Vectorized cutoff computation
     alignas(32) float tempCutoffs[4], tempEnvMods[4], tempResonances[4];
     for (int i = 0; i < 4; i++) {
         int idx = voiceOffset + i;
         tempCutoffs[i] = idx < MAX_VOICE_POLYPHONY && voices[idx].active ? voices[idx].smoothedCutoff.getNextValue() : 1000.0f;
-        // Logarithmic EG: multiplier on cutoff
         float egMod = idx < MAX_VOICE_POLYPHONY && voices[idx].active ? voices[idx].smoothedFilterEnv.getNextValue() * voices[idx].smoothedFegAmount.getNextValue() : 0.0f;
-        egMod = juce::jlimit(-1.0f, 1.0f, egMod); // Reduced range for stability
-        tempEnvMods[i] = tempCutoffs[i] * (powf(2.0f, egMod * 0.5f) - 1.0f); // Softer modulation
-        tempCutoffs[i] += tempEnvMods[i];  // Add to base
+        egMod = juce::jlimit(-1.0f, 1.0f, egMod);
+        tempEnvMods[i] = juce::jlimit(-10000.0f, 10000.0f, egMod * 10000.0f); // Stronger modulation
+        tempCutoffs[i] = juce::jlimit(20.0f, filter.sampleRate * 0.48f, tempCutoffs[i] + tempEnvMods[i]);
         tempResonances[i] = idx < MAX_VOICE_POLYPHONY && voices[idx].active ? voices[idx].resonance : 0.7f;
-        // Resonance gain comp
-        float resComp = 1.0f / std::sqrt(1.0f + tempResonances[i] * tempResonances[i]);
-        tempResonances[i] *= resComp;  // New
-        tempResonances[i] = juce::jlimit(0.0f, 0.9f, tempResonances[i]); // Lower max resonance
+        tempResonances[i] = juce::jlimit(0.0f, 0.9f, tempResonances[i]); // No compensation
     }
 
     SIMD_TYPE modulatedCutoffs = SIMD_LOAD(tempCutoffs);
-    modulatedCutoffs = SIMD_MAX(SIMD_SET1(20.0f), SIMD_MIN(modulatedCutoffs, SIMD_SET1(filter.sampleRate * 0.48f)));
     float tempModulated[4];
     SIMD_STORE(tempModulated, modulatedCutoffs);
     for (int i = 0; i < 4; i++) {
-        tempCutoffs[i] = 2.0f * sinf(juce::MathConstants<float>::pi * tempModulated[i] / filter.sampleRate);
-        tempCutoffs[i] = std::tanh(tempCutoffs[i] * 0.8f); // Softer tanh
-        if (std::isnan(tempCutoffs[i]) || !std::isfinite(tempCutoffs[i])) tempCutoffs[i] = 0.0f;
+        float wc = 2.0f * juce::MathConstants<float>::pi * tempModulated[i] / filter.sampleRate;
+        tempCutoffs[i] = std::tan(wc / 2.0f); // Stable coefficient
+        if (std::isnan(tempCutoffs[i]) || !std::isfinite(tempCutoffs[i])) {
+            tempCutoffs[i] = 0.1f; // Default stable alpha
+        }
     }
     SIMD_TYPE alpha = SIMD_SET(tempCutoffs[0], tempCutoffs[1], tempCutoffs[2], tempCutoffs[3]);
     SIMD_TYPE resonance = SIMD_LOAD(tempResonances);
+
     bool anyActive = false;
     for (int i = 0; i < 4; i++) {
         if (voiceOffset + i < MAX_VOICE_POLYPHONY && voices[voiceOffset + i].active) {
@@ -962,6 +957,7 @@ void SimdSynthAudioProcessor::applyLadderFilter(Voice* voices, int voiceOffset, 
         output = SIMD_SET1(0.0f);
         return;
     }
+
     SIMD_TYPE states[4];
     for (int i = 0; i < 4; i++) {
         float temp[4] = {
@@ -972,32 +968,38 @@ void SimdSynthAudioProcessor::applyLadderFilter(Voice* voices, int voiceOffset, 
         };
         states[i] = SIMD_LOAD(temp);
     }
+
+    // Apply filter stages with clipping to prevent blowup
     SIMD_TYPE feedback = SIMD_MUL(states[3], resonance);
     SIMD_TYPE filterInput = SIMD_SUB(input, feedback);
     states[0] = SIMD_ADD(states[0], SIMD_MUL(alpha, SIMD_SUB(filterInput, states[0])));
+    states[0] = SIMD_MAX(SIMD_SET1(-1.0f), SIMD_MIN(states[0], SIMD_SET1(1.0f))); // Clip
     states[1] = SIMD_ADD(states[1], SIMD_MUL(alpha, SIMD_SUB(states[0], states[1])));
+    states[1] = SIMD_MAX(SIMD_SET1(-1.0f), SIMD_MIN(states[1], SIMD_SET1(1.0f))); // Clip
     states[2] = SIMD_ADD(states[2], SIMD_MUL(alpha, SIMD_SUB(states[1], states[2])));
+    states[2] = SIMD_MAX(SIMD_SET1(-1.0f), SIMD_MIN(states[2], SIMD_SET1(1.0f))); // Clip
     states[3] = SIMD_ADD(states[3], SIMD_MUL(alpha, SIMD_SUB(states[2], states[3])));
+    states[3] = SIMD_MAX(SIMD_SET1(-1.0f), SIMD_MIN(states[3], SIMD_SET1(1.0f))); // Clip
     output = states[3];
 
-    // Softer nonlinearity: Cubic soft-clip on output
+    // Apply soft clipping
     float tempOut[4];
     SIMD_STORE(tempOut, output);
+    DBG("Filter input at voiceOffset " << voiceOffset << ": {" << batchCombined[0] << ", " << batchCombined[1] << ", "
+        << batchCombined[2] << ", " << batchCombined[3] << "}");
+    DBG("Filter output at voiceOffset " << voiceOffset << ": {" << tempOut[0] << ", " << tempOut[1] << ", "
+        << tempOut[2] << ", " << tempOut[3] << "}");
     for (int i = 0; i < 4; i++) {
-        float over = std::abs(tempOut[i]) > 2.0f ? (tempOut[i] > 0 ? 2.0f : -2.0f) : tempOut[i];
-        tempOut[i] = over - (over * over * over) / 3.0f;  // Cubic approx
+        float over = std::abs(tempOut[i]) > 1.0f ? (tempOut[i] > 0 ? 1.0f : -1.0f) : tempOut[i];
+        tempOut[i] = over - (over * over * over) / 3.0f; // Cubic clipping
         if (!std::isfinite(tempOut[i])) {
+            DBG("Filter output NaN at voiceOffset " << voiceOffset << " lane " << i);
             tempOut[i] = 0.0f;
         }
-        // DC offset correction (stronger)
-        tempOut[i] -= 0.001f * tempOut[i];  // Increased from 0.0001f
     }
     output = SIMD_LOAD(tempOut);
 
-    if (std::isnan(tempOut[0]) || std::isnan(tempOut[1]) || std::isnan(tempOut[2]) || std::isnan(tempOut[3])) {
-        DBG("Filter output nan at voiceOffset " << voiceOffset << ": {" << tempOut[0] << ", " << tempOut[1] << ", "
-                                                << tempOut[2] << ", " << tempOut[3] << "}");
-    }
+    // Store states
     for (int i = 0; i < 4; i++) {
         float temp[4];
         SIMD_STORE(temp, states[i]);
@@ -1418,9 +1420,8 @@ if (msg.isNoteOn()) {
 void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::AudioBlock<float>& oversampledBlock, double blockStartTime, float sampleRate, float voiceScaling, int totalNumOutputChannels, std::function<float(float, float)> wavetable_lookup_scalar) {
     float t = static_cast<float>(blockStartTime + static_cast<double>(sampleIndex) / sampleRate);
     updateEnvelopes(t);
-    float outputSampleL = 0.0f, outputSampleR = 0.0f;  // Stereo
+    float outputSampleL = 0.0f, outputSampleR = 0.0f; // Stereo
     const float twoPiScalar = 2.0f * juce::MathConstants<float>::pi;
-
 
     for (int batch = 0; batch < NUM_BATCHES; batch++) {
         const int voiceOffset = batch * SIMD_WIDTH;
@@ -1434,8 +1435,13 @@ void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::Au
         }
         if (!anyActive) continue;
 
-        // Scalar per-voice processing
-        alignas(32) float batchCombined[SIMD_WIDTH] = {0.0f};
+        // Arrays to store per-voice contributions
+        alignas(32) float batchCombined[SIMD_WIDTH] = {0.0f}; // For filter input
+        alignas(32) float batchUnisonL[SIMD_WIDTH] = {0.0f}; // Main oscillator left
+        alignas(32) float batchUnisonR[SIMD_WIDTH] = {0.0f}; // Main oscillator right
+        alignas(32) float batchSub[SIMD_WIDTH] = {0.0f};    // Sub-oscillator
+        alignas(32) float batchOsc2[SIMD_WIDTH] = {0.0f};   // OSC2
+
         for (int j = 0; j < SIMD_WIDTH && (voiceOffset + j) < MAX_VOICE_POLYPHONY; ++j) {
             int idx = voiceOffset + j;
             if (!voices[idx].active) continue;
@@ -1460,12 +1466,12 @@ void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::Au
             float lfoVal = std::sin(lfoPhase) * lfoDepth;
             float phaseMod_cycles = lfoVal / twoPiScalar;
 
-            // LFO pitch mod (new: vibrato)
+            // LFO pitch mod (vibrato)
             float lfoPitchMod = lfoVal * voices[idx].lfoPitchAmt;
             float effectiveIncr = increment * (1.0f + lfoPitchMod);
 
-            // Unison processing (with random detune and per-unison pan)
-            float unisonOutputL = 0.0f, unisonOutputR = 0.0f;  // Stereo per voice
+            // Unison processing (stereo)
+            float unisonOutputL = 0.0f, unisonOutputR = 0.0f;
             int unisonVoices = voices[idx].unison;
             for (int u = 0; u < unisonVoices; ++u) {
                 float detuneFactor = voices[idx].detuneFactors[u];
@@ -1473,14 +1479,14 @@ void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::Au
                 float phasesNorm = detunedPhase - std::floor(detunedPhase);
                 float mainVal = wavetable_lookup_scalar(phasesNorm, static_cast<float>(wavetableType));
 
-                // Dynamic band-limiting (1-pole LP) with separate state
-                float fc = voices[idx].frequency * detuneFactor * 0.45f;  // Per-detune fc
+                // Dynamic band-limiting (1-pole LP)
+                float fc = voices[idx].frequency * detuneFactor * 0.45f;
                 float alphaLP = std::exp(-2.0f * juce::MathConstants<float>::pi * fc / sampleRate);
                 float filteredMain = alphaLP * voices[idx].mainLPState + (1.0f - alphaLP) * mainVal;
                 voices[idx].mainLPState = filteredMain;
 
                 // Unison stereo spread
-                float uPan = (static_cast<float>(u % 2) * 2.0f - 1.0f) * (voices[idx].detune / 0.1f);  // ± based on detune
+                float uPan = (static_cast<float>(u % 2) * 2.0f - 1.0f) * (voices[idx].detune / 0.1f);
                 float leftGain = (1.0f - uPan) * 0.5f + 0.5f;
                 float rightGain = (1.0f + uPan) * 0.5f + 0.5f;
                 unisonOutputL += filteredMain * leftGain / static_cast<float>(unisonVoices);
@@ -1496,7 +1502,7 @@ void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::Au
             unisonOutputL *= amp * mainMix;
             unisonOutputR *= amp * mainMix;
 
-            // Sub-oscillator with LFO mod (apply LP too, separate state)
+            // Sub-oscillator with LFO mod
             float subPhasesMod = subPhase + phaseMod_cycles * twoPiScalar;
             float subSinVal = std::sin(subPhasesMod);
             float fcSub = voices[idx].frequency * powf(2.0f, voices[idx].subTune / 12.0f) * 0.25f;
@@ -1505,7 +1511,7 @@ void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::Au
             voices[idx].subLPState = filteredSub;
             filteredSub *= amp * subMixNorm;
 
-            // 2nd oscillator with LFO mod (apply LP, separate state)
+            // OSC2 with LFO mod
             float osc2PhasesMod = osc2Phase + phaseMod_cycles * twoPiScalar;
             float osc2PhasesCycles = std::fmod(osc2PhasesMod / twoPiScalar, 1.0f);
             if (osc2PhasesCycles < 0.0f) osc2PhasesCycles += 1.0f;
@@ -1516,15 +1522,15 @@ void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::Au
             voices[idx].osc2LPState = filteredOsc2;
             filteredOsc2 *= amp * osc2MixNorm;
 
-            // Combine mono for filter, but accumulate stereo pre-filter (or post if preferred; here pre for osc separation)
-            float combinedMono = (unisonOutputL + unisonOutputR) * 0.5f + filteredSub + filteredOsc2;  // Avg for mono
+            // Combine for filter input (mono)
+            float combinedMono = ((unisonOutputL + unisonOutputR) * 0.5f + filteredSub + filteredOsc2) * 4.0f; // Boost by 4x
             batchCombined[j] = combinedMono;
+            batchUnisonL[j] = unisonOutputL;
+            batchUnisonR[j] = unisonOutputR;
+            batchSub[j] = filteredSub;
+            batchOsc2[j] = filteredOsc2;
 
-            // Accumulate full stereo (pre-filter for now; adjust if post preferred)
-            outputSampleL += unisonOutputL + filteredSub + filteredOsc2;
-            outputSampleR += unisonOutputR + filteredSub + filteredOsc2;
-
-            // Update phases with effectiveIncr for pitch mod
+            // Update phases
             voices[idx].phase = std::fmod(phase + effectiveIncr, 1.0f);
             if (voices[idx].phase < 0.0f) voices[idx].phase += 1.0f;
             voices[idx].subPhase = std::fmod(subPhase + subIncrement, twoPiScalar);
@@ -1534,7 +1540,7 @@ void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::Au
             voices[idx].lfoPhase = lfoPhase;
         }
 
-        // Apply batched filter on combined inputs (mono)
+        // Apply ladder filter on combined inputs (mono)
         if (anyActive) {
             SIMD_TYPE combinedValues = SIMD_LOAD(batchCombined);
             SIMD_TYPE filteredOutput;
@@ -1546,33 +1552,36 @@ void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::Au
             applyLadderFilter(voices, voiceOffset, combinedValues, filter, filteredOutput);
 #endif
 
-            float temp[4];
+            float temp[SIMD_WIDTH];
             SIMD_STORE(temp, filteredOutput);
             for (int k = 0; k < SIMD_WIDTH && voiceOffset + k < MAX_VOICE_POLYPHONY; ++k) {
                 if (voices[voiceOffset + k].active) {
                     float filtered = temp[k];
-                    // DC blocker per voice (simple 20Hz HP)
-                    float dcCutoff = juce::jmin(20.0f, sampleRate / 500.0f);
-                    float alphaDC = std::exp(-2.0f * juce::MathConstants<float>::pi * dcCutoff / sampleRate);                    float dcOut = filtered - alphaDC * voices[voiceOffset + k].dcState;
+                    // DC blocker per voice
+                    float dcCutoff = juce::jmin(30.0f, sampleRate / 400.0f);
+                    float alphaDC = std::exp(-2.0f * juce::MathConstants<float>::pi * dcCutoff / sampleRate);
+                    float dcOut = filtered - alphaDC * voices[voiceOffset + k].dcState;
                     voices[voiceOffset + k].dcState = dcOut;
                     filtered = dcOut;
                     // Post-filter saturation
-                    filtered = std::tanh(filtered * 1.2f);  // 20% drive
-                    // Post-filter pan (voice-level for width)
+                    filtered = std::tanh(filtered * 1.2f);
+                    // Voice panning
                     float pan = (static_cast<int>(voiceOffset + k) % 2 * 2.0f - 1.0f) * 0.5f * (voices[voiceOffset + k].unison / 8.0f);
                     float leftGain = (1.0f - pan) * 0.5f + 0.5f;
                     float rightGain = (1.0f + pan) * 0.5f + 0.5f;
-                    outputSampleL += filtered * leftGain;
-                    outputSampleR += filtered * rightGain;
+                    // Accumulate all contributions (main oscillator in stereo, sub and OSC2 mono)
+                    outputSampleL += batchUnisonL[k] + batchSub[k] + batchOsc2[k] + filtered * leftGain;
+                    outputSampleR += batchUnisonR[k] + batchSub[k] + batchOsc2[k] + filtered * rightGain;
                 }
             }
         }
     }
 
-    // Scale and gain (stereo)
+    // Apply voice scaling and gain
     outputSampleL *= voiceScaling * smoothedGain.getNextValue();
     outputSampleR *= voiceScaling * smoothedGain.getNextValue();
 
+    // Safety checks for NaNs
     if (std::isnan(outputSampleL) || !std::isfinite(outputSampleL)) {
         outputSampleL = 0.0f;
     }
@@ -1580,12 +1589,12 @@ void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::Au
         outputSampleR = 0.0f;
     }
 
-    // Set stereo channels
+    // Write to stereo channels
     if (totalNumOutputChannels > 0) {
-        oversampledBlock.setSample(0, sampleIndex, outputSampleL);  // Left
+        oversampledBlock.setSample(0, sampleIndex, outputSampleL); // Left
     }
     if (totalNumOutputChannels > 1) {
-        oversampledBlock.setSample(1, sampleIndex, outputSampleR);  // Right
+        oversampledBlock.setSample(1, sampleIndex, outputSampleR); // Right
     }
 }
 
