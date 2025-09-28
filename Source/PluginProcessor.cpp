@@ -218,19 +218,27 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
         voices[i].osc2Mix = *osc2MixParam;
         voices[i].osc2Track = *osc2TrackParam;
         voices[i].osc2PhaseOffset = 0.0f;
-        voices[i].unison = static_cast<int>(*unisonParam);
+
+        voices[i].unison = juce::jlimit(1, maxUnison, static_cast<int>(*unisonParam));
+        voices[i].detuneFactors.resize(maxUnison); // Pre-allocate to max
+        voices[i].unisonPhases.resize(maxUnison);
+        std::fill(voices[i].unisonPhases.begin(), voices[i].unisonPhases.end(), 0.0f);
+        std::fill(voices[i].unisonPhases.begin(), voices[i].unisonPhases.end(), 0.0f);
         voices[i].detune = *detuneParam;
+
+        for (int u = 0; u < voices[i].unison; ++u) {
+            float detuneCents = voices[i].detune * (u - (voices[i].unison - 1) / 2.0f) /
+                                (voices[i].unison - 1 + 0.0001f);
+            voices[i].detuneFactors[u] = powf(2.0f, detuneCents / 12.0f);
+            voices[i].unisonPhases[u] = random.nextFloat() * 0.01f;
+        }
+
         voices[i].releaseStartAmplitude = 0.0f;
         voices[i].smoothedAmplitude.reset(44100.0, 0.05);
         voices[i].smoothedAmplitude.setCurrentAndTargetValue(0.0f);
         voices[i].smoothedFilterEnv.reset(44100.0, 0.05);
         voices[i].smoothedFilterEnv.setCurrentAndTargetValue(0.0f);
-        voices[i].detuneFactors.resize(static_cast<int>(*unisonParam));
-        for (int u = 0; u < voices[i].unison; ++u) {
-            float detune = voices[i].detune * (u - (voices[i].unison - 1) / 2.0f) /
-                           (voices[i].unison - 1 + 0.0001f);
-            voices[i].detuneFactors[u] = powf(2.0f, detune / 12.0f);
-        }
+
         voices[i].smoothedCutoff.reset(44100.0, 0.05);
         voices[i].smoothedCutoff.setCurrentAndTargetValue(*cutoffParam);
         voices[i].smoothedFegAmount.reset(44100.0, 0.05);
@@ -239,7 +247,6 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
         voices[i].subLPState = 0.0f;
         voices[i].osc2LPState = 0.0f;
         voices[i].dcState = 0.0f;     // New: For DC blocker
-        voices[i].unisonPhases.resize(static_cast<int>(*unisonParam));
 
     }
 
@@ -297,6 +304,7 @@ int SimdSynthAudioProcessor::getCurrentProgram() {
 
 // Load a preset by index and update all voices
 void SimdSynthAudioProcessor::setCurrentProgram(int index) {
+
     if (index < 0 || index >= presetNames.size()) {
         DBG("Error: Invalid preset index: " << index << ", presetNames size: " << presetNames.size());
         return;
@@ -531,6 +539,11 @@ SIMD_TYPE SimdSynthAudioProcessor::wavetable_lookup_ps(SIMD_TYPE phase, SIMD_TYP
 }
 
 void SimdSynthAudioProcessor::applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& filter, SIMD_TYPE& output) {
+    if (filter.sampleRate <= 0.0f) {
+        output = SIMD_SET1(0.0f);
+        return;
+    }
+
     // Reset filter states for new voices
     for (int i = 0; i < 4; i++) {
         int idx = voiceOffset + i;
@@ -542,7 +555,7 @@ void SimdSynthAudioProcessor::applyLadderFilter(Voice* voices, int voiceOffset, 
     }
 
     // Vectorized cutoff computation (log EG mod)
-    float tempCutoffs[4], tempEnvMods[4], tempResonances[4];
+    alignas(32) float tempCutoffs[4], tempEnvMods[4], tempResonances[4];
     for (int i = 0; i < 4; i++) {
         int idx = voiceOffset + i;
         tempCutoffs[i] = idx < MAX_VOICE_POLYPHONY && voices[idx].active ? voices[idx].smoothedCutoff.getNextValue() : 1000.0f;
@@ -672,7 +685,7 @@ void SimdSynthAudioProcessor::updateEnvelopes(float t) {
         }
 
         float localTime = std::max(0.0f, t - voices[i].noteOnTime);
-        float attack = std::max(voices[i].attack, 0.01f);
+        float attack = juce::jmax(voices[i].attack, 0.01f);
         float decay = std::max(voices[i].decay, 0.01f);
         float sustain = juce::jlimit(0.0f, 1.0f, voices[i].sustain);
         float release = std::max(voices[i].release, 0.01f);
@@ -681,7 +694,7 @@ void SimdSynthAudioProcessor::updateEnvelopes(float t) {
         float velScale = 1.0f / (0.3f + 0.7f * voices[i].velocity);
         attack *= velScale;
 
-        const float attackCurve = voices[i].attackCurve;
+        float attackCurve = juce::jlimit(0.5f, 5.0f, voices[i].attackCurve);
         const float decayCurve = 1.5f;
         const float releaseCurve = voices[i].releaseCurve;
 
@@ -689,7 +702,7 @@ void SimdSynthAudioProcessor::updateEnvelopes(float t) {
         float amplitude;
         if (localTime < attack) {
             float attackPhase = localTime / attack;
-            amplitude = std::pow(attackPhase, attackCurve);
+            amplitude = std::pow(juce::jlimit(0.0f, 1.0f, attackPhase), attackCurve);
         } else if (localTime < attack + decay) {
             float decayPhase = (localTime - attack) / decay;
             amplitude = 1.0f - std::pow(decayPhase, decayCurve) * (1.0f - sustain);
@@ -770,15 +783,17 @@ void SimdSynthAudioProcessor::updateVoiceParameters(float sampleRate) {
         voices[i].osc2Track = smoothedOsc2Track.getCurrentValue();
         voices[i].detune = smoothedDetune.getCurrentValue();
         voices[i].wavetableType = static_cast<int>(*wavetableTypeParam);
-        voices[i].unison = static_cast<int>(*unisonParam);
+
         if (voices[i].detune != *detuneParam || voices[i].unison != static_cast<int>(*unisonParam)) {
-            voices[i].unison = static_cast<int>(*unisonParam);
+            voices[i].unison = juce::jlimit(1, maxUnison, static_cast<int>(*unisonParam));
             voices[i].detune = *detuneParam;
-            voices[i].detuneFactors.resize(voices[i].unison);
+            voices[i].detuneFactors.resize(maxUnison);
+            voices[i].unisonPhases.resize(maxUnison);
             for (int u = 0; u < voices[i].unison; ++u) {
                 float detuneCents = voices[i].detune * (u - (voices[i].unison - 1) / 2.0f) /
                                     (voices[i].unison - 1 + 0.0001f);
                 voices[i].detuneFactors[u] = powf(2.0f, detuneCents / 12.0f);
+                voices[i].unisonPhases[u] = random.nextFloat() * 0.01f;
             }
         }
 
@@ -802,6 +817,11 @@ void SimdSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlo
     int oversamplingFactor = (samplesPerBlock < 256) ? 1 : 2;
     oversampling = std::make_unique<juce::dsp::Oversampling<float>>(
         2, oversamplingFactor, juce::dsp::Oversampling<float>::FilterType::filterHalfBandPolyphaseIIR, true, true);
+
+    if (!oversampling || oversampling->getOversamplingFactor() != oversamplingFactor) {
+        oversampling = std::make_unique<juce::dsp::Oversampling<float>>(
+            2, oversamplingFactor, juce::dsp::Oversampling<float>::FilterType::filterHalfBandPolyphaseIIR, true, true);
+    }
     oversampling->initProcessing(samplesPerBlock);
 
     // Initialize smoothed parameters
@@ -1002,16 +1022,16 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
         voices[voiceIndex].osc2Mix = smoothedOsc2Mix.getCurrentValue();
         voices[voiceIndex].osc2Track = smoothedOsc2Track.getCurrentValue();
         voices[voiceIndex].detune = smoothedDetune.getCurrentValue();
-        voices[voiceIndex].unison = static_cast<int>(*unisonParam);
-        voices[voiceIndex].detuneFactors.resize(voices[voiceIndex].unison);
+
+
         for (int u = 0; u < voices[voiceIndex].unison; ++u) {
+            jassert(u < voices[voiceIndex].unisonPhases.size());
             float baseDetune = voices[voiceIndex].detune * (u - (voices[voiceIndex].unison - 1) / 2.0f) /
                                (voices[voiceIndex].unison - 1 + 0.0001f);
-            float randVar = 1.0f + (random.nextFloat() - 0.5f) * 0.1f; // Reduced randomization
+            float randVar = 1.0f + (random.nextFloat() - 0.5f) * 0.1f;
             float detuneCents = baseDetune * randVar;
             voices[voiceIndex].detuneFactors[u] = powf(2.0f, detuneCents / 12.0f);
-            voices[voiceIndex].unisonPhases[u] = random.nextFloat() * 0.01f; // Small phase offset
-
+            voices[voiceIndex].unisonPhases[u] = random.nextFloat() * 0.01f;
         }
         // Reset separate LP states
         voices[voiceIndex].mainLPState = 0.0f;  // New: For main/unison
@@ -1067,8 +1087,6 @@ void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::Au
     float outputSampleL = 0.0f, outputSampleR = 0.0f;  // Stereo
     const float twoPiScalar = 2.0f * juce::MathConstants<float>::pi;
 
-    constexpr int SIMD_WIDTH = (sizeof(SIMD_TYPE) / sizeof(float));
-    constexpr int NUM_BATCHES = (MAX_VOICE_POLYPHONY + SIMD_WIDTH - 1) / SIMD_WIDTH;
 
     for (int batch = 0; batch < NUM_BATCHES; batch++) {
         const int voiceOffset = batch * SIMD_WIDTH;

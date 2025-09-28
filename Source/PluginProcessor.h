@@ -53,6 +53,10 @@
 // Constants for wavetable size and polyphony
 static constexpr int WAVETABLE_SIZE = 8192;    // Size of wavetable lookup tables
 static constexpr int MAX_VOICE_POLYPHONY = 16; // Maximum number of simultaneous voices
+static constexpr int maxUnison = 8;
+
+constexpr int SIMD_WIDTH = (sizeof(SIMD_TYPE) / sizeof(float));
+constexpr int NUM_BATCHES = (MAX_VOICE_POLYPHONY + SIMD_WIDTH - 1) / SIMD_WIDTH;
 
 // Voice structure to hold per-voice synthesis parameters and state
 struct Voice {
@@ -179,9 +183,7 @@ public:
     void changeProgramName(int index, const juce::String& newName) override;
     void getStateInformation(juce::MemoryBlock& destData) override;
     void setStateInformation(const void* data, int sizeInBytes) override;
-    void processSingleSample(int sampleIndex, juce::dsp::AudioBlock<float>& oversampledBlock, double blockStartTime, float sampleRate, float voiceScaling, int totalNumOutputChannels, std::function<float(float, float)>
-
- wavetable_lookup_scalar);
+    void processSingleSample(int sampleIndex, juce::dsp::AudioBlock<float>& oversampledBlock, double blockStartTime, float sampleRate, float voiceScaling, int totalNumOutputChannels, std::function<float(float, float)> wavetable_lookup_scalar);
 
     // SIMD floor function declaration
 #if defined(__aarch64__) || defined(__arm64__)
