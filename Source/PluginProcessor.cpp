@@ -6,6 +6,9 @@
  * MIT Licensed, (c) 2025, seclorum
  */
 
+// Whether to use Tony HB's DFM1 Filter or not - will default to the Ladder Filter if not defined
+#define TRY_DFM1
+
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
 #include <juce_core/juce_core.h> // For File and JSON handling
@@ -247,6 +250,14 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
         voices[i].subLPState = 0.0f;
         voices[i].osc2LPState = 0.0f;
         voices[i].dcState = 0.0f;     // New: For DC blocker
+
+#ifdef TRY_DFM1
+        voices[i].dfm1State.za = 0.0f;
+        voices[i].dfm1State.zb = 0.0f;
+        voices[i].dfm1State.zh = 0.0f;
+        voices[i].dfm1State.zr = 0.0f;
+        voices[i].dfm1State.zy = 0.0f;
+#endif
 
     }
 
@@ -572,6 +583,313 @@ SIMD_TYPE SimdSynthAudioProcessor::wavetable_lookup_ps(SIMD_TYPE phase, SIMD_TYP
     }
     return SIMD_LOAD(tempOut);
 }
+
+
+void SimdSynthAudioProcessor::applyDFM1Filter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& filter, SIMD_TYPE& output) {
+
+    if (filter.sampleRate <= 0.0f) {
+        output = SIMD_SET1(0.0f);
+        return;
+    }
+
+    // Constants
+    static constexpr double NOISE = 0.00001;
+    static constexpr double HEADROOM = 0.05;
+    static constexpr double POST_GAIN = (1.0 - 0.05) * 3.0 / 2.0;
+    static constexpr double PRE_GAIN = 1.0 / (1.0 - 0.05) * 3.0 / 2.0;
+    static constexpr double NOISE_GAIN = 0.05;
+    static constexpr double N = 0.55032120814910446;
+    static constexpr double MAX_OSC_FREQ = 0.1640625;
+    static const int OCTAVES = 16;
+    static const int STEPS = 32;
+    static constexpr double MIN_LUT_FREQ = 1.0 / 131072.0;
+    static constexpr double MAX_LUT_FREQ = 0.5 - 1.0 / (STEPS * 4.0) - 0.001;
+    static int counter = 0;
+
+    // Note: LUTs are in dfmLUTs.h
+
+    // Helper function: Initialize noise generator state
+    auto initializeNoiseGen = [](Dfm1State::NoiseGenState* ng, int seed) {
+        ng->x = static_cast<uint32_t>(seed);
+        ng->y = static_cast<uint32_t>(seed + 1);
+        ng->z = static_cast<uint32_t>(seed + 2);
+        ng->w = static_cast<uint32_t>(seed + 3) * static_cast<uint32_t>(std::time(nullptr));
+    };
+
+    // Helper function: Generate random integer using xorshift
+    auto xor128 = [](Dfm1State::NoiseGenState* ng) -> int32_t {
+        uint32_t t = (ng->x ^ (ng->x << 15));
+        ng->x = ng->y;
+        ng->y = ng->z;
+        ng->z = ng->w;
+        return (ng->w = (ng->w ^ (ng->w >> 21)) ^ (t ^ (t >> 4)));
+    };
+
+    // Helper function: Generate unipolar random number
+    auto uni = [xor128](Dfm1State::NoiseGenState* ng) -> double {
+        const double k = 1.0 / 4294967296.0;
+        return 0.5 + xor128(ng) * k;
+    };
+
+    // Helper function: Fix normal distribution for Ziggurat algorithm
+    auto nfix = [&](int32_t hz, int32_t iz, Dfm1State::NoiseGenState* ng) -> double {
+        const double r = 3.442619855899;
+        double x, y;
+        for (;;) {
+            x = hz * wn[iz];
+            if (iz == 0) {
+                do {
+                    x = -std::log(uni(ng)) * 0.2904764516147;
+                    y = -std::log(uni(ng));
+                } while (y + y < x * x);
+                return (hz > 0) ? r + x : -r - x;
+            }
+            if (fn[iz] + uni(ng) * (fn[iz - 1] - fn[iz]) < std::exp(-0.5 * x * x)) {
+                return x;
+            }
+            hz = xor128(ng);
+            iz = hz & 127;
+            if (std::abs((float)hz) < kn[iz]) {
+                return hz * wn[iz];
+            }
+        }
+    };
+
+    // Helper function: Generate Gaussian noise using Ziggurat algorithm
+    auto rnor = [&](Dfm1State::NoiseGenState* ng) -> double {
+        int32_t hz = xor128(ng);
+        int32_t iz = hz & 127;
+        return (std::abs((float)hz) < kn[iz]) ? hz * wn[iz] : nfix(hz, iz, ng);
+    };
+
+    // Helper function: Get filter coefficients from LUT
+    auto getCoefficients = [&](double freq, double sampleRate, double coefficients[]) {
+        if (sampleRate < 1.0) sampleRate = 1.0;
+        freq = juce::jlimit(MIN_LUT_FREQ, MAX_LUT_FREQ, freq / sampleRate);
+
+        int octave = 0;
+        double octBaseFreq = MIN_LUT_FREQ;
+        double nextOctBaseFreq = MIN_LUT_FREQ * 2.0;
+        while (octave < OCTAVES && freq >= nextOctBaseFreq) {
+            octBaseFreq = nextOctBaseFreq;
+            nextOctBaseFreq *= 2.0;
+            octave++;
+        }
+
+        double octFreqSpan = octBaseFreq;
+        double step = STEPS * (freq - octBaseFreq) / octFreqSpan;
+        int index = static_cast<int>(std::floor(step));
+        double fraction = step - static_cast<double>(index);
+        int address = 3 * (index + octave * STEPS);
+
+        double xa = lut[address++];
+        double xb = lut[address++];
+        double xr = lut[address++];
+        double ya = lut[address];
+        double yb = lut[address + 1];
+        double yr = lut[address + 2];
+
+        coefficients[0] = xa + (ya - xa) * fraction;
+        coefficients[1] = xb + (yb - xb) * fraction;
+        coefficients[2] = xr + (yr - xr) * fraction;
+    };
+
+    // Initialize filter states for new voices
+    for (int i = 0; i < 4; i++) {
+        int idx = voiceOffset + i;
+        if (idx < MAX_VOICE_POLYPHONY && voices[idx].active && voices[idx].noteOnTime == currentTime) {
+            float inputValue;
+            SIMD_GET_LANE(inputValue, input, i);
+            voices[idx].dfm1State.l = 0.0;
+            voices[idx].dfm1State.h = 0.0;
+            voices[idx].dfm1State.a = 0.0;
+            voices[idx].dfm1State.b = 0.0;
+            voices[idx].dfm1State.r = 0.0;
+            voices[idx].dfm1State.s = 0.0;
+            voices[idx].dfm1State.za = inputValue * 0.25f;
+            voices[idx].dfm1State.zb = inputValue * 0.25f;
+            voices[idx].dfm1State.zh = inputValue * 0.25f;
+            voices[idx].dfm1State.zr = inputValue * 0.25f;
+            voices[idx].dfm1State.zy = inputValue * 0.25f;
+            // initializeNoiseGen(&voices[idx].dfm1State.ng, idx);
+            initializeNoiseGen(&voices[idx].dfm1State.ng, idx + static_cast<int>(currentTime * 1000.0));
+        }
+    }
+
+    // Vectorized cutoff and resonance computation
+    alignas(32) float tempCutoffs[4], tempEnvMods[4], tempResonances[4];
+    float filterType = 0.0f; // Default to low-pass; adjust if Filter struct provides this
+    float noiseLevel = 0.01f; // Default noise level; adjust if needed
+    float inputLevel = 1.0f;  // Default input gain; adjust if needed
+
+    for (int i = 0; i < 4; i++) {
+        int idx = voiceOffset + i;
+        if (idx < MAX_VOICE_POLYPHONY && voices[idx].active) {
+            tempCutoffs[i] = voices[idx].smoothedCutoff.getNextValue();
+            float egMod = voices[idx].smoothedFilterEnv.getNextValue() * voices[idx].smoothedFegAmount.getNextValue();
+            egMod = juce::jlimit(-1.0f, 1.0f, egMod);
+            tempEnvMods[i] = tempCutoffs[i] * (std::pow(2.0f, egMod * 0.5f) - 1.0f);
+            tempCutoffs[i] += tempEnvMods[i];
+            tempResonances[i] = voices[idx].resonance;
+            float resComp = 1.0f / std::sqrt(1.0f + tempResonances[i] * tempResonances[i]);
+            tempResonances[i] *= resComp;
+            tempResonances[i] = juce::jlimit(0.0f, 0.9f, tempResonances[i]);
+        } else {
+            tempCutoffs[i] = 1000.0f;
+            tempEnvMods[i] = 0.0f;
+            tempResonances[i] = 0.7f;
+        }
+    }
+
+    SIMD_TYPE modulatedCutoffs = SIMD_LOAD(tempCutoffs);
+    modulatedCutoffs = SIMD_MAX(SIMD_SET1(20.0f), SIMD_MIN(modulatedCutoffs, SIMD_SET1(filter.sampleRate * 0.48f)));
+    float tempModulated[4];
+    SIMD_STORE(tempModulated, modulatedCutoffs);
+
+    // Check for active voices
+    bool anyActive = false;
+    for (int i = 0; i < 4; i++) {
+        if (voiceOffset + i < MAX_VOICE_POLYPHONY && voices[voiceOffset + i].active) {
+            anyActive = true;
+        }
+    }
+    if (!anyActive) {
+        output = SIMD_SET1(0.0f);
+        return;
+    }
+
+    // Prepare SIMD filter states
+    SIMD_TYPE l[4], h[4], a[4], b[4], r[4], s[4], za[4], zb[4], zh[4], zr[4], zy[4];
+    for (int i = 0; i < 4; i++) {
+        alignas(32) float tempL[4], tempH[4], tempA[4], tempB[4], tempR[4], tempS[4];
+        alignas(32) float tempZA[4], tempZB[4], tempZH[4], tempZR[4], tempZY[4];
+        for (int j = 0; j < 4; j++) {
+            int idx = voiceOffset + j;
+            if (idx < MAX_VOICE_POLYPHONY) {
+                double coefficients[3];
+                getCoefficients(tempModulated[j], filter.sampleRate, coefficients);
+                tempL[j] = voices[idx].dfm1State.l;
+                tempH[j] = voices[idx].dfm1State.h;
+                tempA[j] = coefficients[0];
+                tempB[j] = coefficients[1];
+                tempR[j] = coefficients[2] * tempResonances[j];
+                tempS[j] = voices[idx].dfm1State.s;
+                tempZA[j] = voices[idx].dfm1State.za;
+                tempZB[j] = voices[idx].dfm1State.zb;
+                tempZH[j] = voices[idx].dfm1State.zh;
+                tempZR[j] = voices[idx].dfm1State.zr;
+                tempZY[j] = voices[idx].dfm1State.zy;
+            } else {
+                tempL[j] = tempH[j] = tempA[j] = tempB[j] = tempR[j] = tempS[j] = 0.0f;
+                tempZA[j] = tempZB[j] = tempZH[j] = tempZR[j] = tempZY[j] = 0.0f;
+            }
+        }
+        l[i] = SIMD_LOAD(tempL);
+        h[i] = SIMD_LOAD(tempH);
+        a[i] = SIMD_LOAD(tempA);
+        b[i] = SIMD_LOAD(tempB);
+        r[i] = SIMD_LOAD(tempR);
+        s[i] = SIMD_LOAD(tempS);
+        za[i] = SIMD_LOAD(tempZA);
+        zb[i] = SIMD_LOAD(tempZB);
+        zh[i] = SIMD_LOAD(tempZH);
+        zr[i] = SIMD_LOAD(tempZR);
+        zy[i] = SIMD_LOAD(tempZY);
+    }
+
+    // Set high-pass/low-pass gains
+    SIMD_TYPE lt = SIMD_SET1(inputLevel * PRE_GAIN);
+    SIMD_TYPE ht = SIMD_SET1(inputLevel * PRE_GAIN);
+    if (filterType < 0.5f) {
+        ht = SIMD_SET1(0.0f);
+    } else {
+        lt = SIMD_SET1(0.0f);
+    }
+    lt = SIMD_MUL(lt, SIMD_SUB(SIMD_SET1(1.0f), a[0]));
+
+    // Set noise level
+    SIMD_TYPE st = SIMD_SET1(noiseLevel * NOISE_GAIN);
+    st = SIMD_MAX(st, SIMD_SET1(NOISE));
+
+    // Process filter
+    SIMD_TYPE x = input;
+    for (int i = 0; i < 4; i++) {
+        // Generate noise for each voice
+        float noise[4];
+        for (int j = 0; j < 4; j++) {
+            int idx = voiceOffset + j;
+            noise[j] = (idx < MAX_VOICE_POLYPHONY && voices[idx].active) ? static_cast<float>(rnor(&voices[idx].dfm1State.ng)) : 0.0f;
+        }
+        SIMD_TYPE noiseVec = SIMD_LOAD(noise);
+
+        za[i] = SIMD_ADD(SIMD_MUL(x, lt), SIMD_ADD(SIMD_MUL(r[i], SIMD_SUB(zy[i], zr[i])), SIMD_ADD(SIMD_MUL(a[i], za[i]), SIMD_MUL(s[i], noiseVec))));
+        zb[i] = SIMD_ADD(SIMD_MUL(za[i], SIMD_SUB(SIMD_SET1(1.0f), b[i])), SIMD_ADD(SIMD_MUL(SIMD_SUB(x, zh[i]), ht), SIMD_ADD(SIMD_MUL(b[i], zb[i]), SIMD_MUL(s[i], noiseVec))));
+        zh[i] = x;
+        zr[i] = zy[i];
+
+        zb[i] = SIMD_MAX(SIMD_SET1(-1.0f), SIMD_MIN(zb[i], SIMD_SET1(1.0f)));
+        SIMD_TYPE nx = SIMD_MUL(SIMD_SET1(N), zb[i]);
+        zy[i] = SIMD_SUB(zb[i], SIMD_MUL(SIMD_SET1(2.0f), SIMD_MUL(nx, SIMD_MUL(nx, nx))));
+        zy[i] = SIMD_ADD(zy[i], SIMD_MUL(s[i], noiseVec));
+    }
+
+    // Output processing with cubic soft-clipping and DC offset correction
+    output = SIMD_MUL(zy[3], SIMD_SET1(POST_GAIN));
+    float tempOut[4];
+    SIMD_STORE(tempOut, output);
+    for (int i = 0; i < 4; i++) {
+        float over = std::abs(tempOut[i]) > 2.0f ? (tempOut[i] > 0 ? 2.0f : -2.0f) : tempOut[i];
+        tempOut[i] = over - (over * over * over) / 3.0f;
+        if (!std::isfinite(tempOut[i])) {
+            tempOut[i] = 0.0f;
+        }
+        tempOut[i] -= 0.001f * tempOut[i]; // DC offset correction
+    }
+    output = SIMD_LOAD(tempOut);
+
+    // Debug NaN check
+    if (std::isnan(tempOut[0]) || std::isnan(tempOut[1]) || std::isnan(tempOut[2]) || std::isnan(tempOut[3])) {
+        DBG("DFM1 filter output nan at voiceOffset " << voiceOffset << ": {" << tempOut[0] << ", "
+                                                     << tempOut[1] << ", " << tempOut[2] << ", "
+                                                     << tempOut[3] << "}");
+    }
+
+    // Store updated filter states
+    for (int i = 0; i < 4; i++) {
+        float tempL[4], tempH[4], tempA[4], tempB[4], tempR[4], tempS[4];
+        float tempZA[4], tempZB[4], tempZH[4], tempZR[4], tempZY[4];
+        SIMD_STORE(tempL, l[i]);
+        SIMD_STORE(tempH, h[i]);
+        SIMD_STORE(tempA, a[i]);
+        SIMD_STORE(tempB, b[i]);
+        SIMD_STORE(tempR, r[i]);
+        SIMD_STORE(tempS, s[i]);
+        SIMD_STORE(tempZA, za[i]);
+        SIMD_STORE(tempZB, zb[i]);
+        SIMD_STORE(tempZH, zh[i]);
+        SIMD_STORE(tempZR, zr[i]);
+        SIMD_STORE(tempZY, zy[i]);
+        for (int j = 0; j < 4; j++) {
+            int idx = voiceOffset + j;
+            if (idx < MAX_VOICE_POLYPHONY && voices[idx].active) {
+                voices[idx].dfm1State.l = tempL[j];
+                voices[idx].dfm1State.h = tempH[j];
+                voices[idx].dfm1State.a = tempA[j];
+                voices[idx].dfm1State.b = tempB[j];
+                voices[idx].dfm1State.r = tempR[j];
+                voices[idx].dfm1State.s = tempS[j];
+                voices[idx].dfm1State.za = tempZA[j];
+                voices[idx].dfm1State.zb = tempZB[j];
+                voices[idx].dfm1State.zh = tempZH[j];
+                voices[idx].dfm1State.zr = tempZR[j];
+                voices[idx].dfm1State.zy = tempZY[j];
+            }
+        }
+    }
+}
+
+
+
 
 void SimdSynthAudioProcessor::applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& filter, SIMD_TYPE& output) {
     if (filter.sampleRate <= 0.0f) {
@@ -1206,7 +1524,14 @@ void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::Au
         if (anyActive) {
             SIMD_TYPE combinedValues = SIMD_LOAD(batchCombined);
             SIMD_TYPE filteredOutput;
+
+#ifdef TRY_DFM1
+            combinedValues = SIMD_MUL(combinedValues, SIMD_SET1(1.0f)); // Adjust gain if needed
+            applyDFM1Filter(voices, voiceOffset, combinedValues, filter, filteredOutput);
+#else
             applyLadderFilter(voices, voiceOffset, combinedValues, filter, filteredOutput);
+#endif
+
             float temp[4];
             SIMD_STORE(temp, filteredOutput);
             for (int k = 0; k < SIMD_WIDTH && voiceOffset + k < MAX_VOICE_POLYPHONY; ++k) {

@@ -13,6 +13,8 @@
 #include <juce_dsp/juce_dsp.h>   // For DSP utilities
 #include "PresetManager.h"        // Preset management
 
+#include "dfmLUTs.h"
+
 // Architecture-specific SIMD definitions
 #ifdef __x86_64__
 #include <immintrin.h>
@@ -71,6 +73,25 @@ static constexpr int maxUnison = 4;
 
 constexpr int SIMD_WIDTH = (sizeof(SIMD_TYPE) / sizeof(float));
 constexpr int NUM_BATCHES = (MAX_VOICE_POLYPHONY + SIMD_WIDTH - 1) / SIMD_WIDTH;
+
+// Tony Hardy-Bicks' DFM1 State structure:
+struct Dfm1State {
+    double l; // Low pass filter input gain
+    double h; // High pass filter input gain
+    double a; // First stage filter coefficient
+    double b; // Second stage filter coefficient
+    double r; // Resonance
+    double s; // Noise level
+    double za; // First stage integrator
+    double zb; // Second stage integrator
+    double zh; // High pass differentiator
+    double zr; // Resonance differentiator
+    double zy; // Filter output
+    struct NoiseGenState {
+        uint32_t x, y, z, w;
+    } ng; // Noise generator state
+};
+
 
 // Voice structure to hold per-voice synthesis parameters and state
 struct Voice {
@@ -132,6 +153,7 @@ struct Voice {
     float osc2LPState = 0.0f;  // New: For OSC2 band-limiting
     float dcState = 0.0f;      // New: For per-voice DC blocker state
     std::vector<float> unisonPhases;
+    Dfm1State dfm1State;
 };
 
 // Structure to hold shared filter parameters for the ladder filter
@@ -139,6 +161,7 @@ struct Filter {
     float sampleRate = 44100.0f; // Sample rate for filter calculations
     float resonance = 0.7f;      // Resonance parameter (scaled in applyLadderFilter)
 };
+
 
 // Main audio processor class for SimdSynth
 class SimdSynthAudioProcessor : public juce::AudioProcessor {
@@ -292,8 +315,12 @@ private:
     float midiToFreq(int midiNote);                                    // Convert MIDI note to frequency
     float randomize(float base, float var);                            // Randomize a value within a range
     SIMD_TYPE wavetable_lookup_ps(SIMD_TYPE phase, SIMD_TYPE wavetableTypes); // Wavetable lookup
+
+    // A typical Ladder Filter
     void applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& filter,
                            SIMD_TYPE& output); // Apply ladder filter with SIMD
+    // A local implementation of Tony Hardy-Bicks' DFM1 filter
+    void applyDFM1Filter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& filter, SIMD_TYPE& output);
 
     // Architecture-specific SIMD functions
 #if defined(__x86_64__)
