@@ -221,18 +221,16 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
         voices[i].osc2Mix = *osc2MixParam;
         voices[i].osc2Track = *osc2TrackParam;
         voices[i].osc2PhaseOffset = 0.0f;
-
-        voices[i].unison = juce::jlimit(1, maxUnison, static_cast<int>(*unisonParam));
-        voices[i].detuneFactors.resize(maxUnison); // Pre-allocate to max
-        voices[i].unisonPhases.resize(maxUnison);
-        std::fill(voices[i].unisonPhases.begin(), voices[i].unisonPhases.end(), 0.0f);
         voices[i].detune = *detuneParam;
 
-        for (int u = 0; u < voices[i].unison; ++u) {
+        voices[i].unison = juce::jlimit(1, maxUnison, static_cast<int>(*unisonParam));
+        voices[i].detuneFactors.resize(maxUnison);
+        voices[i].unisonPhases.resize(maxUnison);
+        for (int u = 0; u < maxUnison; ++u) {
+            voices[i].unisonPhases[u] = random.nextFloat() * 0.01f; // Initialize once
             float detuneCents = voices[i].detune * (u - (voices[i].unison - 1) / 2.0f) /
                                 (voices[i].unison - 1 + 0.0001f);
             voices[i].detuneFactors[u] = powf(2.0f, detuneCents / 12.0f);
-            voices[i].unisonPhases[u] = random.nextFloat() * 0.01f;
         }
 
         voices[i].releaseStartAmplitude = 0.0f;
@@ -582,11 +580,14 @@ void SimdSynthAudioProcessor::applyLadderFilter(Voice* voices, int voiceOffset, 
     }
 
     // Reset filter states for new voices
+    // Initialize filter states for new voices
     for (int i = 0; i < 4; i++) {
         int idx = voiceOffset + i;
         if (idx < MAX_VOICE_POLYPHONY && voices[idx].active && voices[idx].noteOnTime == currentTime) {
+            float inputValue;
+            SIMD_GET_LANE(inputValue, input, i); // Extract i-th lane
             for (int j = 0; j < 4; j++) {
-                voices[idx].filterStates[j] = 0.0f;
+                voices[idx].filterStates[j] = inputValue * 0.25f; // Smooth transition
             }
         }
     }
@@ -827,8 +828,9 @@ void SimdSynthAudioProcessor::updateVoiceParameters(float sampleRate, bool force
                 float detuneCents = voices[i].detune * (u - (voices[i].unison - 1) / 2.0f) /
                                     (voices[i].unison - 1 + 0.0001f);
                 voices[i].detuneFactors[u] = powf(2.0f, detuneCents / 12.0f);
-                voices[i].unisonPhases[u] = getRandomFloatAudioThread() * 0.01f;
-            }
+                if (voices[i].unisonPhases[u] == 0.0f) {
+                    voices[i].unisonPhases[u] = getRandomFloatAudioThread() * 0.01f;
+                }            }
         }
         if (voices[i].active) {
             voices[i].phaseIncrement = voices[i].frequency / sampleRate;
@@ -1005,18 +1007,18 @@ if (msg.isNoteOn()) {
     voices[voiceIndex].released = false;
     voices[voiceIndex].isHeld = true;
     voices[voiceIndex].smoothedAmplitude.setCurrentAndTargetValue(0.0f);
-    voices[voiceIndex].smoothedAmplitude.reset(sampleRate, 0.005);
+    voices[voiceIndex].smoothedAmplitude.reset(sampleRate, 0.01);
     voices[voiceIndex].smoothedFilterEnv.setCurrentAndTargetValue(0.0f);
-    voices[voiceIndex].smoothedFilterEnv.reset(sampleRate, 0.005);
+    voices[voiceIndex].smoothedFilterEnv.reset(sampleRate, 0.01);
     voices[voiceIndex].frequency = midiToFreq(note);
     voices[voiceIndex].phaseIncrement = voices[voiceIndex].frequency / sampleRate;
     if (!wasActive) {
-        voices[voiceIndex].phase = 0.0f;
-        voices[voiceIndex].subPhase = 0.0f;
-        voices[voiceIndex].osc2Phase = 0.0f;
-        for (int j = 0; j < 4; ++j) {
-            voices[voiceIndex].filterStates[j] = 0.0f;
-        }
+        // Set small random offset to avoid zero-crossing, but preserve continuity where possible
+        float initialOffset = getRandomFloatAudioThread() * 0.01f;
+        voices[voiceIndex].phase = initialOffset; // Random small offset
+        voices[voiceIndex].subPhase = initialOffset * 2.0f * juce::MathConstants<float>::pi;
+        voices[voiceIndex].osc2Phase = initialOffset * 2.0f * juce::MathConstants<float>::pi;
+        // Filter states initialized later in applyLadderFilter
     }
     voices[voiceIndex].lfoPhase = getRandomFloatAudioThread() * 2.0f * juce::MathConstants<float>::pi;
     voices[voiceIndex].noteNumber = note;
@@ -1036,7 +1038,6 @@ if (msg.isNoteOn()) {
         float randVar = 1.0f + (getRandomFloatAudioThread() - 0.5f) * 0.1f;
         float detuneCents = baseDetune * randVar;
         voices[voiceIndex].detuneFactors[u] = powf(2.0f, detuneCents / 12.0f);
-        voices[voiceIndex].unisonPhases[u] = getRandomFloatAudioThread() * 0.01f;
     }
     voices[voiceIndex].mainLPState = 0.0f;
     voices[voiceIndex].subLPState = 0.0f;
@@ -1212,7 +1213,7 @@ void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::Au
                 if (voices[voiceOffset + k].active) {
                     float filtered = temp[k];
                     // DC blocker per voice (simple 20Hz HP)
-                    float dcCutoff = juce::jmin(20.0f, sampleRate / 1000.0f); // Scale cutoff for high sample rates
+                    float dcCutoff = juce::jmin(20.0f, sampleRate / 500.0f);
                     float alphaDC = std::exp(-2.0f * juce::MathConstants<float>::pi * dcCutoff / sampleRate);                    float dcOut = filtered - alphaDC * voices[voiceOffset + k].dcState;
                     voices[voiceOffset + k].dcState = dcOut;
                     filtered = dcOut;

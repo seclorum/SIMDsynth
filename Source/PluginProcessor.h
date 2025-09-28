@@ -30,6 +30,11 @@
 #define SIMD_MAX _mm_max_ps
 #define SIMD_MIN _mm_min_ps
 #define SIMD_SET_LANE _mm_set_ps
+#define SIMD_GET_LANE(dest, vec, index) do { \
+float temp[4]; \
+_mm_storeu_ps(temp, vec); \
+(dest) = temp[index]; \
+} while (0)
 #elif defined(__aarch64__) || defined(__arm64__)
 #include <arm_neon.h>
 #define SIMD_TYPE float32x4_t
@@ -46,9 +51,18 @@
 #define SIMD_MAX vmaxq_f32
 #define SIMD_MIN vminq_f32
 #define SIMD_SET_LANE(a, b, lane) vsetq_lane_f32(b, a, lane)
+#define SIMD_GET_LANE(dest, vec, index) do { \
+float temp[4]; \
+vst1q_f32(temp, vec); \
+(dest) = temp[index]; \
+} while (0)
 #else
 #error "Unsupported architecture"
 #endif
+
+
+
+
 
 // Constants for wavetable size and polyphony
 static constexpr int WAVETABLE_SIZE = 8192;    // Size of wavetable lookup tables
