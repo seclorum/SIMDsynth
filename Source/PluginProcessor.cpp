@@ -700,25 +700,33 @@ void SimdSynthAudioProcessor::applyDFM1Filter(Voice* voices, int voiceOffset, SI
         if (idx < MAX_VOICE_POLYPHONY && voices[idx].active && voices[idx].noteOnTime == currentTime) {
             float inputValue;
             SIMD_GET_LANE(inputValue, input, i);
+
             voices[idx].dfm1State.l = 0.0;
             voices[idx].dfm1State.h = 0.0;
             voices[idx].dfm1State.a = 0.0;
             voices[idx].dfm1State.b = 0.0;
             voices[idx].dfm1State.r = 0.0;
             voices[idx].dfm1State.s = 0.0;
+#if 0
             voices[idx].dfm1State.za = inputValue * 0.25f;
             voices[idx].dfm1State.zb = inputValue * 0.25f;
             voices[idx].dfm1State.zh = inputValue * 0.25f;
             voices[idx].dfm1State.zr = inputValue * 0.25f;
             voices[idx].dfm1State.zy = inputValue * 0.25f;
-            // initializeNoiseGen(&voices[idx].dfm1State.ng, idx);
+#endif
+            // For testing only:
+            voices[idx].dfm1State.za = 0;
+            voices[idx].dfm1State.zb = 0;
+            voices[idx].dfm1State.zh = 0;
+            voices[idx].dfm1State.zr = 0;
+            voices[idx].dfm1State.zy = 0;
             initializeNoiseGen(&voices[idx].dfm1State.ng, idx + static_cast<int>(currentTime * 1000.0));
         }
     }
 
     // Vectorized cutoff and resonance computation
     alignas(32) float tempCutoffs[4], tempEnvMods[4], tempResonances[4];
-    float filterType = 0.0f; // Default to low-pass; adjust if Filter struct provides this
+    float filterType = 1.0f; // Default to low-pass; adjust if Filter struct provides this
     float noiseLevel = 0.01f; // Default noise level; adjust if needed
     float inputLevel = 1.0f;  // Default input gain; adjust if needed
 
@@ -831,6 +839,12 @@ void SimdSynthAudioProcessor::applyDFM1Filter(Voice* voices, int voiceOffset, SI
         SIMD_TYPE nx = SIMD_MUL(SIMD_SET1(N), zb[i]);
         zy[i] = SIMD_SUB(zb[i], SIMD_MUL(SIMD_SET1(2.0f), SIMD_MUL(nx, SIMD_MUL(nx, nx))));
         zy[i] = SIMD_ADD(zy[i], SIMD_MUL(s[i], noiseVec));
+
+        // Note: Apply clipping to keep values within [-1, 1]
+        za[i] = SIMD_MAX(SIMD_SET1(-1.0f), SIMD_MIN(za[i], SIMD_SET1(1.0f)));
+        zb[i] = SIMD_MAX(SIMD_SET1(-1.0f), SIMD_MIN(zb[i], SIMD_SET1(1.0f)));
+        zy[i] = SIMD_MAX(SIMD_SET1(-1.0f), SIMD_MIN(zy[i], SIMD_SET1(1.0f)));
+
     }
 
     // Output processing with cubic soft-clipping and DC offset correction
@@ -1526,7 +1540,7 @@ void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::Au
             SIMD_TYPE filteredOutput;
 
 #ifdef TRY_DFM1
-            combinedValues = SIMD_MUL(combinedValues, SIMD_SET1(1.0f)); // Adjust gain if needed
+            combinedValues = SIMD_MUL(combinedValues, SIMD_SET1(2.0f)); // Adjust gain if needed
             applyDFM1Filter(voices, voiceOffset, combinedValues, filter, filteredOutput);
 #else
             applyLadderFilter(voices, voiceOffset, combinedValues, filter, filteredOutput);
