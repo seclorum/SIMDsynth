@@ -113,6 +113,7 @@ struct Voice {
     float subLPState = 0.0f;
     float osc2LPState = 0.0f;  // New: For OSC2 band-limiting
     float dcState = 0.0f;      // New: For per-voice DC blocker state
+    std::vector<float> unisonPhases;
 };
 
 // Structure to hold shared filter parameters for the ladder filter

@@ -69,7 +69,7 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
                                                               "Unison Detune", 0.0f, 0.1f, 0.01f)}),
       currentTime(0.0),
       oversampling(std::make_unique<juce::dsp::Oversampling<float>>(
-          2, 1, juce::dsp::Oversampling<float>::FilterType::filterHalfBandPolyphaseIIR, true, true)),
+          2, 2, juce::dsp::Oversampling<float>::FilterType::filterHalfBandPolyphaseIIR, true, true)),
       random(juce::Time::getMillisecondCounterHiRes()),
       smoothedGain(1.0f),
       smoothedCutoff(1000.0f),
@@ -239,6 +239,8 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
         voices[i].subLPState = 0.0f;
         voices[i].osc2LPState = 0.0f;
         voices[i].dcState = 0.0f;     // New: For DC blocker
+        voices[i].unisonPhases.resize(static_cast<int>(*unisonParam));
+
     }
 
     // Set initial filter resonance
@@ -546,14 +548,14 @@ void SimdSynthAudioProcessor::applyLadderFilter(Voice* voices, int voiceOffset, 
         tempCutoffs[i] = idx < MAX_VOICE_POLYPHONY && voices[idx].active ? voices[idx].smoothedCutoff.getNextValue() : 1000.0f;
         // Logarithmic EG: multiplier on cutoff
         float egMod = idx < MAX_VOICE_POLYPHONY && voices[idx].active ? voices[idx].smoothedFilterEnv.getNextValue() * voices[idx].smoothedFegAmount.getNextValue() : 0.0f;
-        egMod = juce::jlimit(-2.0f, 2.0f, egMod);
-        tempEnvMods[i] = tempCutoffs[i] * (powf(2.0f, egMod) - 1.0f);  // Log scale
+        egMod = juce::jlimit(-1.0f, 1.0f, egMod); // Reduced range for stability
+        tempEnvMods[i] = tempCutoffs[i] * (powf(2.0f, egMod * 0.5f) - 1.0f); // Softer modulation
         tempCutoffs[i] += tempEnvMods[i];  // Add to base
         tempResonances[i] = idx < MAX_VOICE_POLYPHONY && voices[idx].active ? voices[idx].resonance : 0.7f;
         // Resonance gain comp
         float resComp = 1.0f / std::sqrt(1.0f + tempResonances[i] * tempResonances[i]);
         tempResonances[i] *= resComp;  // New
-        tempResonances[i] = std::max(0.0f, std::min(tempResonances[i], 1.2f));  // Clamp to 1.0 post-comp
+        tempResonances[i] = juce::jlimit(0.0f, 0.9f, tempResonances[i]); // Lower max resonance
     }
 
     SIMD_TYPE modulatedCutoffs = SIMD_LOAD(tempCutoffs);
@@ -562,7 +564,7 @@ void SimdSynthAudioProcessor::applyLadderFilter(Voice* voices, int voiceOffset, 
     SIMD_STORE(tempModulated, modulatedCutoffs);
     for (int i = 0; i < 4; i++) {
         tempCutoffs[i] = 2.0f * sinf(juce::MathConstants<float>::pi * tempModulated[i] / filter.sampleRate);
-        tempCutoffs[i] = std::tanh(tempCutoffs[i]);  // Keep tanh here, but softer below
+        tempCutoffs[i] = std::tanh(tempCutoffs[i] * 0.8f); // Softer tanh
         if (std::isnan(tempCutoffs[i]) || !std::isfinite(tempCutoffs[i])) tempCutoffs[i] = 0.0f;
     }
     SIMD_TYPE alpha = SIMD_SET(tempCutoffs[0], tempCutoffs[1], tempCutoffs[2], tempCutoffs[3]);
@@ -646,13 +648,11 @@ int SimdSynthAudioProcessor::findVoiceToSteal() {
         }
     }
 
-    // Apply fade-out to stolen voice
     if (voices[voiceToSteal].active && !voices[voiceToSteal].released) {
-        voices[voiceToSteal].smoothedAmplitude.setTargetValue(0.0f); // Fade to zero
-        voices[voiceToSteal].smoothedAmplitude.reset(filter.sampleRate * oversampling->getOversamplingFactor(), 0.005); // Short fade
+        voices[voiceToSteal].smoothedAmplitude.setTargetValue(0.0f);
+        voices[voiceToSteal].smoothedAmplitude.reset(filter.sampleRate * oversampling->getOversamplingFactor(), 0.01); // Increased to 10ms
         voices[voiceToSteal].smoothedFilterEnv.setTargetValue(0.0f);
-        voices[voiceToSteal].smoothedFilterEnv.reset(filter.sampleRate * oversampling->getOversamplingFactor(), 0.005); // Fade filter envelope
-        // Preserve filter states during fade to avoid thumps
+        voices[voiceToSteal].smoothedFilterEnv.reset(filter.sampleRate * oversampling->getOversamplingFactor(), 0.01);
     }
 
     return voiceToSteal;
@@ -677,13 +677,13 @@ void SimdSynthAudioProcessor::updateEnvelopes(float t) {
         float sustain = juce::jlimit(0.0f, 1.0f, voices[i].sustain);
         float release = std::max(voices[i].release, 0.01f);
 
-        // Velocity scaling for attack (shorter at higher velocity)
+        // Velocity scaling for attack
         float velScale = 1.0f / (0.3f + 0.7f * voices[i].velocity);
         attack *= velScale;
 
-        const float attackCurve = voices[i].attackCurve;  // Now variable
-        const float decayCurve = 1.5f;  // Unchanged
-        const float releaseCurve = voices[i].releaseCurve;  // Now variable
+        const float attackCurve = voices[i].attackCurve;
+        const float decayCurve = 1.5f;
+        const float releaseCurve = voices[i].releaseCurve;
 
         // Amplitude envelope
         float amplitude;
@@ -698,7 +698,8 @@ void SimdSynthAudioProcessor::updateEnvelopes(float t) {
         } else {
             float releaseTime = std::max(0.0f, t - voices[i].noteOffTime);
             float releasePhase = releaseTime / release;
-            amplitude = voices[i].releaseStartAmplitude * std::exp(-releasePhase * releaseCurve);
+            // Smoother release with linear fade
+            amplitude = voices[i].releaseStartAmplitude * (1.0f - std::pow(releasePhase, releaseCurve));
             if (amplitude <= 0.001f) {
                 amplitude = 0.0f;
                 voices[i].active = false;
@@ -711,9 +712,12 @@ void SimdSynthAudioProcessor::updateEnvelopes(float t) {
         }
 
         voices[i].amplitude = juce::jlimit(0.0f, 1.0f, amplitude);
+        // Adjust smoothing ramp based on envelope stage
+        float rampTime = voices[i].released ? 0.01f : 0.005f; // Shorter for attack, longer for release
+        voices[i].smoothedAmplitude.reset(filter.sampleRate * oversampling->getOversamplingFactor(), rampTime);
         voices[i].smoothedAmplitude.setTargetValue(voices[i].amplitude);
 
-        // Filter envelope (unchanged, but uses attackCurve for consistency)
+        // Filter envelope
         float filterEnv;
         if (localTime < voices[i].fegAttack) {
             float attackPhase = localTime / voices[i].fegAttack;
@@ -726,10 +730,11 @@ void SimdSynthAudioProcessor::updateEnvelopes(float t) {
         } else {
             float releaseTime = std::max(0.0f, t - voices[i].noteOffTime);
             float releasePhase = releaseTime / voices[i].fegRelease;
-            filterEnv = voices[i].fegSustain * std::exp(-releasePhase * releaseCurve);
+            filterEnv = voices[i].fegSustain * (1.0f - std::pow(releasePhase, releaseCurve));
         }
 
         voices[i].filterEnv = juce::jlimit(0.0f, 1.0f, filterEnv);
+        voices[i].smoothedFilterEnv.reset(filter.sampleRate * oversampling->getOversamplingFactor(), rampTime);
         voices[i].smoothedFilterEnv.setTargetValue(voices[i].filterEnv);
     }
 }
@@ -953,8 +958,11 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
         voices[voiceIndex].frequency = midiToFreq(note);
         voices[voiceIndex].phaseIncrement = voices[voiceIndex].frequency / sampleRate;
         if (!wasActive) {
+            voices[voiceIndex].phase = 0.0f; // Reset main phase for consistency
+            voices[voiceIndex].subPhase = 0.0f;
+            voices[voiceIndex].osc2Phase = 0.0f;
             for (int j = 0; j < 4; ++j) {
-                voices[voiceIndex].filterStates[j] = 0.0f;
+                voices[voiceIndex].filterStates[j] = 0.0f; // Only reset if previously inactive
             }
         }
         voices[voiceIndex].subPhase = 0.0f;  // Hard sync sub phase
@@ -999,9 +1007,11 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
         for (int u = 0; u < voices[voiceIndex].unison; ++u) {
             float baseDetune = voices[voiceIndex].detune * (u - (voices[voiceIndex].unison - 1) / 2.0f) /
                                (voices[voiceIndex].unison - 1 + 0.0001f);
-            float randVar = 1.0f + (random.nextFloat() - 0.5f) * 0.4f;  // New: ±20% random
+            float randVar = 1.0f + (random.nextFloat() - 0.5f) * 0.1f; // Reduced randomization
             float detuneCents = baseDetune * randVar;
             voices[voiceIndex].detuneFactors[u] = powf(2.0f, detuneCents / 12.0f);
+            voices[voiceIndex].unisonPhases[u] = random.nextFloat() * 0.01f; // Small phase offset
+
         }
         // Reset separate LP states
         voices[voiceIndex].mainLPState = 0.0f;  // New: For main/unison
@@ -1107,9 +1117,10 @@ void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::Au
             int unisonVoices = voices[idx].unison;
             for (int u = 0; u < unisonVoices; ++u) {
                 float detuneFactor = voices[idx].detuneFactors[u];
-                float detunedPhase = (phase + phaseMod_cycles) * detuneFactor;
+                float detunedPhase = (phase + phaseMod_cycles + voices[idx].unisonPhases[u]) * detuneFactor;
                 float phasesNorm = detunedPhase - std::floor(detunedPhase);
                 float mainVal = wavetable_lookup_scalar(phasesNorm, static_cast<float>(wavetableType));
+
                 // Dynamic band-limiting (1-pole LP) with separate state
                 float fc = voices[idx].frequency * detuneFactor * 0.45f;  // Per-detune fc
                 float alphaLP = std::exp(-2.0f * juce::MathConstants<float>::pi * fc / sampleRate);
@@ -1183,7 +1194,7 @@ void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::Au
                     float filtered = temp[k];
                     // DC blocker per voice (simple 20Hz HP)
                     float alphaDC = std::exp(-2.0f * juce::MathConstants<float>::pi * 20.0f / sampleRate);
-                    float dcOut = alphaDC * voices[voiceOffset + k].dcState + (1.0f - alphaDC) * (filtered - voices[voiceOffset + k].dcState);
+                    float dcOut = filtered - alphaDC * voices[voiceOffset + k].dcState;
                     voices[voiceOffset + k].dcState = dcOut;
                     filtered = dcOut;
                     // Post-filter saturation
