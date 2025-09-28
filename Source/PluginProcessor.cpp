@@ -160,6 +160,9 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
         {"detune", 0.01f}
     };
 
+    // Initialize random buffer
+    refillRandomBuffer();
+
     // Initialize wavetables (unchanged, but note: sine normalization added for balance)
     sineTable.resize(WAVETABLE_SIZE);
     sawTable.resize(WAVETABLE_SIZE);
@@ -223,7 +226,6 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
         voices[i].detuneFactors.resize(maxUnison); // Pre-allocate to max
         voices[i].unisonPhases.resize(maxUnison);
         std::fill(voices[i].unisonPhases.begin(), voices[i].unisonPhases.end(), 0.0f);
-        std::fill(voices[i].unisonPhases.begin(), voices[i].unisonPhases.end(), 0.0f);
         voices[i].detune = *detuneParam;
 
         for (int u = 0; u < voices[i].unison; ++u) {
@@ -256,6 +258,30 @@ SimdSynthAudioProcessor::SimdSynthAudioProcessor()
     // Initialize presets
     presetManager.createDefaultPresets();
     loadPresetsFromDirectory();
+}
+
+// Helper Function to Get Random Float
+float SimdSynthAudioProcessor::getRandomFloatAudioThread() {
+    // Lock-free read from buffer
+    size_t index = randomIndex.load(std::memory_order_acquire);
+    size_t nextIndex = (index + 1) % randomBufferSize;
+
+    // Update index atomically
+    if (randomIndex.compare_exchange_strong(index, nextIndex, std::memory_order_release)) {
+        return randomBuffer[index];
+    }
+
+    // Fallback if buffer is contended (rare)
+    return randomBuffer[index];
+}
+
+void SimdSynthAudioProcessor::refillRandomBuffer() {
+    juce::ScopedLock lock(randomBufferLock);
+    randomBuffer.resize(randomBufferSize);
+    for (size_t i = 0; i < randomBufferSize; ++i) {
+        randomBuffer[i] = random.nextFloat();
+    }
+    randomIndex.store(0, std::memory_order_release);
 }
 
 // Suggest a buffer size to reduce underflow risk
@@ -305,6 +331,15 @@ int SimdSynthAudioProcessor::getCurrentProgram() {
 // Load a preset by index and update all voices
 void SimdSynthAudioProcessor::setCurrentProgram(int index) {
 
+    juce::StringArray paramIds = {
+        "wavetable",  "attack",    "decay",     "sustain",  "release",
+        "attackCurve", "releaseCurve",  // New
+        "cutoff",     "resonance", "fegAttack", "fegDecay", "fegSustain",
+        "fegRelease", "fegAmount", "lfoRate",   "lfoDepth", "subTune",
+        "subMix",     "subTrack",  "osc2Tune",  "osc2Mix",  "osc2Track",
+        "gain",       "unison",    "detune"
+    };
+
     if (index < 0 || index >= presetNames.size()) {
         DBG("Error: Invalid preset index: " << index << ", presetNames size: " << presetNames.size());
         return;
@@ -334,17 +369,16 @@ void SimdSynthAudioProcessor::setCurrentProgram(int index) {
     juce::var synthParams = parsedJson.getProperty("SimdSynth", juce::var());
     if (!synthParams.isObject()) {
         DBG("Error: 'SimdSynth' object not found in preset: " << presetNames[index]);
+        for (const auto& paramId : paramIds) {
+            if (auto* param = parameters.getParameter(paramId)) {
+                if (auto* floatParam = dynamic_cast<juce::AudioParameterFloat*>(param)) {
+                    float value = defaultParamValues[paramId];
+                    floatParam->setValueNotifyingHost(floatParam->convertTo0to1(value));
+                }
+            }
+        }
         return;
     }
-
-    juce::StringArray paramIds = {
-        "wavetable",  "attack",    "decay",     "sustain",  "release",
-        "attackCurve", "releaseCurve",  // New
-        "cutoff",     "resonance", "fegAttack", "fegDecay", "fegSustain",
-        "fegRelease", "fegAmount", "lfoRate",   "lfoDepth", "subTune",
-        "subMix",     "subTrack",  "osc2Tune",  "osc2Mix",  "osc2Track",
-        "gain",       "unison",    "detune"
-    };
 
     bool anyParamUpdated = false;
     for (int p = 0; p < paramIds.size(); ++p) {
@@ -378,13 +412,15 @@ void SimdSynthAudioProcessor::setCurrentProgram(int index) {
 
     if (!anyParamUpdated) {
         DBG("Warning: No parameters updated for preset: " << presetNames[index]);
+    } else {
+        setParametersChanged(); // Flag for update
     }
 
     // Update filter resonance
     filter.resonance = *resonanceParam;
 
     // Update parameters for inactive voices
-    updateVoiceParameters(filter.sampleRate * oversampling->getOversamplingFactor());
+    updateVoiceParameters(filter.sampleRate * oversampling->getOversamplingFactor(), true);
 
     // Reset smoothed values to match preset
     smoothedGain.setCurrentAndTargetValue(*gainParam);
@@ -409,6 +445,7 @@ void SimdSynthAudioProcessor::setCurrentProgram(int index) {
             synthEditor->updatePresetComboBox();
         }
     }
+
 }
 
 // Return the name of a preset by index
@@ -663,7 +700,7 @@ int SimdSynthAudioProcessor::findVoiceToSteal() {
 
     if (voices[voiceToSteal].active && !voices[voiceToSteal].released) {
         voices[voiceToSteal].smoothedAmplitude.setTargetValue(0.0f);
-        voices[voiceToSteal].smoothedAmplitude.reset(filter.sampleRate * oversampling->getOversamplingFactor(), 0.01); // Increased to 10ms
+        voices[voiceToSteal].smoothedAmplitude.reset(filter.sampleRate * oversampling->getOversamplingFactor(), 0.005);
         voices[voiceToSteal].smoothedFilterEnv.setTargetValue(0.0f);
         voices[voiceToSteal].smoothedFilterEnv.reset(filter.sampleRate * oversampling->getOversamplingFactor(), 0.01);
     }
@@ -752,52 +789,47 @@ void SimdSynthAudioProcessor::updateEnvelopes(float t) {
     }
 }
 
-void SimdSynthAudioProcessor::updateVoiceParameters(float sampleRate) {
-    sampleRate = std::max(sampleRate, 44100.0f); // Safeguard against invalid sample rate
-
+void SimdSynthAudioProcessor::updateVoiceParameters(float sampleRate, bool forceUpdate = false) {
+    sampleRate = std::max(sampleRate, 44100.0f);
     for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
-        // Update parameters for all voices (active or inactive)
-        voices[i].attack = *attackTimeParam;
-        voices[i].decay = *decayTimeParam;
-        voices[i].sustain = *sustainLevelParam;
-        voices[i].release = *releaseTimeParam;
-        voices[i].attackCurve = smoothedAttackCurve.getCurrentValue();  // New: From smoothed param
-        voices[i].releaseCurve = smoothedReleaseCurve.getCurrentValue(); // New
-        voices[i].cutoff = *cutoffParam;
-        voices[i].resonance = *resonanceParam;
-        voices[i].fegAttack = *fegAttackParam;
-        voices[i].fegDecay = *fegDecayParam;
-        voices[i].fegSustain = *fegSustainParam;
-        voices[i].fegRelease = *fegReleaseParam;
-        voices[i].fegAmount = *fegAmountParam;
+        if (!voices[i].active && !forceUpdate) continue; // Skip inactive voices unless forced
+        // Update only changed parameters
+        if (voices[i].attack != *attackTimeParam) voices[i].attack = *attackTimeParam;
+        if (voices[i].decay != *decayTimeParam) voices[i].decay = *decayTimeParam;
+        if (voices[i].sustain != *sustainLevelParam) voices[i].sustain = *sustainLevelParam;
+        if (voices[i].release != *releaseTimeParam) voices[i].release = *releaseTimeParam;
+        if (voices[i].attackCurve != smoothedAttackCurve.getCurrentValue()) voices[i].attackCurve = smoothedAttackCurve.getCurrentValue();
+        if (voices[i].releaseCurve != smoothedReleaseCurve.getCurrentValue()) voices[i].releaseCurve = smoothedReleaseCurve.getCurrentValue();
+        if (voices[i].cutoff != *cutoffParam) voices[i].cutoff = *cutoffParam;
+        if (voices[i].resonance != *resonanceParam) voices[i].resonance = *resonanceParam;
+        if (voices[i].fegAttack != *fegAttackParam) voices[i].fegAttack = *fegAttackParam;
+        if (voices[i].fegDecay != *fegDecayParam) voices[i].fegDecay = *fegDecayParam;
+        if (voices[i].fegSustain != *fegSustainParam) voices[i].fegSustain = *fegSustainParam;
+        if (voices[i].fegRelease != *fegReleaseParam) voices[i].fegRelease = *fegReleaseParam;
+        if (voices[i].fegAmount != *fegAmountParam) voices[i].fegAmount = *fegAmountParam;
+        if (voices[i].lfoRate != smoothedLfoRate.getCurrentValue()) voices[i].lfoRate = smoothedLfoRate.getCurrentValue();
+        if (voices[i].lfoDepth != smoothedLfoDepth.getCurrentValue()) voices[i].lfoDepth = smoothedLfoDepth.getCurrentValue();
+        if (voices[i].lfoPitchAmt != *lfoPitchAmtParam) voices[i].lfoPitchAmt = *lfoPitchAmtParam;
+        if (voices[i].subTune != smoothedSubTune.getCurrentValue()) voices[i].subTune = smoothedSubTune.getCurrentValue();
+        if (voices[i].subMix != smoothedSubMix.getCurrentValue()) voices[i].subMix = smoothedSubMix.getCurrentValue();
+        if (voices[i].subTrack != smoothedSubTrack.getCurrentValue()) voices[i].subTrack = smoothedSubTrack.getCurrentValue();
+        if (voices[i].osc2Tune != smoothedOsc2Tune.getCurrentValue()) voices[i].osc2Tune = smoothedOsc2Tune.getCurrentValue();
+        if (voices[i].osc2Mix != smoothedOsc2Mix.getCurrentValue()) voices[i].osc2Mix = smoothedOsc2Mix.getCurrentValue();
+        if (voices[i].osc2Track != smoothedOsc2Track.getCurrentValue()) voices[i].osc2Track = smoothedOsc2Track.getCurrentValue();
+        if (voices[i].detune != smoothedDetune.getCurrentValue()) voices[i].detune = smoothedDetune.getCurrentValue();
+        if (voices[i].wavetableType != static_cast<int>(*wavetableTypeParam)) voices[i].wavetableType = static_cast<int>(*wavetableTypeParam);
         voices[i].smoothedCutoff.setTargetValue(*cutoffParam);
         voices[i].smoothedFegAmount.setTargetValue(*fegAmountParam);
-        voices[i].lfoRate = smoothedLfoRate.getCurrentValue();
-        voices[i].lfoDepth = smoothedLfoDepth.getCurrentValue();
-        voices[i].lfoPitchAmt = *lfoPitchAmtParam;
-        voices[i].subTune = smoothedSubTune.getCurrentValue();
-        voices[i].subMix = smoothedSubMix.getCurrentValue();
-        voices[i].subTrack = smoothedSubTrack.getCurrentValue();
-        voices[i].osc2Tune = smoothedOsc2Tune.getCurrentValue();
-        voices[i].osc2Mix = smoothedOsc2Mix.getCurrentValue();
-        voices[i].osc2Track = smoothedOsc2Track.getCurrentValue();
-        voices[i].detune = smoothedDetune.getCurrentValue();
-        voices[i].wavetableType = static_cast<int>(*wavetableTypeParam);
-
         if (voices[i].detune != *detuneParam || voices[i].unison != static_cast<int>(*unisonParam)) {
             voices[i].unison = juce::jlimit(1, maxUnison, static_cast<int>(*unisonParam));
             voices[i].detune = *detuneParam;
-            voices[i].detuneFactors.resize(maxUnison);
-            voices[i].unisonPhases.resize(maxUnison);
             for (int u = 0; u < voices[i].unison; ++u) {
                 float detuneCents = voices[i].detune * (u - (voices[i].unison - 1) / 2.0f) /
                                     (voices[i].unison - 1 + 0.0001f);
                 voices[i].detuneFactors[u] = powf(2.0f, detuneCents / 12.0f);
-                voices[i].unisonPhases[u] = random.nextFloat() * 0.01f;
+                voices[i].unisonPhases[u] = getRandomFloatAudioThread() * 0.01f;
             }
         }
-
-        // Update phase increments for active voices
         if (voices[i].active) {
             voices[i].phaseIncrement = voices[i].frequency / sampleRate;
             const float twoPi = 2.0f * juce::MathConstants<float>::pi;
@@ -809,21 +841,15 @@ void SimdSynthAudioProcessor::updateVoiceParameters(float sampleRate) {
     }
 }
 
-// Prepare audio processing with oversampling
 void SimdSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
     filter.sampleRate = static_cast<float>(sampleRate);
     currentTime = 0.0;
-    oversampling->reset();
     int oversamplingFactor = (samplesPerBlock < 256) ? 1 : 2;
-    oversampling = std::make_unique<juce::dsp::Oversampling<float>>(
-        2, oversamplingFactor, juce::dsp::Oversampling<float>::FilterType::filterHalfBandPolyphaseIIR, true, true);
-
     if (!oversampling || oversampling->getOversamplingFactor() != oversamplingFactor) {
         oversampling = std::make_unique<juce::dsp::Oversampling<float>>(
             2, oversamplingFactor, juce::dsp::Oversampling<float>::FilterType::filterHalfBandPolyphaseIIR, true, true);
+        oversampling->initProcessing(samplesPerBlock);
     }
-    oversampling->initProcessing(samplesPerBlock);
-
     // Initialize smoothed parameters
     smoothedGain.reset(sampleRate, 0.05);
     smoothedCutoff.reset(sampleRate, 0.05);
@@ -837,6 +863,8 @@ void SimdSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlo
     smoothedOsc2Mix.reset(sampleRate, 0.05);
     smoothedOsc2Tune.reset(sampleRate, 0.05);
     smoothedOsc2Track.reset(sampleRate, 0.05);
+    smoothedAttackCurve.reset(sampleRate, 0.05);
+    smoothedReleaseCurve.reset(sampleRate, 0.05);
 
     // Reset all voices
     for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
@@ -850,11 +878,12 @@ void SimdSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlo
         voices[i].subPhase = 0.0f;
         voices[i].osc2Phase = 0.0f;
         voices[i].lfoPhase = 0.0f;
-        voices[i].lfoPitchAmt = 0.05f;
+        voices[i].lfoPitchAmt = *lfoPitchAmtParam; // Use parameter value instead of hard-coded 0.05f
         voices[i].mainLPState = 0.0f;
         voices[i].subLPState = 0.0f;
         voices[i].osc2LPState = 0.0f;
-        voices[i].smoothedAmplitude.reset(sampleRate * oversamplingFactor, 0.05); // Reset with oversampled rate
+        voices[i].dcState = 0.0f;
+        voices[i].smoothedAmplitude.reset(sampleRate * oversamplingFactor, 0.05);
         voices[i].smoothedAmplitude.setCurrentAndTargetValue(0.0f);
         voices[i].smoothedFilterEnv.reset(sampleRate * oversamplingFactor, 0.05);
         voices[i].smoothedFilterEnv.setCurrentAndTargetValue(0.0f);
@@ -866,7 +895,11 @@ void SimdSynthAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlo
         voices[i].smoothedFegAmount.reset(sampleRate * oversamplingFactor, 0.05);
         voices[i].smoothedFegAmount.setCurrentAndTargetValue(*fegAmountParam);
     }
+
+    // Update all voice parameters to match current state
+    updateVoiceParameters(static_cast<float>(sampleRate) * oversamplingFactor, true);
 }
+
 
 // Release resources
 void SimdSynthAudioProcessor::releaseResources() {
@@ -905,8 +938,10 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
     smoothedAttackCurve.setTargetValue(*attackCurveParam);  // New
     smoothedReleaseCurve.setTargetValue(*releaseCurveParam); // New
 
-    // Update voice parameters before processing
-    updateVoiceParameters(sampleRate);
+    // Update voice parameters only if needed
+    if (parametersChanged.exchange(false, std::memory_order_acquire)) {
+        updateVoiceParameters(sampleRate);
+    }
 
     int activeCount = 0;
     for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
@@ -952,96 +987,62 @@ void SimdSynthAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juc
         }
 
         // Note-on/off/program change handling (modified for random detune)
-    if (msg.isNoteOn()) {
-        int note = msg.getNoteNumber();
-        float velocity = 0.7f + (msg.getVelocity() / 127.0f) * 0.3f;
-        int voiceIndex = -1;
-        for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
-            if (!voices[i].active) {
-                voiceIndex = i;
-                break;
-            }
+if (msg.isNoteOn()) {
+    int note = msg.getNoteNumber();
+    float velocity = 0.7f + (msg.getVelocity() / 127.0f) * 0.3f;
+    int voiceIndex = -1;
+    for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
+        if (!voices[i].active) {
+            voiceIndex = i;
+            break;
         }
-        if (voiceIndex == -1) {
-            voiceIndex = findVoiceToSteal();
-        }
-        // Initialize new voice (random detune)
-        bool wasActive = voices[voiceIndex].active;
-
-        voices[voiceIndex].active = true;
-        voices[voiceIndex].released = false;
-        voices[voiceIndex].isHeld = true;
-        voices[voiceIndex].smoothedAmplitude.setCurrentAndTargetValue(0.0f);
-        voices[voiceIndex].smoothedAmplitude.reset(sampleRate, 0.005);
-        voices[voiceIndex].smoothedFilterEnv.setCurrentAndTargetValue(0.0f);
-        voices[voiceIndex].smoothedFilterEnv.reset(sampleRate, 0.005);
-        voices[voiceIndex].frequency = midiToFreq(note);
-        voices[voiceIndex].phaseIncrement = voices[voiceIndex].frequency / sampleRate;
-        if (!wasActive) {
-            voices[voiceIndex].phase = 0.0f; // Reset main phase for consistency
-            voices[voiceIndex].subPhase = 0.0f;
-            voices[voiceIndex].osc2Phase = 0.0f;
-            for (int j = 0; j < 4; ++j) {
-                voices[voiceIndex].filterStates[j] = 0.0f; // Only reset if previously inactive
-            }
-        }
-        voices[voiceIndex].subPhase = 0.0f;  // Hard sync sub phase
-        voices[voiceIndex].osc2Phase = 0.0f;  // Hard sync OSC2 phase
-        voices[voiceIndex].lfoPhase = random.nextFloat() * 2.0f * juce::MathConstants<float>::pi;
-        voices[voiceIndex].noteNumber = note;
-        voices[voiceIndex].velocity = velocity;
-        voices[voiceIndex].voiceAge = 0.0f;
-        voices[voiceIndex].noteOnTime = static_cast<float>(blockStartTime + static_cast<double>(samplePosition) / sampleRate);
-        voices[voiceIndex].releaseStartAmplitude = 0.0f;
-        const float twoPi = 2.0f * juce::MathConstants<float>::pi;
-        voices[voiceIndex].subPhaseIncrement = voices[voiceIndex].frequency * powf(2.0f, smoothedSubTune.getCurrentValue() / 12.0f) *
-                                               smoothedSubTrack.getCurrentValue() / sampleRate * twoPi;
-        voices[voiceIndex].osc2PhaseIncrement = voices[voiceIndex].frequency * powf(2.0f, smoothedOsc2Tune.getCurrentValue() / 12.0f) *
-                                                smoothedOsc2Track.getCurrentValue() / sampleRate * twoPi;
-        voices[voiceIndex].wavetableType = static_cast<int>(*wavetableTypeParam);
-        voices[voiceIndex].attack = *attackTimeParam;
-        voices[voiceIndex].decay = *decayTimeParam;
-        voices[voiceIndex].sustain = *sustainLevelParam;
-        voices[voiceIndex].release = *releaseTimeParam;
-        voices[voiceIndex].attackCurve = smoothedAttackCurve.getCurrentValue();  // New
-        voices[voiceIndex].releaseCurve = smoothedReleaseCurve.getCurrentValue(); // New
-        voices[voiceIndex].cutoff = *cutoffParam;
-        voices[voiceIndex].resonance = *resonanceParam;
-        voices[voiceIndex].fegAttack = *fegAttackParam;
-        voices[voiceIndex].fegDecay = *fegDecayParam;
-        voices[voiceIndex].fegSustain = *fegSustainParam;
-        voices[voiceIndex].fegRelease = *fegReleaseParam;
-        voices[voiceIndex].fegAmount = *fegAmountParam;
-        voices[voiceIndex].lfoRate = smoothedLfoRate.getCurrentValue();
-        voices[voiceIndex].lfoDepth = smoothedLfoDepth.getCurrentValue();
-        voices[voiceIndex].lfoPitchAmt = *lfoPitchAmtParam;
-        voices[voiceIndex].subTune = smoothedSubTune.getCurrentValue();
-        voices[voiceIndex].subMix = smoothedSubMix.getCurrentValue();
-        voices[voiceIndex].subTrack = smoothedSubTrack.getCurrentValue();
-        voices[voiceIndex].osc2Tune = smoothedOsc2Tune.getCurrentValue();
-        voices[voiceIndex].osc2Mix = smoothedOsc2Mix.getCurrentValue();
-        voices[voiceIndex].osc2Track = smoothedOsc2Track.getCurrentValue();
-        voices[voiceIndex].detune = smoothedDetune.getCurrentValue();
-
-
-        for (int u = 0; u < voices[voiceIndex].unison; ++u) {
-            jassert(u < voices[voiceIndex].unisonPhases.size());
-            float baseDetune = voices[voiceIndex].detune * (u - (voices[voiceIndex].unison - 1) / 2.0f) /
-                               (voices[voiceIndex].unison - 1 + 0.0001f);
-            float randVar = 1.0f + (random.nextFloat() - 0.5f) * 0.1f;
-            float detuneCents = baseDetune * randVar;
-            voices[voiceIndex].detuneFactors[u] = powf(2.0f, detuneCents / 12.0f);
-            voices[voiceIndex].unisonPhases[u] = random.nextFloat() * 0.01f;
-        }
-        // Reset separate LP states
-        voices[voiceIndex].mainLPState = 0.0f;  // New: For main/unison
-        voices[voiceIndex].subLPState = 0.0f;   // New: For sub
-        voices[voiceIndex].osc2LPState = 0.0f;  // New: For OSC2
-        voices[voiceIndex].dcState = 0.0f;      // Reset for DC
+    }
+    if (voiceIndex == -1) {
+        voiceIndex = findVoiceToSteal();
+    }
+    bool wasActive = voices[voiceIndex].active;
+    voices[voiceIndex].active = true;
+    voices[voiceIndex].released = false;
+    voices[voiceIndex].isHeld = true;
+    voices[voiceIndex].smoothedAmplitude.setCurrentAndTargetValue(0.0f);
+    voices[voiceIndex].smoothedAmplitude.reset(sampleRate, 0.005);
+    voices[voiceIndex].smoothedFilterEnv.setCurrentAndTargetValue(0.0f);
+    voices[voiceIndex].smoothedFilterEnv.reset(sampleRate, 0.005);
+    voices[voiceIndex].frequency = midiToFreq(note);
+    voices[voiceIndex].phaseIncrement = voices[voiceIndex].frequency / sampleRate;
+    if (!wasActive) {
+        voices[voiceIndex].phase = 0.0f;
+        voices[voiceIndex].subPhase = 0.0f;
+        voices[voiceIndex].osc2Phase = 0.0f;
         for (int j = 0; j < 4; ++j) {
             voices[voiceIndex].filterStates[j] = 0.0f;
         }
-    } else if (msg.isNoteOff()) {
+    }
+    voices[voiceIndex].lfoPhase = getRandomFloatAudioThread() * 2.0f * juce::MathConstants<float>::pi;
+    voices[voiceIndex].noteNumber = note;
+    voices[voiceIndex].velocity = velocity;
+    voices[voiceIndex].voiceAge = 0.0f;
+    voices[voiceIndex].noteOnTime = static_cast<float>(blockStartTime + static_cast<double>(samplePosition) / sampleRate);
+    voices[voiceIndex].releaseStartAmplitude = 0.0f;
+    const float twoPi = 2.0f * juce::MathConstants<float>::pi;
+    voices[voiceIndex].subPhaseIncrement = voices[voiceIndex].frequency * powf(2.0f, voices[voiceIndex].subTune / 12.0f) *
+                                           voices[voiceIndex].subTrack / sampleRate * twoPi;
+    voices[voiceIndex].osc2PhaseIncrement = voices[voiceIndex].frequency * powf(2.0f, voices[voiceIndex].osc2Tune / 12.0f) *
+                                            voices[voiceIndex].osc2Track / sampleRate * twoPi;
+    for (int u = 0; u < voices[voiceIndex].unison; ++u) {
+        jassert(u < voices[voiceIndex].unisonPhases.size());
+        float baseDetune = voices[voiceIndex].detune * (u - (voices[voiceIndex].unison - 1) / 2.0f) /
+                           (voices[voiceIndex].unison - 1 + 0.0001f);
+        float randVar = 1.0f + (getRandomFloatAudioThread() - 0.5f) * 0.1f;
+        float detuneCents = baseDetune * randVar;
+        voices[voiceIndex].detuneFactors[u] = powf(2.0f, detuneCents / 12.0f);
+        voices[voiceIndex].unisonPhases[u] = getRandomFloatAudioThread() * 0.01f;
+    }
+    voices[voiceIndex].mainLPState = 0.0f;
+    voices[voiceIndex].subLPState = 0.0f;
+    voices[voiceIndex].osc2LPState = 0.0f;
+    voices[voiceIndex].dcState = 0.0f;
+} else if (msg.isNoteOff()) {
             int note = msg.getNoteNumber();
             for (int i = 0; i < MAX_VOICE_POLYPHONY; ++i) {
                 if (voices[i].active && voices[i].noteNumber == note) {
@@ -1211,8 +1212,8 @@ void SimdSynthAudioProcessor::processSingleSample(int sampleIndex, juce::dsp::Au
                 if (voices[voiceOffset + k].active) {
                     float filtered = temp[k];
                     // DC blocker per voice (simple 20Hz HP)
-                    float alphaDC = std::exp(-2.0f * juce::MathConstants<float>::pi * 20.0f / sampleRate);
-                    float dcOut = filtered - alphaDC * voices[voiceOffset + k].dcState;
+                    float dcCutoff = juce::jmin(20.0f, sampleRate / 1000.0f); // Scale cutoff for high sample rates
+                    float alphaDC = std::exp(-2.0f * juce::MathConstants<float>::pi * dcCutoff / sampleRate);                    float dcOut = filtered - alphaDC * voices[voiceOffset + k].dcState;
                     voices[voiceOffset + k].dcState = dcOut;
                     filtered = dcOut;
                     // Post-filter saturation
@@ -1264,6 +1265,7 @@ void SimdSynthAudioProcessor::setStateInformation(const void* data, int sizeInBy
     if (xmlState != nullptr) {
         if (xmlState->hasTagName(parameters.state.getType())) {
             parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
+            setParametersChanged(); // Ensure voices are updated
             int program = xmlState->getIntAttribute("currentProgram", 0);
             if (program >= 0 && program < getNumPrograms()) {
                 setCurrentProgram(program);

@@ -53,7 +53,7 @@
 // Constants for wavetable size and polyphony
 static constexpr int WAVETABLE_SIZE = 8192;    // Size of wavetable lookup tables
 static constexpr int MAX_VOICE_POLYPHONY = 16; // Maximum number of simultaneous voices
-static constexpr int maxUnison = 8;
+static constexpr int maxUnison = 4;
 
 constexpr int SIMD_WIDTH = (sizeof(SIMD_TYPE) / sizeof(float));
 constexpr int NUM_BATCHES = (MAX_VOICE_POLYPHONY + SIMD_WIDTH - 1) / SIMD_WIDTH;
@@ -159,10 +159,19 @@ public:
     SimdSynthAudioProcessor();
     ~SimdSynthAudioProcessor() override;
 
+    float getRandomFloatAudioThread();
+    void refillRandomBuffer();
+
     // Preferred buffer size for optimal performance
     int getPreferredBufferSize() const;
 
     // Audio processor overrides
+    void setParametersChanged() { parametersChanged.store(true, std::memory_order_release); }
+
+    void parameterChanged(const juce::String& parameterID, float newValue)  {
+        setParametersChanged();
+    }
+
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
     bool isBusesLayoutSupported(const BusesLayout& layouts) const override {
@@ -195,7 +204,7 @@ public:
     // Voice management and envelope processing
     int findVoiceToSteal();                    // Select a voice for stealing when polyphony is exceeded
     void updateEnvelopes(float t);             // Update amplitude and filter envelopes for all voices
-    void updateVoiceParameters(float sampleRate);              // Update parameters for all voices
+    void updateVoiceParameters(float sampleRate, bool forceUpdate);              // Update parameters for all voices
 
     // Preset management
     void savePreset(const juce::String& presetName, const juce::var& parameters) {
@@ -206,10 +215,16 @@ public:
     juce::StringArray getPresetNames() const { return presetNames; }
 
 private:
+    static constexpr size_t randomBufferSize = 1024; // Enough for multiple note-ons
+    std::vector<float> randomBuffer;
+    std::atomic<size_t> randomIndex{0};
+    juce::CriticalSection randomBufferLock; // For refilling in non-real-time thread
     juce::Random random; // Add random generator
     std::map<juce::String, float> defaultParamValues;
 
     // Parameter management
+    std::atomic<bool> parametersChanged{false};
+
     juce::AudioProcessorValueTreeState parameters;
     std::atomic<float> *wavetableTypeParam, *attackTimeParam, *decayTimeParam, *sustainLevelParam,
         *releaseTimeParam, *cutoffParam, *resonanceParam, *fegAttackParam, *fegDecayParam, *fegSustainParam,

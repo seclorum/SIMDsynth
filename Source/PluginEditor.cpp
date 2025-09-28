@@ -18,7 +18,7 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
 
     // Set resizable and minimum size
     setResizable(true, true);
-    getConstrainer()->setMinimumSize(800, 960);
+    getConstrainer()->setMinimumSize(800, 980);
 
     // Initialize preset controls
     presetComboBox = std::make_unique<juce::ComboBox>("presetComboBox");
@@ -425,7 +425,7 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     // repaint();
 
     // Set size last to avoid premature resized() calls
-    setSize(800, 960);
+    setSize(800, 980);
 
     // Debug component initialization
     DBG("Initialized components:");
