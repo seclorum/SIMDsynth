@@ -11,7 +11,7 @@
 #include <juce_audio_processors/juce_audio_processors.h>
 #include <juce_core/juce_core.h> // For MathConstants
 #include <juce_dsp/juce_dsp.h>   // For DSP utilities
-#include "PresetManager.h"        // Preset management
+#include "PresetManager.h"       // Preset management
 
 // Architecture-specific SIMD definitions
 #ifdef __x86_64__
@@ -30,11 +30,12 @@
 #define SIMD_MAX _mm_max_ps
 #define SIMD_MIN _mm_min_ps
 #define SIMD_SET_LANE _mm_set_ps
-#define SIMD_GET_LANE(dest, vec, index) do { \
-float temp[4]; \
-_mm_storeu_ps(temp, vec); \
-(dest) = temp[index]; \
-} while (0)
+#define SIMD_GET_LANE(dest, vec, index)                                                                                \
+    do {                                                                                                               \
+        float temp[4];                                                                                                 \
+        _mm_storeu_ps(temp, vec);                                                                                      \
+        (dest) = temp[index];                                                                                          \
+    } while (0)
 #elif defined(__aarch64__) || defined(__arm64__)
 #include <arm_neon.h>
 #define SIMD_TYPE float32x4_t
@@ -51,22 +52,24 @@ _mm_storeu_ps(temp, vec); \
 #define SIMD_MAX vmaxq_f32
 #define SIMD_MIN vminq_f32
 #define SIMD_SET_LANE(a, b, lane) vsetq_lane_f32(b, a, lane)
-#define SIMD_GET_LANE(dest, vec, index) do { \
-float temp[4]; \
-vst1q_f32(temp, vec); \
-(dest) = temp[index]; \
-} while (0)
+#define SIMD_GET_LANE(dest, vec, index)                                                                                \
+    do {                                                                                                               \
+        float temp[4];                                                                                                 \
+        vst1q_f32(temp, vec);                                                                                          \
+        (dest) = temp[index];                                                                                          \
+    } while (0)
 #else
 #error "Unsupported architecture"
 #endif
 
-
-
-
-
 // Constants for wavetable size and polyphony
-static constexpr int WAVETABLE_SIZE = 8192;    // Size of wavetable lookup tables
+#if DEBUG
+static constexpr int MAX_VOICE_POLYPHONY = 4; // Maximum number of simultaneous voices
+#else
 static constexpr int MAX_VOICE_POLYPHONY = 16; // Maximum number of simultaneous voices
+#endif
+
+static constexpr int WAVETABLE_SIZE = 8192; // Size of wavetable lookup tables
 static constexpr int maxUnison = 4;
 
 constexpr int SIMD_WIDTH = (sizeof(SIMD_TYPE) / sizeof(float));
@@ -74,238 +77,241 @@ constexpr int NUM_BATCHES = (MAX_VOICE_POLYPHONY + SIMD_WIDTH - 1) / SIMD_WIDTH;
 
 // Voice structure to hold per-voice synthesis parameters and state
 struct Voice {
-    bool active = false;              // Is the voice currently active?
-    bool released = false;            // Has the voice been released (note-off)?
-    bool isHeld = false;              // Is the note currently held?
-    float frequency = 0.0f;           // Base frequency of the note (Hz)
-    float phase = 0.0f;               // Main oscillator phase (0 to 1)
-    float phaseIncrement = 0.0f;      // Main oscillator phase increment per sample
-    int noteNumber = 0;               // MIDI note number
-    float velocity = 0.0f;            // Note velocity (0 to 1)
-    float amplitude = 0.0f;           // Current amplitude from envelope
-    float voiceAge = 0.0f;           // Age of the voice (seconds)
-    float noteOnTime = 0.0f;         // Time when note was triggered
-    float noteOffTime = 0.0f;        // Time when note was released
-    float releaseStartAmplitude = 0.0f; // Amplitude at release start
-    float subPhase = 0.0f;           // Sub-oscillator phase (radians)
-    float subPhaseIncrement = 0.0f;  // Sub-oscillator phase increment per sample
-    float osc2Phase = 0.0f; // New oscillator phase
-    float osc2PhaseIncrement = 0.0f; // Oscillator phase increment
-    float osc2PhaseOffset = 0.0f;
-    float lfoPhase = 0.0f;           // LFO phase (radians)
-    float filterEnv = 0.0f;          // Filter envelope value (0 to 1)
-    float attackCurve = 2.0f;        // Attack curve exponent
-    float releaseCurve = 3.0f;       // Release curve exponent
-    int wavetableType = 0;           // Wavetable type (0=sine, 1=saw, 2=square)
-    float attack = 0.1f;             // Amplitude envelope attack time (seconds)
-    float decay = 0.5f;              // Amplitude envelope decay time (seconds)
-    float sustain = 0.8f;            // Amplitude envelope sustain level (0 to 1)
-    float release = 0.2f;            // Amplitude envelope release time (seconds)
-    float cutoff = 1000.0f;          // Filter cutoff frequency (Hz)
-    float resonance = 0.7f;          // Filter resonance (0 to 1)
-    float fegAttack = 0.1f;          // Filter envelope attack time (seconds)
-    float fegDecay = 1.0f;           // Filter envelope decay time (seconds)
-    float fegSustain = 0.5f;         // Filter envelope sustain level (0 to 1)
-    float fegRelease = 0.2f;         // Filter envelope release time (seconds)
-    float fegAmount = 0.5f;          // Filter envelope modulation amount (-1 to 1)
-    float lfoRate = 1.0f;            // LFO rate (Hz)
-    float lfoDepth = 0.05f;          // LFO depth (0 to 0.5)
-    float lfoPitchAmt = 0.05;        // LFO Pitch amount
-    float subTune = -12.0f;          // Sub-oscillator tuning (semitones)
-    float subMix = 0.5f;             // Sub-oscillator mix (0 to 1)
-    float subTrack = 1.0f;           // Sub-oscillator keyboard tracking (0 to 1)
-    float osc2Tune = -24.0f; // New oscillator tuning (default: -2 octaves)
-    float osc2Mix = 0.3f;   // New oscillator mix (default: 0.3)
-    float osc2Track = 1.0f;  // New oscillator tracking (default: full tracking)
-    int unison = 1;                  // Number of unison voices (1 to 8)
-    float detune = 0.01f;            // Unison detune amount (0 to 0.1)
-    float filterStates[4] = {0.0f, 0.0f, 0.0f, 0.0f}; // Filter state array (4 stages)
-    float crossfade = 0.0f;          // Crossfade progress for wavetable changes (0 to 1)
-    std::vector<float> detuneFactors; // Precomputed detune factors
-    juce::LinearSmoothedValue<float> smoothedFilterEnv;
-    juce::SmoothedValue<float> smoothedAmplitude;
-    juce::SmoothedValue<float> smoothedCutoff;
-    juce::SmoothedValue<float> smoothedFegAmount;
-    float oscLPState = 0.0f;   // New: For dynamic band-limiting IIR state
-    float mainLPState = 0.0f;  // For unison/main
-    float subLPState = 0.0f;
-    float osc2LPState = 0.0f;  // New: For OSC2 band-limiting
-    float dcState = 0.0f;      // New: For per-voice DC blocker state
-    std::vector<float> unisonPhases;
+        bool active = false;                // Is the voice currently active?
+        bool released = false;              // Has the voice been released (note-off)?
+        bool isHeld = false;                // Is the note currently held?
+        float frequency = 0.0f;             // Base frequency of the note (Hz)
+        float phase = 0.0f;                 // Main oscillator phase (0 to 1)
+        float phaseIncrement = 0.0f;        // Main oscillator phase increment per sample
+        int noteNumber = 0;                 // MIDI note number
+        float velocity = 0.0f;              // Note velocity (0 to 1)
+        float amplitude = 0.0f;             // Current amplitude from envelope
+        float voiceAge = 0.0f;              // Age of the voice (seconds)
+        float noteOnTime = 0.0f;            // Time when note was triggered
+        float noteOffTime = 0.0f;           // Time when note was released
+        float releaseStartAmplitude = 0.0f; // Amplitude at release start
+        float subPhase = 0.0f;              // Sub-oscillator phase (radians)
+        float subPhaseIncrement = 0.0f;     // Sub-oscillator phase increment per sample
+        float osc2Phase = 0.0f;             // New oscillator phase
+        float osc2PhaseIncrement = 0.0f;    // Oscillator phase increment
+        float osc2PhaseOffset = 0.0f;
+        float lfoPhase = 0.0f;                            // LFO phase (radians)
+        float filterEnv = 0.0f;                           // Filter envelope value (0 to 1)
+        float attackCurve = 2.0f;                         // Attack curve exponent
+        float releaseCurve = 3.0f;                        // Release curve exponent
+        int wavetableType = 0;                            // Wavetable type (0=sine, 1=saw, 2=square)
+        float attack = 0.1f;                              // Amplitude envelope attack time (seconds)
+        float decay = 0.5f;                               // Amplitude envelope decay time (seconds)
+        float sustain = 0.8f;                             // Amplitude envelope sustain level (0 to 1)
+        float release = 0.2f;                             // Amplitude envelope release time (seconds)
+        float cutoff = 1000.0f;                           // Filter cutoff frequency (Hz)
+        float resonance = 0.7f;                           // Filter resonance (0 to 1)
+        float filterBypass = 1.0f;                        // Filter is on (1) or off (0)
+        float fegAttack = 0.1f;                           // Filter envelope attack time (seconds)
+        float fegDecay = 1.0f;                            // Filter envelope decay time (seconds)
+        float fegSustain = 0.5f;                          // Filter envelope sustain level (0 to 1)
+        float fegRelease = 0.2f;                          // Filter envelope release time (seconds)
+        float fegAmount = 0.5f;                           // Filter envelope modulation amount (-1 to 1)
+        float lfoRate = 1.0f;                             // LFO rate (Hz)
+        float lfoDepth = 0.05f;                           // LFO depth (0 to 0.5)
+        float lfoPitchAmt = 0.05f;                        // LFO Pitch amount
+        float subTune = -12.0f;                           // Sub-oscillator tuning (semitones)
+        float subMix = 0.5f;                              // Sub-oscillator mix (0 to 1)
+        float subTrack = 1.0f;                            // Sub-oscillator keyboard tracking (0 to 1)
+        float osc2Tune = -24.0f;                          // New oscillator tuning (default: -2 octaves)
+        float osc2Mix = 0.3f;                             // New oscillator mix (default: 0.3)
+        float osc2Track = 1.0f;                           // New oscillator tracking (default: full tracking)
+        int unison = 1;                                   // Number of unison voices (1 to 8)
+        float detune = 0.01f;                             // Unison detune amount (0 to 0.1)
+        float filterStates[4] = {0.0f, 0.0f, 0.0f, 0.0f}; // Filter state array (4 stages)
+        float crossfade = 0.0f;                           // Crossfade progress for wavetable changes (0 to 1)
+        std::vector<float> detuneFactors;                 // Precomputed detune factors
+        juce::LinearSmoothedValue<float> smoothedFilterEnv;
+        juce::SmoothedValue<float> smoothedAmplitude;
+        juce::SmoothedValue<float> smoothedCutoff;
+        juce::SmoothedValue<float> smoothedFegAmount;
+        float oscLPState = 0.0f;  // New: For dynamic band-limiting IIR state
+        float mainLPState = 0.0f; // For unison/main
+        float subLPState = 0.0f;
+        float osc2LPState = 0.0f; // New: For OSC2 band-limiting
+        float dcState = 0.0f;     // New: For per-voice DC blocker state
+        std::vector<float> unisonPhases;
 };
 
 // Structure to hold shared filter parameters for the ladder filter
 struct Filter {
-    float sampleRate = 44100.0f; // Sample rate for filter calculations
-    float resonance = 0.7f;      // Resonance parameter (scaled in applyLadderFilter)
+        float sampleRate = 44100.0f; // Sample rate for filter calculations
+        float resonance = 0.7f;      // Resonance parameter (scaled in applyLadderFilter)
 };
 
 // Main audio processor class for SimdSynth
-class SimdSynthAudioProcessor : public juce::AudioProcessor {
-private:
-    // Structure to hold pending preset parameters for new voices
-    struct PendingVoiceParameters {
-        int wavetableType = 0;
-        float attack = 0.1f;
-        float decay = 0.5f;
-        float sustain = 0.8f;
-        float release = 0.2f;
-        float cutoff = 1000.0f;
-        float fegAttack = 0.1f;
-        float fegDecay = 1.0f;
-        float fegSustain = 0.5f;
-        float fegRelease = 0.2f;
-        float fegAmount = 0.5f;
-        float lfoRate = 1.0f;
-        float lfoDepth = 0.05f;
-        float subTune = -12.0f;
-        float subMix = 0.5f;
-        float subTrack = 1.0f;
-        int unison = 1;
-        float detune = 0.01f;
-    };
+class SimdSynthAudioProcessor : public juce::AudioProcessor, public juce::AudioProcessorValueTreeState::Listener {
+    private:
+        // Structure to hold pending preset parameters for new voices
+        struct PendingVoiceParameters {
+                int wavetableType = 0;
+                float attack = 0.1f;
+                float decay = 0.5f;
+                float sustain = 0.8f;
+                float release = 0.2f;
+                float cutoff = 1000.0f;
+                float fegAttack = 0.1f;
+                float fegDecay = 1.0f;
+                float fegSustain = 0.5f;
+                float fegRelease = 0.2f;
+                float fegAmount = 0.5f;
+                float lfoRate = 1.0f;
+                float lfoDepth = 0.05f;
+                float subTune = -12.0f;
+                float subMix = 0.5f;
+                float subTrack = 1.0f;
+                int unison = 1;
+                float detune = 0.01f;
+        };
 
-    // Pending parameters for new voices
-    PendingVoiceParameters pendingParameters;
+        // Pending parameters for new voices
+        PendingVoiceParameters pendingParameters;
 
-public:
-    // Constructor and destructor
-    SimdSynthAudioProcessor();
-    ~SimdSynthAudioProcessor() override;
+    public:
+        // Constructor and destructor
+        SimdSynthAudioProcessor();
+        ~SimdSynthAudioProcessor() override;
 
-    float getRandomFloatAudioThread();
-    void refillRandomBuffer();
+        juce::AudioProcessorValueTreeState parameters;
 
-    // Preferred buffer size for optimal performance
-    int getPreferredBufferSize() const;
+        float getRandomFloatAudioThread();
+        void refillRandomBuffer();
 
-    // Audio processor overrides
-    void setParametersChanged() { parametersChanged.store(true, std::memory_order_release); }
+        // Preferred buffer size for optimal performance
+        int getPreferredBufferSize() const;
 
-    void parameterChanged(const juce::String& parameterID, float newValue)  {
-        setParametersChanged();
-    }
+        // Audio processor overrides
+        void setParametersChanged() { parametersChanged.store(true, std::memory_order_release); }
 
-    void prepareToPlay(double sampleRate, int samplesPerBlock) override;
-    void releaseResources() override;
-    bool isBusesLayoutSupported(const BusesLayout& layouts) const override {
-        return layouts.getMainOutputChannelSet() == juce::AudioChannelSet::stereo();
-    }
-    void processBlock(juce::AudioBuffer<float>&, juce::MidiBuffer&) override;
-    juce::AudioProcessorEditor* createEditor() override;
-    bool hasEditor() const override { return true; }
-    const juce::String getName() const override { return JucePlugin_Name; }
-    bool acceptsMidi() const override { return true; }
-    bool producesMidi() const override { return false; }
-    bool isMidiEffect() const override { return false; }
-    double getTailLengthSeconds() const override { return 0.0; }
-    int getNumPrograms() override;
-    int getCurrentProgram() override;
-    void setCurrentProgram(int index) override;
-    const juce::String getProgramName(int index) override;
-    void changeProgramName(int index, const juce::String& newName) override;
-    void getStateInformation(juce::MemoryBlock& destData) override;
-    void setStateInformation(const void* data, int sizeInBytes) override;
-    void processSingleSample(int sampleIndex, juce::dsp::AudioBlock<float>& oversampledBlock, double blockStartTime, float sampleRate, float voiceScaling, int totalNumOutputChannels, std::function<float(float, float)> wavetable_lookup_scalar);
+        // Listener method for parameter changes
+        void parameterChanged(const juce::String &parameterID, float newValue);
 
-    // SIMD floor function declaration
+        void prepareToPlay(double sampleRate, int samplesPerBlock) override;
+        void releaseResources() override;
+        bool isBusesLayoutSupported(const BusesLayout &layouts) const override {
+            return layouts.getMainOutputChannelSet() == juce::AudioChannelSet::stereo();
+        }
+        void processBlock(juce::AudioBuffer<float> &, juce::MidiBuffer &) override;
+        juce::AudioProcessorEditor *createEditor() override;
+        bool hasEditor() const override { return true; }
+        const juce::String getName() const override { return JucePlugin_Name; }
+        bool acceptsMidi() const override { return true; }
+        bool producesMidi() const override { return false; }
+        bool isMidiEffect() const override { return false; }
+        double getTailLengthSeconds() const override { return 0.0; }
+        int getNumPrograms() override;
+        int getCurrentProgram() override;
+        void setCurrentProgram(int index) override;
+        const juce::String getProgramName(int index) override;
+        void changeProgramName(int index, const juce::String &newName) override;
+        void getStateInformation(juce::MemoryBlock &destData) override;
+        void setStateInformation(const void *data, int sizeInBytes) override;
+        void processSingleSample(int sampleIndex, juce::dsp::AudioBlock<float> &oversampledBlock, double blockStartTime,
+                                 float sampleRate, float voiceScaling, int totalNumOutputChannels,
+                                 std::function<float(float, float)> wavetable_lookup_scalar);
+
+        // SIMD floor function declaration
 #if defined(__aarch64__) || defined(__arm64__)
-    inline float32x4_t my_floorq_f32(float32x4_t x);
+        inline float32x4_t my_floorq_f32(float32x4_t x);
 #else
-    inline __m128 my_floorq_f32(__m128 x);
+        inline __m128 my_floorq_f32(__m128 x);
 #endif
 
-    // Voice management and envelope processing
-    int findVoiceToSteal();                    // Select a voice for stealing when polyphony is exceeded
-    void updateEnvelopes(float t);             // Update amplitude and filter envelopes for all voices
-    void updateVoiceParameters(float sampleRate, bool forceUpdate);              // Update parameters for all voices
+        // Voice management and envelope processing
+        int findVoiceToSteal();        // Select a voice for stealing when polyphony is exceeded
+        void updateEnvelopes(float t); // Update amplitude and filter envelopes for all voices
+        void updateVoiceParameters(float sampleRate, bool forceUpdate); // Update parameters for all voices
 
-    // Preset management
-    void savePreset(const juce::String& presetName, const juce::var& parameters) {
-        presetManager.writePresetFile(presetName, parameters);
-    }
-    void loadPresets() { loadPresetsFromDirectory(); }
-    juce::AudioProcessorValueTreeState& getParameters() { return parameters; }
-    juce::StringArray getPresetNames() const { return presetNames; }
+        // Preset management
+        void savePreset(const juce::String &presetName, const juce::var &paramsToSave) {
+            presetManager.writePresetFile(presetName, paramsToSave);
+        }
+        void loadPresets() { loadPresetsFromDirectory(); }
+        juce::AudioProcessorValueTreeState &getParameters() { return parameters; }
+        juce::StringArray getPresetNames() const { return presetNames; }
 
-private:
-    static constexpr size_t randomBufferSize = 1024; // Enough for multiple note-ons
-    std::vector<float> randomBuffer;
-    std::atomic<size_t> randomIndex{0};
-    juce::CriticalSection randomBufferLock; // For refilling in non-real-time thread
-    juce::Random random; // Add random generator
-    std::map<juce::String, float> defaultParamValues;
+    private:
+        static constexpr size_t randomBufferSize = 1024; // Enough for multiple note-ons
+        std::vector<float> randomBuffer;
+        std::atomic<size_t> randomIndex{0};
+        juce::CriticalSection randomBufferLock; // For refilling in non-real-time thread
+        juce::Random random;                    // Add random generator
+        std::map<juce::String, float> defaultParamValues;
 
-    // Parameter management
-    std::atomic<bool> parametersChanged{false};
+        // Parameter management
+        std::atomic<bool> parametersChanged{false};
 
-    juce::AudioProcessorValueTreeState parameters;
-    std::atomic<float> *wavetableTypeParam, *attackTimeParam, *decayTimeParam, *sustainLevelParam,
-        *releaseTimeParam, *cutoffParam, *resonanceParam, *fegAttackParam, *fegDecayParam, *fegSustainParam,
-        *fegReleaseParam, *fegAmountParam, *lfoRateParam, *lfoDepthParam, *lfoPitchAmtParam, *subTuneParam, *subMixParam,
-        *subTrackParam, *osc2TuneParam, *osc2MixParam, *osc2TrackParam, *gainParam, *unisonParam, *detuneParam,
-        *attackCurveParam, *releaseCurveParam;
+        std::atomic<float> *wavetableTypeParam, *attackTimeParam, *decayTimeParam, *sustainLevelParam,
+            *releaseTimeParam, *cutoffParam, *filterMixParam, *filterBypassParam, *resonanceParam, *fegAttackParam,
+            *fegDecayParam, *fegSustainParam, *fegReleaseParam, *fegAmountParam, *lfoRateParam, *lfoDepthParam,
+            *lfoPitchAmtParam, *subTuneParam, *subMixParam, *subTrackParam, *osc2TuneParam, *osc2MixParam,
+            *osc2TrackParam, *gainParam, *unisonParam, *detuneParam, *attackCurveParam, *releaseCurveParam;
 
-    // Smoothed parameters for reducing zipper noise
-    juce::LinearSmoothedValue<float> smoothedGain;       // Smoothed output gain
-    juce::LinearSmoothedValue<float> smoothedCutoff;     // Smoothed filter cutoff
-    juce::LinearSmoothedValue<float> smoothedResonance;  // Smoothed filter resonance
-    juce::LinearSmoothedValue<float> smoothedLfoRate;   // Smoothed LFO rate
-    juce::LinearSmoothedValue<float> smoothedLfoDepth;  // Smoothed LFO depth
-    juce::LinearSmoothedValue<float> smoothedSubMix;    // Smoothed sub-oscillator mix
-    juce::LinearSmoothedValue<float> smoothedSubTune;   // Smoothed sub-oscillator tuning
-    juce::LinearSmoothedValue<float> smoothedSubTrack;  // Smoothed sub-oscillator tracking
-    juce::LinearSmoothedValue<float> smoothedDetune;    // Smoothed unison detune
-    juce::LinearSmoothedValue<float> smoothedOsc2Mix;    // New smoothed value
-    juce::LinearSmoothedValue<float> smoothedOsc2Tune; // New smoothed value
-    juce::LinearSmoothedValue<float> smoothedOsc2Track;   // New smoothed value
-    juce::LinearSmoothedValue<float> smoothedAttackCurve;  // New
-    juce::LinearSmoothedValue<float> smoothedReleaseCurve; // New
+        // Smoothed parameters for reducing zipper noise
+        juce::LinearSmoothedValue<float> smoothedGain;      // Smoothed output gain
+        juce::LinearSmoothedValue<float> smoothedCutoff;    // Smoothed filter cutoff
+        juce::LinearSmoothedValue<float> smoothedResonance; // Smoothed filter resonance
+        juce::SmoothedValue<float> smoothedFilterMix;
+        juce::LinearSmoothedValue<float> smoothedLfoRate;      // Smoothed LFO rate
+        juce::LinearSmoothedValue<float> smoothedLfoDepth;     // Smoothed LFO depth
+        juce::LinearSmoothedValue<float> smoothedSubMix;       // Smoothed sub-oscillator mix
+        juce::LinearSmoothedValue<float> smoothedSubTune;      // Smoothed sub-oscillator tuning
+        juce::LinearSmoothedValue<float> smoothedSubTrack;     // Smoothed sub-oscillator tracking
+        juce::LinearSmoothedValue<float> smoothedDetune;       // Smoothed unison detune
+        juce::LinearSmoothedValue<float> smoothedOsc2Mix;      // New smoothed value
+        juce::LinearSmoothedValue<float> smoothedOsc2Tune;     // New smoothed value
+        juce::LinearSmoothedValue<float> smoothedOsc2Track;    // New smoothed value
+        juce::LinearSmoothedValue<float> smoothedAttackCurve;  // New
+        juce::LinearSmoothedValue<float> smoothedReleaseCurve; // New
 
-    // Voice and filter data
-    Voice voices[MAX_VOICE_POLYPHONY];                            // Array of polyphonic voices
-    Filter filter;                                                // Shared filter instance
-    double currentTime = 0.0;                                     // Current processing time
-    std::unique_ptr<juce::dsp::Oversampling<float>> oversampling; // Oversampling for anti-aliasing
-    PresetManager presetManager;                                  // Manages preset loading/saving
-    juce::StringArray presetNames;                                // List of preset names
-    int currentProgram = 0;                                       // Current preset index
-    static constexpr int parameterVersion = 1;                    // Parameter version for state saving
+        // Voice and filter data
+        Voice voices[MAX_VOICE_POLYPHONY];                            // Array of polyphonic voices
+        Filter filter;                                                // Shared filter instance
+        double currentTime = 0.0;                                     // Current processing time
+        std::unique_ptr<juce::dsp::Oversampling<float>> oversampling; // Oversampling for anti-aliasing
+        PresetManager presetManager;                                  // Manages preset loading/saving
+        juce::StringArray presetNames;                                // List of preset names
+        int currentProgram = 0;                                       // Current preset index
+        static constexpr int parameterVersion = 1;                    // Parameter version for state saving
 
-    // Lookup tables for oscillator waveforms
-    std::vector<float> sineTable;
-    std::vector<float> sawTable;
-    std::vector<float> squareTable;
+        // Lookup tables for oscillator waveforms
+        std::vector<float> sineTable;
+        std::vector<float> sawTable;
+        std::vector<float> squareTable;
 
-    std::vector<std::vector<std::vector<float>>> dynamicTables;  // [octave][wavetype][size]
-    std::vector<float> blepTable;  // PolyBLEP correction
-    std::array<float, MAX_VOICE_POLYPHONY> lastNoteFreqs;  // For portamento
-    float glideTime = 0.0f;  // Portamento param
-    float velCurve = 0.5f;   // Velocity curve param
-    float lfoToFilter = 0.0f, lfoToAmp = 0.0f;  // LFO targets
-    float egToSubMix = 0.0f;  // EG to sub mix amount
-    int osFactor = 2;  // Adaptive OS
+        std::vector<std::vector<std::vector<float>>> dynamicTables; // [octave][wavetype][size]
+        std::vector<float> blepTable;                               // PolyBLEP correction
+        std::array<float, MAX_VOICE_POLYPHONY> lastNoteFreqs;       // For portamento
+        float glideTime = 0.0f;                                     // Portamento param
+        float velCurve = 0.5f;                                      // Velocity curve param
+        float lfoToFilter = 0.0f, lfoToAmp = 0.0f;                  // LFO targets
+        float egToSubMix = 0.0f;                                    // EG to sub mix amount
+        int osFactor = 2;                                           // Adaptive OS
 
+        // Utility functions
+        void loadPresetsFromDirectory();                                          // Load presets from directory
+        float midiToFreq(int midiNote);                                           // Convert MIDI note to frequency
+        float randomize(float base, float var);                                   // Randomize a value within a range
+        SIMD_TYPE wavetable_lookup_ps(SIMD_TYPE phase, SIMD_TYPE wavetableTypes); // Wavetable lookup
+        void applyLadderFilter(Voice *voices, int voiceOffset, SIMD_TYPE input, Filter &filter,
+                               SIMD_TYPE &output); // Apply ladder filter with SIMD
 
-    // Utility functions
-    void loadPresetsFromDirectory();                                   // Load presets from directory
-    float midiToFreq(int midiNote);                                    // Convert MIDI note to frequency
-    float randomize(float base, float var);                            // Randomize a value within a range
-    SIMD_TYPE wavetable_lookup_ps(SIMD_TYPE phase, SIMD_TYPE wavetableTypes); // Wavetable lookup
-    void applyLadderFilter(Voice* voices, int voiceOffset, SIMD_TYPE input, Filter& filter,
-                           SIMD_TYPE& output); // Apply ladder filter with SIMD
-
-    // Architecture-specific SIMD functions
+        // Architecture-specific SIMD functions
 #if defined(__x86_64__)
-    SIMD_TYPE fast_sin_ps(SIMD_TYPE x);                   // Fast sine approximation for x86_64
-    const SIMD_TYPE piOverTwo = _mm_set1_ps(juce::MathConstants<float>::pi / 2.0f); // Pi/2 constant
+        SIMD_TYPE fast_sin_ps(SIMD_TYPE x); // Fast sine approximation for x86_64
+        const SIMD_TYPE piOverTwo = _mm_set1_ps(juce::MathConstants<float>::pi / 2.0f); // Pi/2 constant
 #elif defined(__aarch64__) || defined(__arm64__)
-    SIMD_TYPE fast_sin_ps(SIMD_TYPE x);                   // Fast sine approximation for ARM64
-    const SIMD_TYPE piOverTwo = vdupq_n_f32(juce::MathConstants<float>::pi / 2.0f); // Pi/2 constant
+        SIMD_TYPE fast_sin_ps(SIMD_TYPE x); // Fast sine approximation for ARM64
+        const SIMD_TYPE piOverTwo = vdupq_n_f32(juce::MathConstants<float>::pi / 2.0f); // Pi/2 constant
 #endif
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimdSynthAudioProcessor)
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SimdSynthAudioProcessor)
 };
 
 // Plugin creation function
-juce::AudioProcessor* JUCE_CALLTYPE createPluginFilter();
+juce::AudioProcessor *JUCE_CALLTYPE createPluginFilter();

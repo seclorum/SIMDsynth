@@ -1,8 +1,7 @@
 #include "PerformanceUI.h"
 
 //==============================================================================
-PerformanceUI::PerformanceUI()
-{
+PerformanceUI::PerformanceUI() {
     // Initialize the main container and viewports
     addAndMakeVisible(buttonRowViewport);
     addAndMakeVisible(sliderRegionViewport);
@@ -11,9 +10,8 @@ PerformanceUI::PerformanceUI()
     sliderRegionViewport.setViewedComponent(&sliderRegionContainer, false);
 
     // Create 12 buttons for the button row
-    for (int i = 0; i < 12; ++i)
-    {
-        auto* button = buttons.add(new juce::TextButton("Btn " + juce::String(i + 1)));
+    for (int i = 0; i < 12; ++i) {
+        auto *button = buttons.add(new juce::TextButton("Btn " + juce::String(i + 1)));
         button->addListener(this);
         buttonRowContainer.addAndMakeVisible(*button);
         button->setColour(juce::TextButton::buttonColourId, juce::Colours::darkgrey);
@@ -22,9 +20,8 @@ PerformanceUI::PerformanceUI()
     }
 
     // Create 24 sliders for the slider region, styled like aviation trim sliders
-    for (int i = 0; i < 24; ++i)
-    {
-        auto* slider = sliders.add(new juce::Slider(juce::Slider::LinearVertical, juce::Slider::TextBoxBelow));
+    for (int i = 0; i < 24; ++i) {
+        auto *slider = sliders.add(new juce::Slider(juce::Slider::LinearVertical, juce::Slider::TextBoxBelow));
         slider->setRange(0.0, 100.0, 0.1);
         slider->setValue(50.0);
         slider->addListener(this);
@@ -43,13 +40,10 @@ PerformanceUI::PerformanceUI()
     setWantsKeyboardFocus(true);
 }
 
-PerformanceUI::~PerformanceUI()
-{
-}
+PerformanceUI::~PerformanceUI() {}
 
 //==============================================================================
-void PerformanceUI::paint(juce::Graphics& g)
-{
+void PerformanceUI::paint(juce::Graphics &g) {
     // Paint the background
     g.fillAll(juce::Colours::black);
 
@@ -64,8 +58,7 @@ void PerformanceUI::paint(juce::Graphics& g)
     */
 }
 
-void PerformanceUI::resized()
-{
+void PerformanceUI::resized() {
     // Calculate the unit size based on device dimensions
     auto unit = calculateUnitSize();
 
@@ -88,30 +81,28 @@ void PerformanceUI::resized()
 }
 
 //==============================================================================
-juce::Rectangle<float> PerformanceUI::calculateUnitSize() const
-{
+juce::Rectangle<float> PerformanceUI::calculateUnitSize() const {
     // Divide vertical dimension by 8 and horizontal by 12 to define the grid unit
     float unitHeight = getHeight() / 8.0f;
     float unitWidth = getWidth() / 12.0f;
     return juce::Rectangle<float>(0, 0, unitWidth, unitHeight);
 }
 
-void PerformanceUI::setupButtonRow()
-{
+void PerformanceUI::setupButtonRow() {
     auto unit = calculateUnitSize();
-    float buttonWidth = unit.getWidth() * 2.0f; // Each button spans 2 grid units horizontally
+    float buttonWidth = unit.getWidth() * 2.0f;   // Each button spans 2 grid units horizontally
     float buttonHeight = unit.getHeight() * 0.8f; // Slightly less than unit height for padding
 
     // Configure button row FlexBox
     buttonRowFlexBox.flexDirection = juce::FlexBox::Direction::row;
     buttonRowFlexBox.items.clear();
 
-    for (auto* button : buttons)
-    {
-        buttonRowFlexBox.items.add(juce::FlexItem(*button)
-                                       .withWidth(buttonWidth)
-                                       .withHeight(buttonHeight)
-                                       .withMargin(juce::FlexItem::Margin(0, unit.getWidth() * 0.1f, 0, unit.getWidth() * 0.1f)));
+    for (auto *button : buttons) {
+        buttonRowFlexBox.items.add(
+            juce::FlexItem(*button)
+                .withWidth(buttonWidth)
+                .withHeight(buttonHeight)
+                .withMargin(juce::FlexItem::Margin(0, unit.getWidth() * 0.1f, 0, unit.getWidth() * 0.1f)));
     }
 
     // Calculate total width of buttons
@@ -125,22 +116,21 @@ void PerformanceUI::setupButtonRow()
     buttonRowViewport.setViewPosition(0, 0);
 }
 
-void PerformanceUI::setupSliderRegion()
-{
+void PerformanceUI::setupSliderRegion() {
     auto unit = calculateUnitSize();
-    float sliderWidth = unit.getWidth() * 0.8f; // Each slider is slightly narrower than a grid unit
+    float sliderWidth = unit.getWidth() * 0.8f;                   // Each slider is slightly narrower than a grid unit
     float sliderHeight = sliderRegionViewport.getHeight() * 0.9f; // Use most of the viewport height
 
     // Configure slider region FlexBox
     sliderRegionFlexBox.flexDirection = juce::FlexBox::Direction::row;
     sliderRegionFlexBox.items.clear();
 
-    for (auto* slider : sliders)
-    {
-        sliderRegionFlexBox.items.add(juce::FlexItem(*slider)
-                                          .withWidth(sliderWidth)
-                                          .withHeight(sliderHeight)
-                                          .withMargin(juce::FlexItem::Margin(0, unit.getWidth() * 0.1f, 0, unit.getWidth() * 0.1f)));
+    for (auto *slider : sliders) {
+        sliderRegionFlexBox.items.add(
+            juce::FlexItem(*slider)
+                .withWidth(sliderWidth)
+                .withHeight(sliderHeight)
+                .withMargin(juce::FlexItem::Margin(0, unit.getWidth() * 0.1f, 0, unit.getWidth() * 0.1f)));
     }
 
     // Calculate total width of sliders
@@ -155,22 +145,19 @@ void PerformanceUI::setupSliderRegion()
 }
 
 //==============================================================================
-void PerformanceUI::buttonClicked(juce::Button* button)
-{
+void PerformanceUI::buttonClicked(juce::Button *button) {
     // Handle button clicks (for testing purposes, toggle button state)
     button->setToggleState(!button->getToggleState(), juce::dontSendNotification);
     DBG("Button clicked: " << button->getName());
 }
 
-void PerformanceUI::sliderValueChanged(juce::Slider* slider)
-{
+void PerformanceUI::sliderValueChanged(juce::Slider *slider) {
     // Handle slider value changes (for testing purposes, log the value)
     DBG("Slider " << slider->getName() << " value: " << slider->getValue());
 }
 
 //==============================================================================
-void PerformanceUI::mouseDown(const juce::MouseEvent& event)
-{
+void PerformanceUI::mouseDown(const juce::MouseEvent &event) {
     // Store the drag start position for scrolling
     if (buttonRowViewport.getBounds().contains(event.getPosition()))
         buttonRowDragStart = event.getPosition().toFloat();
@@ -178,11 +165,9 @@ void PerformanceUI::mouseDown(const juce::MouseEvent& event)
         sliderRegionDragStart = event.getPosition().toFloat();
 }
 
-void PerformanceUI::mouseDrag(const juce::MouseEvent& event)
-{
+void PerformanceUI::mouseDrag(const juce::MouseEvent &event) {
     // Handle scrolling for button row
-    if (buttonRowViewport.getBounds().contains(event.getPosition()))
-    {
+    if (buttonRowViewport.getBounds().contains(event.getPosition())) {
         auto delta = event.getPosition().toFloat() - buttonRowDragStart;
         auto currentPos = buttonRowViewport.getViewPosition();
         int newX = currentPos.x - delta.x;
@@ -195,8 +180,7 @@ void PerformanceUI::mouseDrag(const juce::MouseEvent& event)
     }
 
     // Handle scrolling for slider region
-    if (sliderRegionViewport.getBounds().contains(event.getPosition()))
-    {
+    if (sliderRegionViewport.getBounds().contains(event.getPosition())) {
         auto delta = event.getPosition().toFloat() - sliderRegionDragStart;
         auto currentPos = sliderRegionViewport.getViewPosition();
         int newX = currentPos.x - delta.x;

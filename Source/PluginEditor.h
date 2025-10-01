@@ -53,7 +53,8 @@ class SimdSynthAudioProcessorEditor : public juce::AudioProcessorEditor, public 
     private:
         CustomLookAndFeel simdSynthLAF;
 
-        void layoutGroupSliders(juce::GroupComponent* group, const std::vector<std::pair<juce::Slider*, juce::Label*>>& slidersAndLabels);
+        void layoutGroupSliders(juce::GroupComponent *group,
+                                const std::vector<std::pair<juce::Slider *, juce::Label *>> &slidersAndLabels);
 
         SimdSynthAudioProcessor &processor;
 

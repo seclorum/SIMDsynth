@@ -63,23 +63,23 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     oscillatorGroup = std::make_unique<juce::GroupComponent>("oscillatorGroup", "Oscillator");
     addAndMakeVisible(oscillatorGroup.get());
 
-    ampEnvelopeGroup = std::make_unique<juce::GroupComponent>("ampEnvelopeGroup", "Amp Envelope");
-    addAndMakeVisible(ampEnvelopeGroup.get());
-
-    filterGroup = std::make_unique<juce::GroupComponent>("filterGroup", "Filter");
-    addAndMakeVisible(filterGroup.get());
-
-    filterEnvelopeGroup = std::make_unique<juce::GroupComponent>("filterEnvelopeGroup", "Filter Envelope");
-    addAndMakeVisible(filterEnvelopeGroup.get());
-
-    lfoGroup = std::make_unique<juce::GroupComponent>("lfoGroup", "LFO");
-    addAndMakeVisible(lfoGroup.get());
-
     oscillator2Group = std::make_unique<juce::GroupComponent>("oscillator2Group", "2nd Oscillator");
     addAndMakeVisible(oscillator2Group.get());
 
     subOscillatorGroup = std::make_unique<juce::GroupComponent>("subOscillatorGroup", "Sub Oscillator");
     addAndMakeVisible(subOscillatorGroup.get());
+
+    filterGroup = std::make_unique<juce::GroupComponent>("filterGroup", "Filter");
+    addAndMakeVisible(filterGroup.get());
+
+    lfoGroup = std::make_unique<juce::GroupComponent>("lfoGroup", "LFO");
+    addAndMakeVisible(lfoGroup.get());
+
+    ampEnvelopeGroup = std::make_unique<juce::GroupComponent>("ampEnvelopeGroup", "Amp Envelope");
+    addAndMakeVisible(ampEnvelopeGroup.get());
+
+    filterEnvelopeGroup = std::make_unique<juce::GroupComponent>("filterEnvelopeGroup", "Filter Envelope");
+    addAndMakeVisible(filterEnvelopeGroup.get());
 
     outputGroup = std::make_unique<juce::GroupComponent>("outputGroup", "Output");
     addAndMakeVisible(outputGroup.get());
@@ -101,8 +101,8 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     unisonSlider->setSliderStyle(juce::Slider::Rotary);
     unisonSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
     oscillatorGroup->addAndMakeVisible(unisonSlider.get());
-    unisonAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        processor.getParameters(), "unison", *unisonSlider);
+    unisonAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.getParameters(),
+                                                                                              "unison", *unisonSlider);
     unisonLabel = std::make_unique<juce::Label>("unisonLabel", "Unison Voices");
     oscillatorGroup->addAndMakeVisible(unisonLabel.get());
     unisonLabel->setJustificationType(juce::Justification::centred);
@@ -112,8 +112,8 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     detuneSlider->setSliderStyle(juce::Slider::Rotary);
     detuneSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
     oscillatorGroup->addAndMakeVisible(detuneSlider.get());
-    detuneAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        processor.getParameters(), "detune", *detuneSlider);
+    detuneAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.getParameters(),
+                                                                                              "detune", *detuneSlider);
     detuneLabel = std::make_unique<juce::Label>("detuneLabel", "Unison Detune");
     oscillatorGroup->addAndMakeVisible(detuneLabel.get()); // Changed to addAndMakeVisible
     detuneLabel->setJustificationType(juce::Justification::centred);
@@ -124,8 +124,8 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     attackSlider->setSliderStyle(juce::Slider::Rotary);
     attackSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
     ampEnvelopeGroup->addAndMakeVisible(attackSlider.get());
-    attackAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        processor.getParameters(), "attack", *attackSlider);
+    attackAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.getParameters(),
+                                                                                              "attack", *attackSlider);
     attackLabel = std::make_unique<juce::Label>("attackLabel", "Attack Time");
     ampEnvelopeGroup->addAndMakeVisible(attackLabel.get()); // Changed to addAndMakeVisible
     attackLabel->setJustificationType(juce::Justification::centred);
@@ -135,8 +135,8 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     decaySlider->setSliderStyle(juce::Slider::Rotary);
     decaySlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
     ampEnvelopeGroup->addAndMakeVisible(decaySlider.get());
-    decayAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        processor.getParameters(), "decay", *decaySlider);
+    decayAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.getParameters(),
+                                                                                             "decay", *decaySlider);
     decayLabel = std::make_unique<juce::Label>("decayLabel", "Decay Time");
     ampEnvelopeGroup->addAndMakeVisible(decayLabel.get()); // Changed to addAndMakeVisible
     decayLabel->setJustificationType(juce::Justification::centred);
@@ -194,8 +194,8 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     cutoffSlider->setSliderStyle(juce::Slider::Rotary);
     cutoffSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
     filterGroup->addAndMakeVisible(cutoffSlider.get());
-    cutoffAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        processor.getParameters(), "cutoff", *cutoffSlider);
+    cutoffAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.getParameters(),
+                                                                                              "cutoff", *cutoffSlider);
     cutoffLabel = std::make_unique<juce::Label>("cutoffLabel", "Filter Cutoff");
     filterGroup->addAndMakeVisible(cutoffLabel.get()); // Changed to addAndMakeVisible
     cutoffLabel->setJustificationType(juce::Justification::centred);
@@ -352,8 +352,8 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     subMixSlider->setSliderStyle(juce::Slider::Rotary);
     subMixSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
     subOscillatorGroup->addAndMakeVisible(subMixSlider.get());
-    subMixAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        processor.getParameters(), "subMix", *subMixSlider);
+    subMixAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.getParameters(),
+                                                                                              "subMix", *subMixSlider);
     subMixLabel = std::make_unique<juce::Label>("subMixLabel", "Sub Osc Mix");
     subOscillatorGroup->addAndMakeVisible(subMixLabel.get()); // Changed to addAndMakeVisible
     subMixLabel->setJustificationType(juce::Justification::centred);
@@ -375,8 +375,8 @@ SimdSynthAudioProcessorEditor::SimdSynthAudioProcessorEditor(SimdSynthAudioProce
     gainSlider->setSliderStyle(juce::Slider::Rotary);
     gainSlider->setTextBoxStyle(juce::Slider::TextBoxBelow, false, 80, 20);
     outputGroup->addAndMakeVisible(gainSlider.get());
-    gainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(
-        processor.getParameters(), "gain", *gainSlider);
+    gainAttachment = std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(processor.getParameters(),
+                                                                                            "gain", *gainSlider);
     gainLabel = std::make_unique<juce::Label>("gainLabel", "Output Gain");
     outputGroup->addAndMakeVisible(gainLabel.get()); // Changed to addAndMakeVisible
     gainLabel->setJustificationType(juce::Justification::centred);
@@ -468,61 +468,45 @@ void SimdSynthAudioProcessorEditor::resized() {
     // Layout groups using Grid
     juce::Grid grid;
     grid.templateColumns = {juce::Grid::Fr(1), juce::Grid::Fr(1), juce::Grid::Fr(1), juce::Grid::Fr(1),
-                           juce::Grid::Fr(1)};
+                            juce::Grid::Fr(1)};
     grid.templateRows = {juce::Grid::Fr(2), juce::Grid::Fr(3)};
     grid.items.add(juce::GridItem(oscillatorGroup.get()).withMargin(15));
-    grid.items.add(juce::GridItem(ampEnvelopeGroup.get()).withMargin(15));
+    grid.items.add(juce::GridItem(oscillator2Group.get()).withMargin(15));
+    grid.items.add(juce::GridItem(subOscillatorGroup.get()).withMargin(15));
     grid.items.add(juce::GridItem(filterGroup.get()).withMargin(15));
-    grid.items.add(juce::GridItem(filterEnvelopeGroup.get()).withMargin(15));
     grid.items.add(juce::GridItem(lfoGroup.get()).withMargin(15));
-    grid.items.add(juce::GridItem(oscillator2Group.get()).withArea(2, 1).withMargin(15));
-    grid.items.add(juce::GridItem(subOscillatorGroup.get()).withArea(2, 2).withMargin(15));
+    grid.items.add(juce::GridItem(ampEnvelopeGroup.get()).withArea(2, 1).withMargin(15));
+    grid.items.add(juce::GridItem(filterEnvelopeGroup.get()).withArea(2, 2).withMargin(15));
     grid.items.add(juce::GridItem(outputGroup.get()).withArea(2, 5).withMargin(15).withHeight(100));
     grid.performLayout(controlArea);
 
     // Layout sliders and labels within each group
-    layoutGroupSliders(oscillatorGroup.get(), {
-        {wavetableSlider.get(), wavetableLabel.get()},
-        {unisonSlider.get(), unisonLabel.get()},
-        {detuneSlider.get(), detuneLabel.get()}
-    });
-    layoutGroupSliders(ampEnvelopeGroup.get(), {
-        {attackSlider.get(), attackLabel.get()},
-        {decaySlider.get(), decayLabel.get()},
-        {sustainSlider.get(), sustainLabel.get()},
-        {releaseSlider.get(), releaseLabel.get()},
-        {attackCurveSlider.get(), attackCurveLabel.get()},
-        {releaseCurveSlider.get(), releaseCurveLabel.get()}
-    });
-    layoutGroupSliders(filterGroup.get(), {
-        {cutoffSlider.get(), cutoffLabel.get()},
-        {resonanceSlider.get(), resonanceLabel.get()}
-    });
-    layoutGroupSliders(filterEnvelopeGroup.get(), {
-        {fegAttackSlider.get(), fegAttackLabel.get()},
-        {fegDecaySlider.get(), fegDecayLabel.get()},
-        {fegSustainSlider.get(), fegSustainLabel.get()},
-        {fegReleaseSlider.get(), fegReleaseLabel.get()},
-        {fegAmountSlider.get(), fegAmountLabel.get()}
-    });
-    layoutGroupSliders(lfoGroup.get(), {
-        {lfoRateSlider.get(), lfoRateLabel.get()},
-        {lfoDepthSlider.get(), lfoDepthLabel.get()},
-        {lfoPitchAmtSlider.get(), lfoPitchAmtLabel.get()}
-    });
-    layoutGroupSliders(oscillator2Group.get(), {
-        {osc2TuneSlider.get(), osc2TuneLabel.get()},
-        {osc2MixSlider.get(), osc2MixLabel.get()},
-        {osc2TrackSlider.get(), osc2TrackLabel.get()}
-    });
-    layoutGroupSliders(subOscillatorGroup.get(), {
-        {subTuneSlider.get(), subTuneLabel.get()},
-        {subMixSlider.get(), subMixLabel.get()},
-        {subTrackSlider.get(), subTrackLabel.get()}
-    });
-    layoutGroupSliders(outputGroup.get(), {
-        {gainSlider.get(), gainLabel.get()}
-    });
+    layoutGroupSliders(oscillatorGroup.get(), {{wavetableSlider.get(), wavetableLabel.get()},
+                                               {unisonSlider.get(), unisonLabel.get()},
+                                               {detuneSlider.get(), detuneLabel.get()}});
+    layoutGroupSliders(ampEnvelopeGroup.get(), {{attackSlider.get(), attackLabel.get()},
+                                                {decaySlider.get(), decayLabel.get()},
+                                                {sustainSlider.get(), sustainLabel.get()},
+                                                {releaseSlider.get(), releaseLabel.get()},
+                                                {attackCurveSlider.get(), attackCurveLabel.get()},
+                                                {releaseCurveSlider.get(), releaseCurveLabel.get()}});
+    layoutGroupSliders(filterGroup.get(),
+                       {{cutoffSlider.get(), cutoffLabel.get()}, {resonanceSlider.get(), resonanceLabel.get()}});
+    layoutGroupSliders(filterEnvelopeGroup.get(), {{fegAttackSlider.get(), fegAttackLabel.get()},
+                                                   {fegDecaySlider.get(), fegDecayLabel.get()},
+                                                   {fegSustainSlider.get(), fegSustainLabel.get()},
+                                                   {fegReleaseSlider.get(), fegReleaseLabel.get()},
+                                                   {fegAmountSlider.get(), fegAmountLabel.get()}});
+    layoutGroupSliders(lfoGroup.get(), {{lfoRateSlider.get(), lfoRateLabel.get()},
+                                        {lfoDepthSlider.get(), lfoDepthLabel.get()},
+                                        {lfoPitchAmtSlider.get(), lfoPitchAmtLabel.get()}});
+    layoutGroupSliders(oscillator2Group.get(), {{osc2TuneSlider.get(), osc2TuneLabel.get()},
+                                                {osc2MixSlider.get(), osc2MixLabel.get()},
+                                                {osc2TrackSlider.get(), osc2TrackLabel.get()}});
+    layoutGroupSliders(subOscillatorGroup.get(), {{subTuneSlider.get(), subTuneLabel.get()},
+                                                  {subMixSlider.get(), subMixLabel.get()},
+                                                  {subTrackSlider.get(), subTrackLabel.get()}});
+    layoutGroupSliders(outputGroup.get(), {{gainSlider.get(), gainLabel.get()}});
 
     // Debug bounds
     DBG("Window bounds: " << getLocalBounds().toString());
@@ -536,11 +520,12 @@ void SimdSynthAudioProcessorEditor::resized() {
     DBG("gainSlider bounds: " << gainSlider->getBounds().toString());
 }
 
-void SimdSynthAudioProcessorEditor::layoutGroupSliders(juce::GroupComponent* group,
-                                                       const std::vector<std::pair<juce::Slider*, juce::Label*>>& slidersAndLabels) {
+void SimdSynthAudioProcessorEditor::layoutGroupSliders(
+    juce::GroupComponent *group, const std::vector<std::pair<juce::Slider *, juce::Label *>> &slidersAndLabels) {
     auto groupBounds = group->getLocalBounds().reduced(15);
-    auto sliderHeight = juce::jmax(60.0f, static_cast<float>(groupBounds.getHeight()) / slidersAndLabels.size()); // Increased min height for label
-    for (auto& [slider, label] : slidersAndLabels) {
+    auto sliderHeight = juce::jmax(60.0f, static_cast<float>(groupBounds.getHeight()) /
+                                              slidersAndLabels.size()); // Increased min height for label
+    for (auto &[slider, label] : slidersAndLabels) {
         auto sliderArea = groupBounds.removeFromTop(sliderHeight).reduced(5);
         slider->setBounds(sliderArea);
         if (label) {
